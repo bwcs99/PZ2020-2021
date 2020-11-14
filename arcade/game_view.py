@@ -1,5 +1,7 @@
 import arcade
 import arcade.gui
+import threading
+from time import sleep
 
 TOP_BAR_SIZE = 0.0625  # expressed as the percentage of the current screen height
 SCROLL_STEP = 0.125  # new_height = old_height +- 2 * scroll_step * original_height, same with width
@@ -17,10 +19,17 @@ class TopBar(arcade.gui.UIManager):
         self.width = screen_width
         self.height = TOP_BAR_SIZE * screen_height
         self.coords_lrtb = (0, screen_width, screen_height, screen_height - self.height)
-        arcade.gui.elements.UIStyle.set_class_attrs(arcade.gui.elements.UIStyle.default_style(), "label", font_name="SUBWT", font_color=arcade.color.WHITE)
+        # this can go into a file later maybe
+        arcade.gui.elements.UIStyle.set_class_attrs(
+            arcade.gui.elements.UIStyle.default_style(),
+            "label",
+            font_name="../resources/fonts/november",
+            font_color=arcade.color.WHITE,
+            font_size=64
+        )
 
-        self.money_label = Label("Treasury: 0 (+0)", 0, 0)
-        self.time_label = Label("Press SPACE to end turn (5:00)", 0, 0)
+        self.money_label = arcade.gui.UILabel("Treasury: 0 (+0)", 0, 0)
+        self.time_label = arcade.gui.UILabel("Press SPACE to end turn (5:00)", 0, 0)
         self.move(0, screen_width, 0, screen_height)
         self.add_ui_element(self.money_label)
         self.add_ui_element(self.time_label)
@@ -29,12 +38,23 @@ class TopBar(arcade.gui.UIManager):
         self.width = right - left
         self.height = TOP_BAR_SIZE * (top - bottom)
         self.coords_lrtb = (left, right, top, top - self.height)
-        self.money_label.center_y = self.time_label.center_y = top - self.height / 2
-        self.money_label.height = self.time_label.height = 0.8 * self.height
+        # prosze pana ale niech pan to zrobi porzadnie
+        self.money_label.center_y = self.time_label.center_y = top - self.height / 2.
+        self.money_label.height = self.time_label.height = 0.4 * self.height
         self.money_label.center_x = left + 0.125 * self.width
         self.time_label.center_x = left + 0.775 * self.width
-        self.money_label.width = 0.2 * self.width
-        self.time_label.width = 0.4 * self.width
+        self.money_label.width = len(self.money_label.text) / 75 * self.width
+        self.time_label.width = len(self.time_label.text) / 75 * self.width
+
+    def reset(self):
+        self.move(*arcade.get_viewport())
+
+    def turn_change(self, nick=None):
+        if nick:
+            self.time_label.text = f"{nick}'s turn (5:00)"
+        else:
+            self.time_label.text = "Press SPACE to end turn (5:00)"
+        self.reset()
 
     def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
         pass
@@ -46,29 +66,11 @@ class TopBar(arcade.gui.UIManager):
         pass
 
 
-class Label(arcade.gui.UILabel):
-    def __init__(self, text, center_x, center_y):
-        super().__init__(text, center_x, center_y)
-
-
-"""
-class TopBar:
-    def __init__(self, screen_width, screen_height):
-        self.coords_lrtb = (0, screen_width, screen_height, (1 - TOP_BAR_SIZE) * screen_height)
-        self.width = screen_width
-        self.height = TOP_BAR_SIZE * screen_height
-        self.money_text_args = 0.1 * self.width, screen_height - 0.9 * self.height, arcade.color.PEACH
-
-    def move(self, left, right, bottom, top):
-        self.width = right - left
-        self.height = TOP_BAR_SIZE * (top - bottom)
-        self.coords_lrtb = (left, right, top, top - self.height)
-        self.money_text_args = left + 0.1 * self.width, top - 0.9 * self.height, arcade.color.PEACH
-"""
-
 class GameView(arcade.View):
     def __init__(self, width, height):
         super().__init__()
+        self.my_turn = True
+        self.cur_enemy = ""
 
         self.SCREEN_WIDTH = width
         self.SCREEN_HEIGHT = height
@@ -91,7 +93,7 @@ class GameView(arcade.View):
                 tile = arcade.SpriteSolidColor(self.tile_size, self.tile_size, arcade.color.WHITE)
                 tile.center_x = col * (self.tile_size + MARGIN) + (self.tile_size / 2) + MARGIN + self.centering_x
                 tile.center_y = row * (self.tile_size + MARGIN) + (self.tile_size / 2) + MARGIN + self.centering_y
-                tile.color = arcade.color.BABY_BLUE
+                tile.color = (0, 64, 128)
                 self.tile_sprites.append(tile)
 
     def on_show(self):
@@ -99,9 +101,9 @@ class GameView(arcade.View):
         self.top_bar.move(*arcade.get_viewport())
 
     def on_draw(self):
+        self.top_bar.turn_change(self.cur_enemy)
         arcade.start_render()
         self.tile_sprites.draw()
-        current = arcade.get_viewport()
         # top bar
         arcade.draw_lrtb_rectangle_filled(*self.top_bar.coords_lrtb, arcade.color.ST_PATRICK_BLUE)
 
@@ -137,22 +139,16 @@ class GameView(arcade.View):
             else:
                 new_bottom = 0
 
-            self.top_bar.move(new_left,
-                              new_left + new_width,
-                              new_bottom,
-                              new_bottom + new_height
-                              )
-
-            arcade.set_viewport(
-                new_left,
-                new_left + new_width,
-                new_bottom,
-                new_bottom + new_height
-            )
+            self.top_bar.move(new_left, new_left + new_width, new_bottom, new_bottom + new_height)
+            arcade.set_viewport(new_left, new_left + new_width, new_bottom, new_bottom + new_height)
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         if buttons == 4:
             current = arcade.get_viewport()
+            # slow the movement down a lil bit
+            dx /= 4
+            dy /= 4
+
             if current[0] - dx < 0 or current[1] - dx > self.SCREEN_WIDTH:
                 dx = 0
             # max_top = zoomed out map height + current top bar height,
@@ -160,13 +156,12 @@ class GameView(arcade.View):
             max_top = (1 - TOP_BAR_SIZE) * self.SCREEN_HEIGHT + self.top_bar.height
             if current[2] - dy < 0 or current[3] - dy > max_top:
                 dy = 0
+
             self.top_bar.move(current[0] - dx, current[1] - dx, current[2] - dy, current[3] - dy)
-            arcade.set_viewport(
-                current[0] - dx, current[1] - dx, current[2] - dy, current[3] - dy,
-            )
+            arcade.set_viewport(current[0] - dx, current[1] - dx, current[2] - dy, current[3] - dy)
 
     def on_mouse_press(self, x, y, button, modifiers):
-        if button == 1:
+        if button == 1 and self.my_turn:
             current = arcade.get_viewport()
             # the x and y argument are relative to the current zoom, so we need to scale and shift them
             # and also not let the player click on tiles through the top bar
@@ -183,13 +178,32 @@ class GameView(arcade.View):
                     self.tiles[tile_row][tile_col] %= 4
                     color = self.tiles[tile_row][tile_col]
                     if color == 0:
-                        color = arcade.color.BABY_BLUE
+                        color = (0, 64, 128)
                     elif color == 1:
-                        color = arcade.color.BUD_GREEN
+                        color = (112, 169, 0)
                     elif color == 2:
-                        color = arcade.color.EARTH_YELLOW
+                        color = (16, 128, 64)
                     else:
-                        color = arcade.color.RED_BROWN
+                        color = (128, 128, 128)
 
                     # sprite list is 1d so we need to turn coords into a single index
                     self.tile_sprites[tile_row * TILE_COLS + tile_col].color = color
+
+    def on_key_press(self, symbol, modifiers):
+        if symbol == ord(" "):
+            print("end")
+            # use client to send the message to server
+            # get an answer about ending successfully, preferably
+            # and then learn whose turn it is now
+            self.my_turn = False
+            threading.Thread(target=self.wait_for_my_turn).start()
+
+    def wait_for_my_turn(self):
+        # a prototype for handling server messages, really
+        message = "next_p"
+        while message != "next":
+            self.cur_enemy = message
+            sleep(1)
+            message = message[:-1]
+        self.my_turn = True
+        self.cur_enemy = ""
