@@ -9,7 +9,7 @@ MAX_ZOOM = int(1 / (2 * SCROLL_STEP))
 
 TILE_ROWS = 25
 TILE_COLS = 40
-MARGIN = 1  # space between two tiles (vertically & horizontally) in pixels
+MARGIN = 1  # space between two tiles (vertically & horizontally) in pixels (while fully zoomed out)
 
 
 class TopBar(arcade.gui.UIManager):
@@ -66,6 +66,15 @@ class TopBar(arcade.gui.UIManager):
         pass
 
 
+class Tile(arcade.SpriteSolidColor):
+    def __init__(self, size):
+        super().__init__(size, size, arcade.color.WHITE)
+        self.occupant = None
+
+    def occupied(self):
+        return bool(self.occupant)
+
+
 class GameView(arcade.View):
     def __init__(self, width, height):
         super().__init__()
@@ -82,7 +91,7 @@ class GameView(arcade.View):
 
         self.tiles = [[0 for _ in range(TILE_COLS)] for _ in range(TILE_ROWS)]
         self.tile_sprites = arcade.SpriteList()
-        # needs to be smarter but depends on the size of a real map tbh
+        # needs to be smarter tbh but depends on the size of a real map
         self.tile_size = int(((1 - TOP_BAR_SIZE) * height) / TILE_ROWS) - MARGIN
         # in order to center the tiles vertically and horizontally
         self.centering_x = (width - TILE_COLS * (self.tile_size + MARGIN)) / 2
@@ -90,11 +99,36 @@ class GameView(arcade.View):
 
         for row in range(TILE_ROWS):
             for col in range(TILE_COLS):
-                tile = arcade.SpriteSolidColor(self.tile_size, self.tile_size, arcade.color.WHITE)
+                tile = Tile(self.tile_size)
                 tile.center_x = col * (self.tile_size + MARGIN) + (self.tile_size / 2) + MARGIN + self.centering_x
                 tile.center_y = row * (self.tile_size + MARGIN) + (self.tile_size / 2) + MARGIN + self.centering_y
                 tile.color = (0, 64, 128)
                 self.tile_sprites.append(tile)
+
+        # this is ugly but she's moving out soon i promise
+        self.unit_sprites = arcade.SpriteList()
+        unit_prototype = arcade.Sprite(":resources:images/items/star.png")
+        unit_prototype.height = unit_prototype.width = self.tile_size
+        col, row = self.absolute_to_tiles(100, 100)
+        self.place_unit_on_tile(unit_prototype, col, row)
+        self.unit_sprites.append(unit_prototype)
+
+    def relative_to_absolute(self, x, y):
+        # the x and y argument are relative to the current zoom, so we need to scale and shift them
+        # and also not let the player click on tiles through the top bar
+        current = arcade.get_viewport()
+        real_y = y * (current[3] - current[2]) / self.SCREEN_HEIGHT + current[2] - self.centering_y
+        real_x = x * (current[1] - current[0]) / self.SCREEN_WIDTH + current[0] - self.centering_x
+        return real_x, real_y
+
+    def absolute_to_tiles(self, x, y):
+        return map(lambda a: int(a // (self.tile_size + MARGIN)), (x, y))
+
+    def place_unit_on_tile(self, unit, col, row):
+        tile = self.tile_sprites[row * TILE_COLS + col]
+        unit.center_x = tile.center_x
+        unit.center_y = tile.center_y
+        tile.occupant = unit
 
     def on_show(self):
         arcade.set_background_color(arcade.csscolor.BLACK)
@@ -104,6 +138,7 @@ class GameView(arcade.View):
         self.top_bar.turn_change(self.cur_enemy)
         arcade.start_render()
         self.tile_sprites.draw()
+        self.unit_sprites.draw()
         # top bar
         arcade.draw_lrtb_rectangle_filled(*self.top_bar.coords_lrtb, arcade.color.ST_PATRICK_BLUE)
 
@@ -162,32 +197,33 @@ class GameView(arcade.View):
 
     def on_mouse_press(self, x, y, button, modifiers):
         if button == 1 and self.my_turn:
-            current = arcade.get_viewport()
             # the x and y argument are relative to the current zoom, so we need to scale and shift them
+            x, y = self.relative_to_absolute(x, y)
             # and also not let the player click on tiles through the top bar
-            real_y = y * (current[3] - current[2]) / self.SCREEN_HEIGHT + current[2] - self.centering_y
-            if real_y < current[3] - self.top_bar.height:
-                real_x = x * (current[1] - current[0]) / self.SCREEN_WIDTH + current[0] - self.centering_x
+            if y < arcade.get_viewport()[3] - self.top_bar.height:
                 # aaand then turn them into grid coords
-                tile_col = int(real_x // (self.tile_size + MARGIN))
-                tile_row = int(real_y // (self.tile_size + MARGIN))
+                tile_col, tile_row = self.absolute_to_tiles(x, y)
 
                 # some fun stuff to do for testing, essentially a map editor tbh
                 if tile_col < TILE_COLS and tile_row < TILE_ROWS:
-                    self.tiles[tile_row][tile_col] += 1
-                    self.tiles[tile_row][tile_col] %= 4
-                    color = self.tiles[tile_row][tile_col]
-                    if color == 0:
-                        color = (0, 64, 128)
-                    elif color == 1:
-                        color = (112, 169, 0)
-                    elif color == 2:
-                        color = (16, 128, 64)
-                    else:
-                        color = (128, 128, 128)
-
                     # sprite list is 1d so we need to turn coords into a single index
-                    self.tile_sprites[tile_row * TILE_COLS + tile_col].color = color
+                    tile = self.tile_sprites[tile_row * TILE_COLS + tile_col]
+
+                    if tile.occupied():
+                        print("There's a unit here!")
+                    else:
+                        self.tiles[tile_row][tile_col] += 1
+                        self.tiles[tile_row][tile_col] %= 4
+                        color = self.tiles[tile_row][tile_col]
+                        if color == 0:
+                            color = (0, 64, 128)
+                        elif color == 1:
+                            color = (112, 169, 0)
+                        elif color == 2:
+                            color = (16, 128, 64)
+                        else:
+                            color = (128, 128, 128)
+                        tile.color = color
 
     def on_key_press(self, symbol, modifiers):
         if symbol == ord(" "):
