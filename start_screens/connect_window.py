@@ -1,16 +1,8 @@
-from PyQt5.QtCore import pyqtSlot, QRect
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QLabel, QLineEdit, QPushButton, QMessageBox, QWidget, \
-    QHBoxLayout, QComboBox
 import socket
-from PyQt5 import QtCore
-from PyQt5.uic.uiparser import QtCore
 
-from LobbyWindow import LobbyWindow
-
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-SCREEN_TITLE = "Age of Divisiveness"
+from PyQt5.QtCore import QRect
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QLabel, QLineEdit, QPushButton, QMessageBox, QComboBox
 
 
 class ConnectWindow(QMainWindow):
