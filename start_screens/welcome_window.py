@@ -4,10 +4,11 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QMainWindow, QDesktopWidget, \
     QVBoxLayout, QPushButton
 
-from connect_window import ConnectWindow
-from map_generator_window import MapGeneratorWindow
+from start_screens.connect_window import ConnectWindow
+from start_screens.map_generator_window import MapGeneratorWindow
 
-""" This is main window of the application.
+""" 
+This is main window of the application.
 Because from here we can go to ConnectWindow and LobbyWindow 
 class has two fields responsible for holding newly created windows.
 """
