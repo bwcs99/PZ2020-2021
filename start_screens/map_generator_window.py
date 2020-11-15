@@ -5,6 +5,9 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QApplication, QPushButton, \
     QLineEdit, QLabel
 
+from start_screens.nick_civ_window import CivCombo
+from start_screens.lobby_window import LobbyWindow
+
 
 class MapGeneratorWindow(QMainWindow):
     def __init__(self):
@@ -13,6 +16,8 @@ class MapGeneratorWindow(QMainWindow):
         self.generate_button = None
         self.ok_button = None
         self.seed_line = None
+        self.chosen_civ = "fat_dwarves"
+        self.chosen_nick = "fat_Bob"
         self.init_ui()
 
     def init_ui(self):
@@ -21,7 +26,8 @@ class MapGeneratorWindow(QMainWindow):
 
         self.map = QLabel(self)
         self.map.setGeometry(QRect(6, 10, 781, 521))
-        pixmap = QPixmap('images/example_map.jpg')
+        # Default map
+        pixmap = QPixmap('images/default_map.jpg')
         self.map.setPixmap(pixmap)
         self.map.setScaledContents(True)
 
@@ -37,7 +43,7 @@ class MapGeneratorWindow(QMainWindow):
         self.ok_button = QPushButton(self)
         self.ok_button.setText("OK")
         self.ok_button.setGeometry(QRect(590, 550, 191, 41))
-        self.ok_button.clicked.connect(self.start_game)
+        self.ok_button.clicked.connect(self.prepare_for_game)
 
         self.center()
         self.show()
@@ -49,9 +55,30 @@ class MapGeneratorWindow(QMainWindow):
         new_map = QPixmap('images/example_map_2.png')
         self.map.setPixmap(new_map)
 
+    def prepare_for_game(self):
+        """ When CivCombo object is created, window opens, and after closing it changes self.chosen_civ field in
+        parent object by calling set_player_info method from CivCombo"""
+        CivCombo(["zgredki", "elfy", "40-letnie-panny"], self)  # here should be all civilizations
+
+    def set_player_info(self, chosen_civ, chosen_nick):
+        """This method ic called within CivCombo. DON'T CHANGE this function's name, even with refactor """
+        self.chosen_civ = chosen_civ
+        self.chosen_nick = chosen_nick
+
+        print(self.chosen_civ, self.chosen_nick)
+        self.start_game()
+
     def start_game(self):
-        # TODO
+        # TODO client-server logic
         print("Game is starting")
+        # some example opening of LobbyWindow
+        self.__init_lobby_window()
+
+    def __init_lobby_window(self):
+        self.lobby_window = LobbyWindow(True)
+        self.lobby_window.add_player_to_table([self.chosen_nick, self.chosen_civ, "Black"])
+        self.lobby_window.show()
+        self.hide()
 
     def center(self):
         qr = self.frameGeometry()

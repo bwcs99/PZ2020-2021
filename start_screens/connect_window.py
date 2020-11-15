@@ -1,8 +1,11 @@
 import socket
+from time import sleep
 
-from PyQt5.QtCore import QRect
+from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QLabel, QLineEdit, QPushButton, QMessageBox, QComboBox
+
+from start_screens.nick_civ_window import CivCombo
 
 
 class ConnectWindow(QMainWindow):
@@ -12,15 +15,17 @@ class ConnectWindow(QMainWindow):
         self.image_label = None
         self.text_line = None
         self.button = None
+        self.chosen_civ = "default_elves"
+        self.chosen_nick = "default_Eve"
 
-        self.init_ui()
+        self.__init_ui()
 
-    def init_ui(self):
+    def __init_ui(self):
         self.setWindowTitle("Age of Divisiveness - Connect Window")
 
         # setting pixel art image as background
         self.image_label = QLabel(self)  # background label
-        pixmap = QPixmap('images/novigrad.png')
+        pixmap = QPixmap('images/connect_window_background.png')  # example graphic
         self.image_label.setPixmap(pixmap)
         self.image_label.setScaledContents(True)
         self.setCentralWidget(self.image_label)
@@ -30,70 +35,54 @@ class ConnectWindow(QMainWindow):
         # if someone would like to try to remove content of self.text_line after
         # clicking on it I strongly recommend taking some painkillers and alcohol before
         self.text_line = QLineEdit(self)
-        self.text_line.setText("127.0.0.1")
+        self.text_line.setText("127.0.0.1")  # in default this should be "type address"
         self.text_line.move(20, 20)
         self.text_line.resize(280, 40)
 
-        # creating button in the window
         self.button = QPushButton('Connect', self)
         self.button.move(20, 80)
 
-        # connecting button to function on_click
         self.button.clicked.connect(self.on_click)
 
-        self.center()
+        self.__center()
         self.show()
 
-    # typical function for getting window in the middle of a screen
-    def center(self):
-        qr = self.frameGeometry()
-        cp = QDesktopWidget().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
+    def set_player_info(self, chosen_civ, nickname):
+        """This method ic called within CivCombo. DON'T CHANGE this function's name, even with refactor """
+        self.chosen_civ = chosen_civ
+        self.chosen_nick = nickname
 
-    def choose_civ(self):
-        civ_combo = CivCombo(["elfy", "zgredki", "czarodzieje"], self)
-        civ_combo.show()
+        print(self.chosen_civ, self.chosen_nick)
+        self.start_game()
 
-        return 1
+    def start_game(self):
+        # TODO client-server logic
+        # TODO tutaj musimy porozmawiać o komunikacji
+        print("Game is starting")
+        # some example opening of LobbyWindow
+        self.__init_lobby_window()
+
+    def __init_lobby_window(self):
+        # TODO here opening LobbyWindow is a bit more complicated than in map_generator and requires info from server
+        pass
 
     def on_click(self):
-        # using strip() in case of any annoying white chars surrounding address
-        host_address = self.text_line.text().strip()
+        host_address = self.text_line.text().strip()  # using strip() for annoying white chars surrounding address
         # TODO connect to client-server here
         try:
-            socket.inet_aton(host_address)  # kod Błażeja
+            socket.inet_aton(host_address)  # here put Błażej's code
             QMessageBox.question(self, "", "Successfully connected", QMessageBox.Ok, QMessageBox.Ok)
-            civilization_id = self.choose_civ()
+            # client-server's logic ...
+            civ_combo = CivCombo(["zgredki", "elfy", "40-letnie-panny"],
+                                 self)  # ["zgredki", "elfy", "40-letnie-panny"] should be civ_list returned from server
 
         except socket.error:
             QMessageBox.question(self, "host_address", "\"" + host_address + "\"" + " is incorrect address.",
                                  QMessageBox.Ok,
                                  QMessageBox.Ok)
 
-
-class CivCombo(QMainWindow):
-    def __init__(self, civ_list, parent=None):
-        super(CivCombo, self).__init__(parent)
-        self.setWindowTitle("Choose your civilization")
-        self.setFixedSize(560, 140)
-
-        self.combo_box = QComboBox(self)
-        self.combo_box.addItems(civ_list)
-        self.combo_box.setGeometry(QRect(10, 40, 421, 61))
-
-        self.ok_button = QPushButton(self)
-        self.ok_button.setText("Choose")
-        self.ok_button.setGeometry(QRect(450, 40, 101, 61))
-        self.ok_button.clicked.connect(self.init_lobby_window)
-
-        self.center()
-
-    def init_lobby_window(self):
-        civilization = self.combo_box.currentText()  # this how you get value from combo box
-        print(civilization)
-
-    def center(self):
+    # typical function for getting window in the middle of a screen
+    def __center(self):
         qr = self.frameGeometry()
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)

@@ -7,29 +7,28 @@ from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QMainWindow, QDesktop
 from start_screens.connect_window import ConnectWindow
 from start_screens.map_generator_window import MapGeneratorWindow
 
-""" 
-This is main window of the application.
-Because from here we can go to ConnectWindow and LobbyWindow 
-class has two fields responsible for holding newly created windows.
-"""
-
 
 class WelcomeWindow(QMainWindow):
+    """
+    This is main window of the application.
+    Because from here we can go to ConnectWindow and LobbyWindow
+    class has two fields responsible for holding newly created windows.
+    """
+
     def __init__(self):
         super(WelcomeWindow, self).__init__()
-
-        self.init_ui()
         self.connect_window = None
         self.map_generator_window = None
+        self.__init_ui()
 
-    def init_ui(self):
+    def __init_ui(self):
         self.setWindowTitle("Age of Divisiveness")
-        self.put_buttons()
+        self.__put_buttons()
         self.setFixedSize(480, 380)
-        self.center()
+        self.__center()
         self.show()
 
-    def put_buttons(self):
+    def __put_buttons(self):
         up_wid = QWidget(self)
         down_wid = QWidget(self)
         up_layout = QVBoxLayout()
@@ -37,17 +36,17 @@ class WelcomeWindow(QMainWindow):
         main_widget = QWidget(self)
         main_layout = QVBoxLayout()
 
-        """ Use if some kind text will be needed in main window """
+        """ Use if some kind text will be needed in welcome window """
         # title = QLabel("<h1> Welcome to </h1>")
         # title.setAlignment(QtCore.Qt.AlignCenter)
         # up_layout.addWidget(title)
 
-        connect_button = QPushButton('connect to server', self)
-        connect_button.clicked.connect(self.init_connect_to_server_window)
+        connect_button = QPushButton('Connect to server', self)
+        connect_button.clicked.connect(self.__init_connect_to_server_window)
         down_layout.addWidget(connect_button)
 
-        host_button = QPushButton('host your game', self)
-        host_button.clicked.connect(self.init_map_generator_window)
+        host_button = QPushButton('Host your game', self)
+        host_button.clicked.connect(self.__init_map_generator_window)
         down_layout.addWidget(host_button)
 
         """ This block is adding about button which opens about window below """
@@ -56,7 +55,7 @@ class WelcomeWindow(QMainWindow):
         # down_layout.addWidget(about_button)
 
         image_label = QLabel(self)  # background image label
-        pixmap = QPixmap('images/aod_logo.png')  # obviously path to logo.png
+        pixmap = QPixmap('images/aod_logo.png')  # path to logo.png
         image_label.setPixmap(pixmap)
         image_label.setScaledContents(True)
 
@@ -68,18 +67,18 @@ class WelcomeWindow(QMainWindow):
         main_widget.setLayout(main_layout)
         self.setCentralWidget(main_widget)
 
-    def center(self):
+    def __center(self):
         qr = self.frameGeometry()
         cp = QDesktopWidget().availableGeometry().center()
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
-    def init_connect_to_server_window(self):
+    def __init_connect_to_server_window(self):
         self.connect_window = ConnectWindow()
         self.connect_window.show()
         self.hide()
 
-    def init_map_generator_window(self):
+    def __init_map_generator_window(self):
         self.map_generator_window = MapGeneratorWindow()
         self.map_generator_window.show()
         self.hide()
@@ -92,6 +91,7 @@ class WelcomeWindow(QMainWindow):
     #     self.hide()
 
 
+# for testing
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     win = WelcomeWindow()
