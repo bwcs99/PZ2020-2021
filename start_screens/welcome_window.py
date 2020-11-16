@@ -1,3 +1,4 @@
+import os
 import sys
 
 from PyQt5.QtGui import QPixmap
@@ -55,7 +56,7 @@ class WelcomeWindow(QMainWindow):
         # down_layout.addWidget(about_button)
 
         image_label = QLabel(self)  # background image label
-        pixmap = QPixmap('images/aod_logo.png')  # path to logo.png
+        pixmap = QPixmap(os.getcwd() + '/resources/images/aod_logo.png')  # path to logo.png
         image_label.setPixmap(pixmap)
         image_label.setScaledContents(True)
 
