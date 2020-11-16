@@ -1,3 +1,4 @@
+import os
 import socket
 from time import sleep
 
@@ -25,7 +26,7 @@ class ConnectWindow(QMainWindow):
 
         # setting pixel art image as background
         self.image_label = QLabel(self)  # background label
-        pixmap = QPixmap('images/connect_window_background.png')  # example graphic
+        pixmap = QPixmap(os.getcwd() + '/resources/images/connect_window_background.png')  # example graphic
         self.image_label.setPixmap(pixmap)
         self.image_label.setScaledContents(True)
         self.setCentralWidget(self.image_label)

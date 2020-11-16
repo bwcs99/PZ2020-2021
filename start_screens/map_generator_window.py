@@ -1,3 +1,4 @@
+import os
 import sys
 
 from PyQt5.QtCore import QRect
@@ -27,7 +28,7 @@ class MapGeneratorWindow(QMainWindow):
         self.map = QLabel(self)
         self.map.setGeometry(QRect(6, 10, 781, 521))
         # Default map
-        pixmap = QPixmap('images/default_map.jpg')
+        pixmap = QPixmap(os.getcwd() + '/resources/images/default_map.jpg')
         self.map.setPixmap(pixmap)
         self.map.setScaledContents(True)
 
@@ -49,16 +50,16 @@ class MapGeneratorWindow(QMainWindow):
         self.show()
 
     def generate_map(self):
-        # TODO this function should use MapGenerator interface and set new pixmap. self.map will refresh automatically.
+        # TODO KRZYSZTOF this function should use MapGenerator interface and set new pixmap. self.map will refresh automatically.
         seed = self.seed_line.text()  # this way you get seed_line value
         print(seed)
-        new_map = QPixmap('images/example_map_2.png')
+        new_map = QPixmap(os.getcwd() + '/resources/images/example_map_2.png')
         self.map.setPixmap(new_map)
 
     def prepare_for_game(self):
         """ When CivCombo object is created, window opens, and after closing it changes self.chosen_civ field in
         parent object by calling set_player_info method from CivCombo"""
-        CivCombo(["zgredki", "elfy", "40-letnie-panny"], self)  # here should be all civilizations
+        CivCombo(["zgredki", "elfy", "40-letnie-panny", "antysczepionkowcy"], self)  # here should be all civilizations
 
     def set_player_info(self, chosen_civ, chosen_nick):
         """This method ic called within CivCombo. DON'T CHANGE this function's name, even with refactor """
@@ -69,7 +70,7 @@ class MapGeneratorWindow(QMainWindow):
         self.start_game()
 
     def start_game(self):
-        # TODO client-server logic
+        # TODO BLAZEJ client-server logic
         print("Game is starting")
         # some example opening of LobbyWindow
         self.__init_lobby_window()
