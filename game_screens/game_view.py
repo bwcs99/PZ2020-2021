@@ -7,8 +7,8 @@ TOP_BAR_SIZE = 0.0625  # expressed as the percentage of the current screen heigh
 SCROLL_STEP = 0.125  # new_height = old_height +- 2 * scroll_step * original_height, same with width
 MAX_ZOOM = int(1 / (2 * SCROLL_STEP))
 
-TILE_ROWS = 25
-TILE_COLS = 40
+# TILE_ROWS = 25
+# TILE_COLS = 40
 MARGIN = 1  # space between two tiles (vertically & horizontally) in pixels (while fully zoomed out)
 
 
@@ -23,7 +23,7 @@ class TopBar(arcade.gui.UIManager):
         arcade.gui.elements.UIStyle.set_class_attrs(
             arcade.gui.elements.UIStyle.default_style(),
             "label",
-            font_name="../resources/fonts/november",
+            font_name="resources/fonts/november",
             font_color=arcade.color.WHITE,
             font_size=64
         )
@@ -76,7 +76,7 @@ class Tile(arcade.SpriteSolidColor):
 
 
 class GameView(arcade.View):
-    def __init__(self, width, height):
+    def __init__(self, width, height, tiles):
         super().__init__()
         self.my_turn = True
         self.cur_enemy = ""
@@ -85,24 +85,32 @@ class GameView(arcade.View):
         self.SCREEN_HEIGHT = height
         self.SCROLL_STEP_X = SCROLL_STEP * width
         self.SCROLL_STEP_Y = SCROLL_STEP * height
+        self.TILE_ROWS = len(tiles)
+        self.TILE_COLS = len(tiles[0])
         self.zoom = 0
 
         self.top_bar = TopBar(width, height)
 
-        self.tiles = [[0 for _ in range(TILE_COLS)] for _ in range(TILE_ROWS)]
+        self.tiles = tiles
+        tile_types = [
+            (0, 64, 128),
+            (112, 169, 0),
+            (16, 128, 64),
+            (128, 128, 128)
+        ]
         self.tile_sprites = arcade.SpriteList()
         # needs to be smarter tbh but depends on the size of a real map
-        self.tile_size = int(((1 - TOP_BAR_SIZE) * height) / TILE_ROWS) - MARGIN
+        self.tile_size = int(((1 - TOP_BAR_SIZE) * height) / self.TILE_ROWS) - MARGIN
         # in order to center the tiles vertically and horizontally
-        self.centering_x = (width - TILE_COLS * (self.tile_size + MARGIN)) / 2
-        self.centering_y = ((1 - TOP_BAR_SIZE) * height - TILE_ROWS * (self.tile_size + MARGIN)) / 2
+        self.centering_x = (width - self.TILE_COLS * (self.tile_size + MARGIN)) / 2
+        self.centering_y = ((1 - TOP_BAR_SIZE) * height - self.TILE_ROWS * (self.tile_size + MARGIN)) / 2
 
-        for row in range(TILE_ROWS):
-            for col in range(TILE_COLS):
+        for row in range(self.TILE_ROWS):
+            for col in range(self.TILE_COLS):
                 tile = Tile(self.tile_size)
+                tile.color = tile_types[tiles[row][col]] # can and will be changed to sprites as soon as we have em
                 tile.center_x = col * (self.tile_size + MARGIN) + (self.tile_size / 2) + MARGIN + self.centering_x
                 tile.center_y = row * (self.tile_size + MARGIN) + (self.tile_size / 2) + MARGIN + self.centering_y
-                tile.color = (0, 64, 128)
                 self.tile_sprites.append(tile)
 
         # this is ugly but she's moving out soon i promise
@@ -125,7 +133,7 @@ class GameView(arcade.View):
         return map(lambda a: int(a // (self.tile_size + MARGIN)), (x, y))
 
     def place_unit_on_tile(self, unit, col, row):
-        tile = self.tile_sprites[row * TILE_COLS + col]
+        tile = self.tile_sprites[row * self.TILE_COLS + col]
         unit.center_x = tile.center_x
         unit.center_y = tile.center_y
         tile.occupant = unit
@@ -205,9 +213,9 @@ class GameView(arcade.View):
                 tile_col, tile_row = self.absolute_to_tiles(x, y)
 
                 # some fun stuff to do for testing, essentially a map editor tbh
-                if tile_col < TILE_COLS and tile_row < TILE_ROWS:
+                if tile_col < self.TILE_COLS and tile_row < self.TILE_ROWS:
                     # sprite list is 1d so we need to turn coords into a single index
-                    tile = self.tile_sprites[tile_row * TILE_COLS + tile_col]
+                    tile = self.tile_sprites[tile_row * self.TILE_COLS + tile_col]
 
                     if tile.occupied():
                         print("There's a unit here!")
