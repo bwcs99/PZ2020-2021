@@ -159,7 +159,7 @@ class GameView(arcade.View):
             new_height = (current[3] - current[2]) - 2 * scroll_y * self.SCROLL_STEP_Y
 
             # we need to check if zooming will cross the borders of the map, if so - snap them back
-            new_left = current[0] + scroll_y * self.SCROLL_STEP_X
+            new_left = x - new_width / 2
             if new_left > 0:
                 x_shift = self.SCREEN_WIDTH - (new_left + new_width)
                 if x_shift < 0:
@@ -167,7 +167,7 @@ class GameView(arcade.View):
             else:
                 new_left = 0
 
-            new_bottom = current[2] + scroll_y * self.SCROLL_STEP_Y
+            new_bottom = y - new_width / 2
             if new_bottom > 0:
                 # now, the size of the top bar changes and the zoom has to adjust
                 # this means that in no zoom we can move closer to camera_top = screen_height than if we zoom in
