@@ -1,6 +1,6 @@
 import os
 import sys
-from time import sleep
+from server_utils.client import Client
 
 from PyQt5.QtCore import QRect
 from PyQt5.QtGui import QPixmap
@@ -11,16 +11,23 @@ from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QTableWidget, QLabel, Q
 class LobbyWindow(QMainWindow):
     """
     LobbyWindow class needs to have line transforming matrix of ints into png, also i think the best solution will be to 
-    make client save map send to him by server.
+    make client save map send to him by server_utils.
     """
 
     def __init__(self, are_you_host: bool):
         """If player is hosting game, constructor should receive True as parameter, else false"""
         super(LobbyWindow, self).__init__()
-        self.players_table = None
+        self.players_table = []
         self.map = None
         self.launch_button = None
-
+        self.client = Client()
+        self.client.connect()
+        self.client.send_msg("LIST_PLAYERS:::")
+        response = self.client.rec_msg()
+        print(response)
+        self.players_list = response.split(' ')
+        print(self.players_list)
+        self.client.disconnect()
         self.init_ui(are_you_host)
 
     def init_ui(self, are_you_host: bool):
@@ -37,7 +44,7 @@ class LobbyWindow(QMainWindow):
         self.map = QLabel(self)
         self.map.setGeometry(QRect(480, 30, 570, 570))
         # TODO KRZYSZTOF also this place needs code from Krzysztof to change matrix into png
-        # TODO this path should determine place where map sent by server is.
+        # TODO this path should determine place where map sent by server_utils is.
         pixmap = QPixmap(os.getcwd() + '/resources/images/example_map_2.png')
         self.map.setPixmap(pixmap)
         self.map.setScaledContents(True)

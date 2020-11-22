@@ -274,7 +274,7 @@ class GameView(arcade.View):
     def on_key_press(self, symbol, modifiers):
         if symbol == ord(" "):
             print("end")
-            # TODO: use client to send the message to server
+            # TODO: use client to send the message to server_utils
             # get an answer about ending successfully, preferably
             # and then learn whose turn it is now
             self.my_turn = False
@@ -282,9 +282,9 @@ class GameView(arcade.View):
 
     def wait_for_my_turn(self):
         """
-        A prototype function for handling server messages. Will probably be renamed and split later on.
+        A prototype function for handling server_utils messages. Will probably be renamed and split later on.
         """
-        # TODO: Actual server communication
+        # TODO: Actual server_utils communication
         message = "next_p"
         while message != "next":
             self.cur_enemy = message
