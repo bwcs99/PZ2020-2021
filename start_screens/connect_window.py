@@ -1,13 +1,20 @@
 import os
 import socket
 from time import sleep
+import pickle
 
 from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QLabel, QLineEdit, QPushButton, QMessageBox, QComboBox
+from img_gen import get_map_overview
 
-from start_screens.nick_civ_window import CivCombo
+from nick_civ_window import CivCombo
+from lobby_window import LobbyWindow
 
+PORT = 65001
+FORMAT = 'utf-8'
+HEADER = 200
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 class ConnectWindow(QMainWindow):
 
@@ -16,8 +23,8 @@ class ConnectWindow(QMainWindow):
         self.image_label = None
         self.text_line = None
         self.button = None
-        self.chosen_civ = "default_elves"
-        self.chosen_nick = "default_Eve"
+        self.chosen_civ = ''
+        self.chosen_nick = ''
 
         self.__init_ui()
 
@@ -26,7 +33,7 @@ class ConnectWindow(QMainWindow):
 
         # setting pixel art image as background
         self.image_label = QLabel(self)  # background label
-        pixmap = QPixmap(os.getcwd() + '/resources/images/connect_window_background.png')  # example graphic
+        pixmap = QPixmap(os.getcwd() + 'connect_window_background.png')  # example graphic
         self.image_label.setPixmap(pixmap)
         self.image_label.setScaledContents(True)
         self.setCentralWidget(self.image_label)
@@ -48,40 +55,78 @@ class ConnectWindow(QMainWindow):
         self.__center()
         self.show()
 
+        
+
     def set_player_info(self, chosen_civ, nickname):
         """This method ic called within CivCombo. DON'T CHANGE this function's name, even with refactor """
         self.chosen_civ = chosen_civ
         self.chosen_nick = nickname
-
         print(self.chosen_civ, self.chosen_nick)
         self.start_game()
+    
+#    def parse_object(self, arr):
+#        original = []
+#        help = []
+#        for i in range(0, len(arr)):
+#            if arr[i] != 'e':
+#                num = int(arr[i])
+#                help.append(num)
+#            else:
+#                original.append(help)
+#                help.clear()
+#        return original
 
     def start_game(self):
         # TODO client-server logic
         # TODO tutaj musimy porozmawiać o komunikacji
-        print("Game is starting")
-        # some example opening of LobbyWindow
+        self.send_msg("ADD_NEW_PLAYER:"+self.chosen_nick +"::", sock)
+        table = self.send_msg("CHOOSE_CIVILISATION:"+self.chosen_nick+":"+self.chosen_civ+":", sock)
+        original_array = eval(table)
+    #    print(original_array)
+        get_map_overview(original_array)
         self.__init_lobby_window()
 
     def __init_lobby_window(self):
         # TODO here opening LobbyWindow is a bit more complicated than in map_generator and requires info from server
-        pass
+        LobbyWindow(True)
+        
+    def send_msg(self, msg, sock):
+        message = msg.encode(FORMAT)
+        message_length = len(message)
+        send_length = str(message_length).encode(FORMAT)
+        send_length += b' '*(HEADER - len(send_length))
+        sock.send(send_length)
+        sock.send(message)
+        #print("THE MESSAGE HAS BEEN SENT")
+        #print(sock.recv(2048).decode(FORMAT))
+        response = self.rec_msg(sock)
+        #if response:
+        #print("TU")
+    #    print(response)
+        return response
+    
+    def rec_msg(self, sock):
+        msg_len = sock.recv(HEADER).decode(FORMAT)
+        if msg_len:
+            incoming_msg = sock.recv(int(msg_len)).decode(FORMAT)
+        return incoming_msg
 
     def on_click(self):
         host_address = self.text_line.text().strip()  # using strip() for annoying white chars surrounding address
-        # TODO connect to client-server here
         try:
-            socket.inet_aton(host_address)  # here put Błażej's code
+            #socket.inet_aton(host_address)  here put Błażej's code
+            sock.connect((host_address,PORT))
             QMessageBox.question(self, "", "Successfully connected", QMessageBox.Ok, QMessageBox.Ok)
             # client-server's logic ...
-            civ_combo = CivCombo(["zgredki", "elfy", "40-letnie-panny"],
+            civ_combo = CivCombo(["zgredki", "elfy", "40-letnie-panny"], 
                                  self)  # ["zgredki", "elfy", "40-letnie-panny"] should be civ_list returned from server
-
+           
         except socket.error:
             QMessageBox.question(self, "host_address", "\"" + host_address + "\"" + " is incorrect address.",
                                  QMessageBox.Ok,
                                  QMessageBox.Ok)
-
+        
+    
     # typical function for getting window in the middle of a screen
     def __center(self):
         qr = self.frameGeometry()

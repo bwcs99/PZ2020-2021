@@ -5,8 +5,8 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QMainWindow, QDesktopWidget, \
     QVBoxLayout, QPushButton
 
-from start_screens.connect_window import ConnectWindow
-from start_screens.map_generator_window import MapGeneratorWindow
+from connect_window import ConnectWindow
+from map_generator_window import MapGeneratorWindow
 
 
 class WelcomeWindow(QMainWindow):
@@ -56,7 +56,7 @@ class WelcomeWindow(QMainWindow):
         # down_layout.addWidget(about_button)
 
         image_label = QLabel(self)  # background image label
-        pixmap = QPixmap(os.getcwd() + '/resources/images/aod_logo.png')  # path to logo.png
+        pixmap = QPixmap(os.getcwd() + 'aod_logo.png')  # path to logo.png
         image_label.setPixmap(pixmap)
         image_label.setScaledContents(True)
 
@@ -74,7 +74,7 @@ class WelcomeWindow(QMainWindow):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
-    def __init_connect_to_server_window(self):
+    def __init_connect_to_server_window(self): #
         self.connect_window = ConnectWindow()
         self.connect_window.show()
         self.hide()

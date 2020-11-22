@@ -16,7 +16,7 @@ class CivCombo(QMainWindow):
         self.setWindowModality(Qt.WindowModal)
         self.setWindowTitle("Choose nickname and your civilization")
         self.setFixedSize(560, 200)
-
+       
         """In case we would like background image in this window.
         choose_civ_background.png is a fine png. One does not simply find good png."""
         # self.image_label = QLabel(self)  # background label

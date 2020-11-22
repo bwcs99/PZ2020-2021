@@ -30,7 +30,7 @@ def send_msg(msg):
 	send_length += b' '*(HEADER - len(send_length))
 	sock.send(send_length)
 	sock.send(message)
-	print("THE MESSAGE HAS BEEN SENT")
+	#print("THE MESSAGE HAS BEEN SENT")
 	#print(sock.recv(2048).decode(FORMAT))
 	response = rec_msg()
 	if response:

@@ -86,10 +86,12 @@ def get_map_overview(world_map):
     img = Image.fromarray(arr)
     """ Pillow swaps height with width, so we need to tweak the image to actually represent the map"""
     img = img.rotate(270, expand=1).transpose(Image.FLIP_LEFT_RIGHT)  # rotate clockwise and do mirror flip
-    # img.save('testrgb.png')
+    img.save('testrgb.png')
     return img
 
 
+world_map = generate_map(300, 300, [1,8,28,6])
 
+get_map_overview(world_map)
 
 
