@@ -70,7 +70,7 @@ class MapGeneratorWindow(QMainWindow):
         self.start_game()
 
     def start_game(self):
-        # TODO BLAZEJ client-server logic
+        # TODO BLAZEJ client-server_utils logic
         print("Game is starting")
         # some example opening of LobbyWindow
         self.__init_lobby_window()

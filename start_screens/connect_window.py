@@ -1,20 +1,15 @@
 import os
 import socket
-from time import sleep
-import pickle
 
 from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QLabel, QLineEdit, QPushButton, QMessageBox, QComboBox
-from img_gen import get_map_overview
+from .img_gen import get_map_overview
 
-from nick_civ_window import CivCombo
-from lobby_window import LobbyWindow
+from .nick_civ_window import CivCombo
+from .lobby_window import LobbyWindow
+from server_utils.client import Client
 
-PORT = 65001
-FORMAT = 'utf-8'
-HEADER = 200
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 class ConnectWindow(QMainWindow):
 
@@ -25,6 +20,7 @@ class ConnectWindow(QMainWindow):
         self.button = None
         self.chosen_civ = ''
         self.chosen_nick = ''
+        self.client = Client()
 
         self.__init_ui()
 
@@ -77,49 +73,29 @@ class ConnectWindow(QMainWindow):
 #        return original
 
     def start_game(self):
-        # TODO client-server logic
+        # TODO client-server_utils logic
         # TODO tutaj musimy porozmawiać o komunikacji
-        self.send_msg("ADD_NEW_PLAYER:"+self.chosen_nick +"::", sock)
-        table = self.send_msg("CHOOSE_CIVILISATION:"+self.chosen_nick+":"+self.chosen_civ+":", sock)
+        self.client.send_msg("ADD_NEW_PLAYER:"+self.chosen_nick +"::")
+        self.client.send_msg("CHOOSE_CIVILISATION:"+self.chosen_nick+":"+self.chosen_civ+":")
+        table = self.client.rec_msg()
         original_array = eval(table)
-    #    print(original_array)
+        # print(original_array)
         get_map_overview(original_array)
         self.__init_lobby_window()
 
     def __init_lobby_window(self):
-        # TODO here opening LobbyWindow is a bit more complicated than in map_generator and requires info from server
+        # TODO here opening LobbyWindow is a bit more complicated than in map_generator and requires info from server_utils
         LobbyWindow(True)
-        
-    def send_msg(self, msg, sock):
-        message = msg.encode(FORMAT)
-        message_length = len(message)
-        send_length = str(message_length).encode(FORMAT)
-        send_length += b' '*(HEADER - len(send_length))
-        sock.send(send_length)
-        sock.send(message)
-        #print("THE MESSAGE HAS BEEN SENT")
-        #print(sock.recv(2048).decode(FORMAT))
-        response = self.rec_msg(sock)
-        #if response:
-        #print("TU")
-    #    print(response)
-        return response
-    
-    def rec_msg(self, sock):
-        msg_len = sock.recv(HEADER).decode(FORMAT)
-        if msg_len:
-            incoming_msg = sock.recv(int(msg_len)).decode(FORMAT)
-        return incoming_msg
 
     def on_click(self):
         host_address = self.text_line.text().strip()  # using strip() for annoying white chars surrounding address
         try:
             #socket.inet_aton(host_address)  here put Błażej's code
-            sock.connect((host_address,PORT))
+            self.client.connect()
             QMessageBox.question(self, "", "Successfully connected", QMessageBox.Ok, QMessageBox.Ok)
-            # client-server's logic ...
+            # client-server_utils's logic ...
             civ_combo = CivCombo(["zgredki", "elfy", "40-letnie-panny"], 
-                                 self)  # ["zgredki", "elfy", "40-letnie-panny"] should be civ_list returned from server
+                                 self)  # ["zgredki", "elfy", "40-letnie-panny"] should be civ_list returned from server_utils
            
         except socket.error:
             QMessageBox.question(self, "host_address", "\"" + host_address + "\"" + " is incorrect address.",

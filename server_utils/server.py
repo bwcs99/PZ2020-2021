@@ -1,7 +1,7 @@
 import socket
 import threading
-from player import Player
-from generator import *
+from server_utils import Player
+from map_generation import generate_map
 from random import randint
 
 # Proszę nie ruszać zakomentowanego kodu. Będzie on zmieniany

@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QLabel, QLineEdit, QPus
 
 
 class CivCombo(QMainWindow):
-    """This class is only for choosing civ from available delivered from server
+    """This class is only for choosing civ from available delivered from server_utils
     Server should send list of available civilizations and (probably) client should call choose_civ() in ConnectWindow."""
 
     def __init__(self, civ_list, parent=None):

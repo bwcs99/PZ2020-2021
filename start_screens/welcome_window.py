@@ -42,7 +42,7 @@ class WelcomeWindow(QMainWindow):
         # title.setAlignment(QtCore.Qt.AlignCenter)
         # up_layout.addWidget(title)
 
-        connect_button = QPushButton('Connect to server', self)
+        connect_button = QPushButton('Connect to server_utils', self)
         connect_button.clicked.connect(self.__init_connect_to_server_window)
         down_layout.addWidget(connect_button)
 
