@@ -45,7 +45,7 @@ class LobbyWindow(QMainWindow):
         self.map.setGeometry(QRect(480, 30, 570, 570))
         # TODO KRZYSZTOF also this place needs code from Krzysztof to change matrix into png
         # TODO this path should determine place where map sent by server_utils is.
-        pixmap = QPixmap(os.getcwd() + '/resources/images/example_map_2.png')
+        pixmap = QPixmap('/resources/images/example_map_2.png')
         self.map.setPixmap(pixmap)
         self.map.setScaledContents(True)
 

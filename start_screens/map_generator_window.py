@@ -6,8 +6,8 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QApplication, QPushButton, \
     QLineEdit, QLabel
 
-from nick_civ_window import CivCombo
-from lobby_window import LobbyWindow
+from .nick_civ_window import CivCombo
+from .lobby_window import LobbyWindow
 
 
 class MapGeneratorWindow(QMainWindow):
@@ -28,7 +28,7 @@ class MapGeneratorWindow(QMainWindow):
         self.map = QLabel(self)
         self.map.setGeometry(QRect(6, 10, 781, 521))
         # Default map
-        pixmap = QPixmap(os.getcwd() + 'default_map.jpg')
+        pixmap = QPixmap('resources/images/default_map.jpg')
         self.map.setPixmap(pixmap)
         self.map.setScaledContents(True)
 
@@ -53,7 +53,7 @@ class MapGeneratorWindow(QMainWindow):
         # TODO KRZYSZTOF this function should use MapGenerator interface and set new pixmap. self.map will refresh automatically.
         seed = self.seed_line.text()  # this way you get seed_line value
         print(seed)
-        new_map = QPixmap(os.getcwd() + 'example_map_2.png')
+        new_map = QPixmap('resources/images/example_map_2.png')
         self.map.setPixmap(new_map)
 
     def prepare_for_game(self):
