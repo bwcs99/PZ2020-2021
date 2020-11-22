@@ -1,6 +1,0 @@
-Cały kod jest zakomentowany. W razie jakichś wątpliwości proszę pytać i zgłaszać błędy. 
-Protokół komunikowania: dane między użytkownikami, a serwerem są wymieniane w następujący sposób: ACTION:FROM:VALUE:FLAGS
-Gdzie ACTION - oznacza rodzaj działania jakie chcemy wykonać (np. CHOOSE_CIVILISATION, ADD_NEW_PLAYER itp. ), FROM oznacza od kogo to żądanie przyszło, VALUE
-oznacza wartość (np. nazwa gracza względem którego podejmowana jest akcja) i FLAGS to flagi umożliwiające modyfikacje działania żądań (Uwaga: to jest funkcjonalność
-dodatkowa). Do waszej dyspozycji jest funkcja connest_to_server (). 
-Jeśli będzie potrzeba zmiana istniejącego kodu, to proszę mnie informować. 

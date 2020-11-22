@@ -1,5 +1,0 @@
-Oto wersja alpha zintegrowana z serwerem. Gracz odpala okno startowe, dołącza do gry (nick, typ cywilizacji), dostaje od serwera wygenerowaną mape, a potem dane o innych graczach (potrzebne do okna lobby). Generowanie rozdzieliło się na tworzenie macierzy po stronie serwera i przerabianie jej na obraz po stronie klienta. 3 problemy:
-- trzeba połączyć obraz wygen mapy z mapą gry (kod Patryka)
-- po stronie serwera trzeba generować małe mapy (np. 300x300, 200x200, 100x100), bo generowanie dużych map spowalnia działanie serwera i powoduje problemy z poprawnym przesłaniem wygen macierzy. W związku z tym trzeba powiększać otrzymane obrazy.
-- nie wyświetlały mi się zdjęcia w oknach startowych (nie wiem czemu, przeniosłem wszystkie obrazy do start_screens, ale to nie pomogło).
-
