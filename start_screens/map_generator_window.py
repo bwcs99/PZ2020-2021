@@ -80,6 +80,7 @@ class MapGeneratorWindow(QMainWindow):
     def prepare_for_game(self):
         """ When CivCombo object is created, window opens, and after closing it changes self.chosen_civ field in
         parent object by calling set_player_info method from CivCombo"""
+
         CivCombo(["zgredki", "elfy", "40-letnie-panny", "antysczepionkowcy"], self)  # here should be all civilizations
 
     def set_player_info(self, chosen_civ, chosen_nick):
@@ -88,18 +89,18 @@ class MapGeneratorWindow(QMainWindow):
         self.chosen_nick = chosen_nick
 
         print(self.chosen_civ, self.chosen_nick)
-        self.start_game()
+        self.start_server()
 
-    def start_game(self):
+    def start_server(self):
         # TODO BLAZEJ client-server_utils logic
 
         """ mapa przechowywana jest w self.world_map_matrix """
-        print("Game is starting")
+        print("Server is starting...")
         # some example opening of LobbyWindow
         self.__init_lobby_window()
 
     def __init_lobby_window(self):
-        self.lobby_window = LobbyWindow(True)
+        self.lobby_window = LobbyWindow(True)  # True because this is host.
         self.lobby_window.add_player_to_table([self.chosen_nick, self.chosen_civ, "Black"])
         self.lobby_window.show()
         self.hide()

@@ -1,7 +1,7 @@
+import threading
+
 import arcade
 import arcade.gui
-import threading
-from time import sleep
 
 TOP_BAR_SIZE = 0.0625  # expressed as the percentage of the current screen height
 
@@ -100,13 +100,15 @@ class GameView(arcade.View):
     The view of the map of the game.
     """
 
-    def __init__(self, width: int, height: int, tiles: list):
+    def __init__(self, width: int, height: int, tiles: list, client):
         """
         :param width: Max screen width.
         :param height: Max screen height.
         :param tiles: A 2D list of integer values representing tile types.
+        :param client: A client object for server communication.
         """
         super().__init__()
+        self.client = client
         self.my_turn = True
         self.cur_enemy = ""
 
@@ -285,10 +287,11 @@ class GameView(arcade.View):
         A prototype function for handling server_utils messages. Will probably be renamed and split later on.
         """
         # TODO: Actual server_utils communication
-        message = "next_p"
-        while message != "next":
-            self.cur_enemy = message
-            sleep(1)
-            message = message[:-1]
-        self.my_turn = True
-        self.cur_enemy = ""
+        message = self.client.get_opponents_move()
+        while True:
+            if message[0] == "TURN":
+                if message[1] == self.client.nick:
+                    self.my_turn = True
+                    self.cur_enemy = ""
+                else:
+                    self.cur_enemy = message[1]
