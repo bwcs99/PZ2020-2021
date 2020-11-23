@@ -1,6 +1,6 @@
 import socket
 import threading
-from server_utils import Player
+from player import Player
 from map_generation import generate_map
 from random import randint
 
