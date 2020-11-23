@@ -1,6 +1,7 @@
 import socket
 import threading
 from random import randint
+from start_screens.map_generator_window import MapGeneratorWindow
 
 PORT = 65001
 HOST = '127.0.0.1'
@@ -135,8 +136,8 @@ class Server:
                 thread.join()
             print("SERVER PROCESS TERMINATED")
 
-#server_obj = Server(self.map)
-#server_sock = server_obj.create_socket(('127.0.0.1', 65001))
-#server_obj.start_connection(server_sock)
+server_obj = Server(MapGeneratorWindow.map)
+server_sock = server_obj.create_socket(ADDR)
+server_obj.start_connection(server_sock)
 
 

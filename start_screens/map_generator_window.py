@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QApplication, QPushButt
 
 from .nick_civ_window import CivCombo
 from .lobby_window import LobbyWindow
-from server_utils.server import Server
+#from server_utils import server
 
 
 class MapGeneratorWindow(QMainWindow):
@@ -73,12 +73,9 @@ class MapGeneratorWindow(QMainWindow):
 
     def start_server(self):
         print("Server is starting...")
-        # tu masz napisane jak wystartowac serwer
-        server_obj = Server(self.map)
-        server_sock = server_obj.create_socket(('127.0.0.1', 65001))
-        self.__init_lobby_window()
-       #server_obj.start_connection(server_sock) musisz to gdzieś indziej uruchomić, bo inaczej nie zadziała
-        
+        exec(open('server_utils/server.py').read()) 
+        self.__init_lobby_window() # serwer startuje, ale jest problem z mapą
+               
 
     def __init_lobby_window(self):
         self.lobby_window = LobbyWindow(True)  # True because this is host.
