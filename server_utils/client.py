@@ -19,15 +19,19 @@ DISCONNECT_MESSAGE = "DISCONNECT"
 	niech zapisuje je w self.current_players_on_server.
 	- potrzebuję get_current_players(), publiczna metoda zwraca self.current_players_on_server, potrzebne w connect_window.py
 	- potrzebuję aby klient nasłuchiwał na inormacje o tym, że został dodany nowy gracz.
-	
+	- potrzebuję get_map_from_server(), metoda zwraca macierz mapy 
 """
 
+""" Patryk:
+    - metoda dla mnie to tylko get_opponents_move(), opisałem na dole dokładniej o co chodzi, jakby co pytaj
+"""
 
 class Client:
     def __init__(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.available_civilizations = None
         self.current_players_on_server = None
+        self.nick = None
 
     # def prepare_initial_msg(nick):
     #	return f"ADD_NEW_PLAYER:{nick}"
@@ -86,5 +90,24 @@ class Client:
 
     def get_current_players(self):
         return self.current_players_on_server
+
+    def set_nickname(self, nick):
+        self.nick = nick
+
+    def get_opponents_move(self):
+        # TODO Błażej:
+        # odbierz wiadomość od serwera i sparsuj ją do pary postaci (komenda, reszta parametrow...)
+        # na razie wystarczy mi coś w stylu ("TURN", nick gracza którego tura się zaczyna)
+        # potem dojdą tu takie rzeczy jak ruch jednostki przez ("MOVE", x0, y0, x1, y1) itp.
+        # ale na razie sie tym nie martw, miej tylko na uwadze na przyszłość
+        # tak w zasadzie na teraz potrzeba mi czegoś postaci
+
+        # message = receive(...)
+        # if (wyłuskany typ otrzymanej wiadomości) == (ten typ co odpowiada za to że ktos zaczyna turę):
+        #   return "TURN", (nick wyłuskany z wiadomości)
+
+        # i jak gracz dostanie ("TURN", jego własny nick) to wtedy wie, że może się ruszać
+        # pewnie w serwerze musi się pojawić jakieś sposób przydzielania kogo kolej teraz
+        return "TURN", "chceswieta"
 
 # connect_to_server()

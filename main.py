@@ -18,5 +18,6 @@ if __name__ == "__main__":
     # uruchom ekrany startowe i niech one zrobia swoje w kwestiach serwera
     # niech zwracaja macierz mapy
     world_map = [[randrange(0, 4) for _ in range(40)] for _ in range(25)]
-    window = Game(SCREEN_WIDTH, SCREEN_HEIGHT, world_map)
+    client = "..."  # TODO Gabi: klient z twoich klas
+    window = Game(SCREEN_WIDTH, SCREEN_HEIGHT, world_map, client)
     window.run()
