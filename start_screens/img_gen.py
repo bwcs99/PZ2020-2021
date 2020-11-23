@@ -1,7 +1,6 @@
-from opensimplex import OpenSimplex
 import numpy as np
 from PIL import Image
-import random
+
 
 def get_color(tile):
     """ Return RGB value tied to tile type """
@@ -25,8 +24,8 @@ def get_map_overview(world_map):
         for j in range(y):
             arr[i, j] = get_color(world_map[i][j])
     img = Image.fromarray(arr)
-    """ Pillow swaps height with width, so we need to tweak the image to actually represent the map"""
+    """ PIL swaps height with width, so we need to tweak the image to actually represent the map"""
     img = img.rotate(270, expand=1).transpose(Image.FLIP_LEFT_RIGHT)  # rotate clockwise and do mirror flip
-    img.save('testrgb.png')
+    # img.save('testrgb.png')
     return img
 

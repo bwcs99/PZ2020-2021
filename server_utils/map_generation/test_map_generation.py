@@ -1,4 +1,6 @@
 import unittest
+
+from start_screens import img_gen as img
 from . import map_generator as gen
 
 
@@ -9,11 +11,11 @@ class MapCase(unittest.TestCase):
         height = 100
         width = 200
         world_map = gen.generate_map(height=height, width=width, params=params)
-        image = gen.get_map_overview(world_map)
+        image = img.get_map_overview(world_map)
         pixels = image.load()
         for x in range(width):
             for y in range(height):
-                color = tuple(gen.get_color(world_map[x][y]))
+                color = tuple(img.get_color(world_map[x][y]))
                 self.assertEqual(pixels[x, y], color)
 
 

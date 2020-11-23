@@ -1,7 +1,6 @@
-from opensimplex import OpenSimplex
-import numpy as np
-from PIL import Image
 import random
+
+from opensimplex import OpenSimplex
 
 
 # rgb(0, 64, 128) woda
@@ -38,12 +37,13 @@ def biome(val, params):
 
 
 def generate_map(width, height, params):
-    """ Generate map using given parameters: \n
-    params[0] - seed, \n
-    params[1] - water quantizer\n
-    params[2] - land quantizer \n
-    params[3] - hills quantizer \n
-    --> Quantizers work in range [1, 30]\n
+    """ Generate map using given parameters:
+    params[0] - seed,
+    params[1] - water quantizer
+    params[2] - land quantizer
+    params[3] - hills quantizer
+    --> Ideally params[1] < params[2] < params[3], everything above params[3] is considered mountains
+    --> Quantizers work best in range [1, 30]
     --> point (0,0) is top left corner
     """
     seed = params[0]
@@ -60,38 +60,5 @@ def generate_map(width, height, params):
             val = pow(e, exponent) * 10
             world_map[x][y] = biome(val, params)
     return world_map
-
-
-def get_color(tile):
-    """ Return RGB value tied to tile type """
-    if tile == 0:  # woda
-        return [0, 64, 128]
-    if tile == 1:  # rowniny
-        return [112, 169, 0]
-    if tile == 2:  # wzgorza
-        return [16, 128, 64]
-    if tile == 3:  # gory
-        return [128, 128, 128]
-    return [0, 0, 0]
-
-
-def get_map_overview(world_map):
-    """ Return image object of generated world map"""
-    x = len(world_map)
-    y = len(world_map[0])
-    arr = np.zeros([x, y, 3], dtype=np.uint8)
-    for i in range(x):
-        for j in range(y):
-            arr[i, j] = get_color(world_map[i][j])
-    img = Image.fromarray(arr)
-    """ Pillow swaps height with width, so we need to tweak the image to actually represent the map"""
-    img = img.rotate(270, expand=1).transpose(Image.FLIP_LEFT_RIGHT)  # rotate clockwise and do mirror flip
-    img.save('testrgb.png')
-    return img
-
-
-world_map = generate_map(300, 300, [1,8,28,6])
-
-get_map_overview(world_map)
 
 

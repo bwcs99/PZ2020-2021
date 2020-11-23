@@ -1,8 +1,9 @@
 import socket
 import threading
-from player import Player
-from map_generation import generate_map
 from random import randint
+
+from .map_generation import generate_map
+from .player import Player
 
 # Proszę nie ruszać zakomentowanego kodu. Będzie on zmieniany
 # Dane potrzebne do wystartowania serwera. 
