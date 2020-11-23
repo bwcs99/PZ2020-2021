@@ -69,8 +69,9 @@ class LobbyWindow(QMainWindow):
             self.players_table.setItem(row_position, i, QTableWidgetItem(peace))
 
     def __launch_game(self):
-        # TODO Starting game procedure
+        # TODO rozpoczęcie rozgrywki czyli zamknięcie tego okna
         print("game is starting")
+        self.close()
 
     def center(self):
         qr = self.frameGeometry()
