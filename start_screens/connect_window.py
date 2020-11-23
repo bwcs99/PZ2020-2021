@@ -54,9 +54,9 @@ class ConnectWindow(QMainWindow):
 
     def on_click(self):
         host_address = self.text_line.text().strip()  # using strip() for annoying white chars surrounding address
-        """self.client.connect(host_address)"""
-        """available_civ = self.client.get_available_civilizations()"""
-        """civ_combo = CivCombo(available_civ)"""
+        self.client.connect()
+        available_civ = self.client.get_available_civilizations()
+        civ_combo = CivCombo(available_civ)
         # try:
         #     # socket.inet_aton(host_address)  here put Błażej's code
         #     self.client.connect()
@@ -77,31 +77,15 @@ class ConnectWindow(QMainWindow):
         # print(self.chosen_civ, self.chosen_nick)
         self.describe_yourself()
     
-#    def parse_object(self, arr):
-#        original = []
-#        help = []
-#        for i in range(0, len(arr)):
-#            if arr[i] != 'e':
-#                num = int(arr[i])
-#                help.append(num)
-#            else:
-#                original.append(help)
-#                help.clear()
-#        return original
 
     def describe_yourself(self):
         # TODO wyślij swoj nick i cywilizacje na serwer
         # TODO to co jest poniżej powinno być zapakowane w jedną metodę
         self.client.send_msg("ADD_NEW_PLAYER:"+self.chosen_nick +"::")
         self.client.send_msg("CHOOSE_CIVILISATION:"+self.chosen_nick+":"+self.chosen_civ+":")
-        table = self.client.rec_msg()
-        original_array = eval(table)
-        # print(original_array)
-        get_map_overview(original_array)
         self.__init_lobby_window()
 
     def __init_lobby_window(self):
-        # TODO dostań z serwera current_players
         current_players = self.client.get_current_players()
         self.lobby_window = LobbyWindow(False)
         for player in current_players:

@@ -16,6 +16,7 @@ class Player:
         self.is_civilisation_set = False
         # kolor gracz
         self.player_colour = colour
+        self.message_queue = []
     def set_civilisation_type(self, civ_type):
         self.civilisation_type = civ_type
         self.is_civilisation_set = True

@@ -5,13 +5,12 @@ PORT = 65001
 HOST = '127.0.0.1'
 ADDR = (HOST, PORT)
 FORMAT = 'utf-8'
-HEADER = 64
+HEADER = 200
 DISCONNECT_MESSAGE = "DISCONNECT"
 
 """	Gabi:
-	- potrzebuję konstruktor, która tworzy clienta.
-	- potrzebuję metodę connect(address), gdzie address to adres serwera, na ten moment może być 127.0.0.1, ale możemy stwarzać pozory, że ma się to łączyć z innymi urzadzeniami.
-	ta metoda nawiązuję pierwsze połączenie i nic więcej.
+	- potrzebuję konstruktor, która tworzy clienta. 
+	- potrzebuję metodę connect(address), gdzie address to adres serwera, na ten moment może być 127.0.0.1, ale możemy stwarzać pozory, że ma się to łączyć z innymi urzadzeniami.	ta metoda nawiązuję pierwsze połączenie i nic więcej. ok
 	- potrzebuję get_available_civilizations_from_server(), metoda pobiera jeszcze niewykorzystane cywilizacje z serwera, niech zapisuje je w self.available_civilizations
 	- potrzebuję get_available_civilizations(), publiczna metoda zwraca self.available_civilizations, potrzebne w connect_window.py
 	- potrzebuję procedury dodania do serwera gracza poprzez wysłanie nicku i cywilizacji do serwera. Metoda introduce_yourself(nick, civ) (to w zasadzie scenariusz z ADD_NEW_PLAYER i CHOOSE_CIVILIZATION jednoczesnie).
@@ -33,9 +32,7 @@ class Client:
         self.current_players_on_server = None
         self.nick = None
 
-    # def prepare_initial_msg(nick):
-    #	return f"ADD_NEW_PLAYER:{nick}"
-
+  
     # Funkcja służąca do odbierania wiadomości z serwera
     def rec_msg(self):
         msg_len = self.sock.recv(HEADER).decode(FORMAT)
@@ -58,19 +55,6 @@ class Client:
             # print("TU")
             print(response)
 
-    # Funkcja służąca do łączenia się z serwerem + obsługa błędów
-    def connect_to_server(self):
-        try:
-            print("TYPE YOUR NICK BELOW: ")
-            nick = str(input())
-            self.send_msg(nick)
-            while True:
-                msg_to_send = str(input())
-                self.send_msg(msg_to_send)
-                if msg_to_send == DISCONNECT_MESSAGE:
-                    break
-        except KeyboardInterrupt:
-            print("CLIENT PROCESS TERMINATED")
 
     def connect(self):
         self.sock.connect(ADDR)
@@ -79,21 +63,36 @@ class Client:
         self.send_msg(DISCONNECT_MESSAGE)
         self.sock.close()
 
+    # jak w opisie
     def get_available_civilizations_from_server(self):
-        pass
+        self.available_civilizations = eval(self.send_msg("LIST_CIVILIZATIONS:::"))
+        self.send_msg(DISCONNECT)
 
+    # jak w opisie
     def get_available_civilizations(self):
+        self.get_available_civilizations_from_server()
         return self.available_civilizations
 
+    # jak w opisie
     def get_current_players_from_server(self):
-        pass
+        self.current_players_on_server = eval(self.send_msg("LIST_PLAYERS:::"))
+        self.send_msg(DISCONNECT)
 
+    # jak w opisie
     def get_current_players(self):
+        self.get_current_players_from_server()
         return self.current_players_on_server
 
+    # jak w opisie
     def set_nickname(self, nick):
         self.nick = nick
 
+    # jak w opisie
+    def get_map_from_server(self):
+        map = eval(self.send_msg("SHOW_MAP:::"))
+        return map
+
+    # jak w opisie
     def get_opponents_move(self):
         # TODO Błażej:
         # odbierz wiadomość od serwera i sparsuj ją do pary postaci (komenda, reszta parametrow...)
@@ -108,6 +107,8 @@ class Client:
 
         # i jak gracz dostanie ("TURN", jego własny nick) to wtedy wie, że może się ruszać
         # pewnie w serwerze musi się pojawić jakieś sposób przydzielania kogo kolej teraz
-        return "TURN", "chceswieta"
+        t = eval(self.send_msg("WHOSE_TRUN:::"))
+        self.send_msg(DISCONNECT)
+        turn, name = t
+        return turn, name
 
-# connect_to_server()
