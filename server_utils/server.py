@@ -1,7 +1,7 @@
 import socket
 import threading
 from random import randint
-from start_screens.map_generator_window import MapGeneratorWindow
+from player import Player
 
 PORT = 65001
 HOST = '127.0.0.1'
@@ -20,18 +20,20 @@ DISCONNECT_MESSAGE = "DISCONNECT"
 """
 
 
-
 class Server:
 
     def __init__(self, terrain_map):
         self.map_to_send = terrain_map
-       # print(self.map_to_send)
+        # print(self.map_to_send)
         self.players = []
         self.current_player = 0  # index
         self.connections = []
         self.threads = []
         self.colours = ['pink', 'red', 'purple', 'yellow', 'green', 'brown', 'blue', 'orange', 'grey']
         self.civilizations = ["zgredki", "elfy", "40-letnie-panny", "antysczepionkowcy"]
+
+        self.server_sock = self.create_socket(ADDR)
+        self.start_connection(self.server_sock)
 
     # Funkcja tworząca socket servera
     def create_socket(self, addres):
@@ -46,7 +48,6 @@ class Server:
         resp_len += b' ' * (HEADER - len(resp_len))
         return resp_len
 
-   
     def parse_request(self, incoming_msg, addr):
         request = incoming_msg.split(":")
         response = []
@@ -60,17 +61,17 @@ class Server:
                 new_player.active = True
                 self.players.append(new_player)
                 response.append(f"{request[1]}:YOU HAVE BEEN SUCCESSFULLY ADDED TO THE GAME".encode(FORMAT))
-                for player in players:
+                for player in self.players:
                     player.message_queue.append(f"NEW PLAYER".encode(FORMAT))
         elif request[0] == "CHOOSE_CIVILISATION":
             print("W ustawianiu typu cywilizacji")
             if len(self.civilizations) != 0:
                 for player in self.players:
                     if player.player_name == request[1]:
-                        idx = self.civilizations.index(request[1])
+                        # idx = self.civilizations.index(request[1])
                         self.civilizations.remove(request[1])
                         player.set_civilisation_type(request[2])
-            response.append(f"{request[1]} CHOSEN TYPE: {request[2]}")
+            response.append(f"{request[1]} CHOSEN TYPE: {request[2]}".encode(FORMAT))
         elif request[0] == "LIST_PLAYERS":
             print("W listowaniu graczy")
             to_send = []
@@ -107,17 +108,18 @@ class Server:
                 print(f"RECEIVED NEW MESSAGE: {incoming_message} from {addr}")
                 if incoming_message == DISCONNECT_MESSAGE:
                     connected = False
+
                 response = self.parse_request(incoming_message, addr)
                 if len(response) != 0:
                     response_length = self.header_generator(response[0])
                     conn.send(response_length)
                     conn.send(response[0])
-                for i in range(0, len(connections)):
-                    if len(players[i].message_queue) != 0:
-                        response_length = self.header_generator(message_queue[0])
-                        connections[i].send(response_length)
-                        connections[i].send(message_queue[0])
-                        message_queue.clear()
+                for i in range(0, len(self.connections)):
+                    if len(self.players[i].message_queue) != 0:
+                        response_length = self.header_generator(self.players[i].message_queue[0])
+                        self.connections[i].send(response_length)
+                        self.connections[i].send(self.players[i].message_queue[0])
+                        self.players[i].message_queue.clear()
         conn.close()
 
     # Funkcja akceptująca przychodzące połączenie i tworząca oddzielny wątek dla każdego klienta
@@ -137,8 +139,7 @@ class Server:
                 thread.join()
             print("SERVER PROCESS TERMINATED")
 
-server_obj = Server(MapGeneratorWindow.map)
-server_sock = server_obj.create_socket(ADDR)
-server_obj.start_connection(server_sock)
 
-
+# for testing
+if __name__ == "__main__":
+    server = Server([1, 2])

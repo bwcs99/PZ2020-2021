@@ -25,6 +25,7 @@ DISCONNECT_MESSAGE = "DISCONNECT"
     - metoda dla mnie to tylko get_opponents_move(), opisałem na dole dokładniej o co chodzi, jakby co pytaj
 """
 
+
 class Client:
     def __init__(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -32,7 +33,6 @@ class Client:
         self.current_players_on_server = None
         self.nick = None
 
-  
     # Funkcja służąca do odbierania wiadomości z serwera
     def rec_msg(self):
         msg_len = self.sock.recv(HEADER).decode(FORMAT)
@@ -54,7 +54,7 @@ class Client:
         if response:
             # print("TU")
             print(response)
-
+        return response
 
     def connect(self):
         self.sock.connect(ADDR)
@@ -63,10 +63,14 @@ class Client:
         self.send_msg(DISCONNECT_MESSAGE)
         self.sock.close()
 
+    def introduce_yourself(self, chosen_nick, chosen_civ):
+        self.send_msg("ADD_NEW_PLAYER:" + chosen_nick + "::")
+        self.send_msg("CHOOSE_CIVILISATION:" + chosen_civ + ":" + chosen_nick + ":")
+
     # jak w opisie
     def get_available_civilizations_from_server(self):
         self.available_civilizations = eval(self.send_msg("LIST_CIVILIZATIONS:::"))
-        self.send_msg(DISCONNECT)
+        self.send_msg(DISCONNECT_MESSAGE)
 
     # jak w opisie
     def get_available_civilizations(self):
@@ -76,7 +80,7 @@ class Client:
     # jak w opisie
     def get_current_players_from_server(self):
         self.current_players_on_server = eval(self.send_msg("LIST_PLAYERS:::"))
-        self.send_msg(DISCONNECT)
+        self.send_msg(DISCONNECT_MESSAGE)
 
     # jak w opisie
     def get_current_players(self):
@@ -115,4 +119,3 @@ class Client:
         self.send_msg(DISCONNECT_MESSAGE)
         turn, name = t
         return turn, name
-
