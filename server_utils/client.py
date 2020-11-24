@@ -65,7 +65,7 @@ class Client:
 
     def introduce_yourself(self, chosen_nick, chosen_civ):
         self.send_msg("ADD_NEW_PLAYER:" + chosen_nick + "::")
-        self.send_msg("CHOOSE_CIVILISATION:" + chosen_civ + ":" + chosen_nick + ":")
+        self.send_msg("CHOOSE_CIVILISATION:" + chosen_nick + ":" + chosen_civ + ":")
 
     # jak w opisie
     def get_available_civilizations_from_server(self):
@@ -96,9 +96,11 @@ class Client:
         map = eval(self.send_msg("SHOW_MAP:::"))
         return map
 
+    def start_game(self):
+        self.send_msg("START_GAME:::")
+
     def end_turn(self):
-        mes = eval(self.send_msg("END_TURN:::"))
-        self.send_msg(DISCONNECT_MESSAGE)
+        self.send_msg("END_TURN:::")
 
     # jak w opisie
     def get_opponents_move(self):

@@ -1,9 +1,7 @@
 import socket
 import threading
 from random import randint
-from player import Player
 
-from .map_generation import generate_map
 from .player import Player
 
 # Proszę nie ruszać zakomentowanego kodu. Będzie on zmieniany
@@ -34,6 +32,8 @@ class Server:
         self.connections = []
         self.threads = []
         self.colours = ['pink', 'red', 'purple', 'yellow', 'green', 'brown', 'blue', 'orange', 'grey']
+        self.civilizations = ["zgredki", "elfy", "40-letnie-panny", "antysczepionkowcy"]
+        self.current_player = 0  # index in self.players
 
         self.server_sock = self.create_socket(ADDR)
         self.start_connection(self.server_sock)
@@ -56,7 +56,6 @@ class Server:
         response = []
         if request[0] == "ADD_NEW_PLAYER":
             if len(self.colours) != 0:
-                print("W dodawaniu nowego gracza")
                 idx = randint(0, len(self.colours) - 1)
                 col = self.colours[idx]
                 self.colours.remove(col)
@@ -66,16 +65,14 @@ class Server:
                 for player in self.players:
                     player.message_queue.append(f"NEW PLAYER".encode(FORMAT))
         elif request[0] == "CHOOSE_CIVILISATION":
-            print("W ustawianiu typu cywilizacji")
             if len(self.civilizations) != 0:
                 for player in self.players:
                     if player.player_name == request[1]:
                         # idx = self.civilizations.index(request[1])
-                        self.civilizations.remove(request[1])
+                        self.civilizations.remove(request[2])
                         player.set_civilisation_type(request[2])
             response.append(f"{request[1]} CHOSEN TYPE: {request[2]}".encode(FORMAT))
         elif request[0] == "LIST_PLAYERS":
-            print("W listowaniu graczy")
             lis = ''
             for player in self.players:
                 lis += player.player_name
@@ -86,6 +83,19 @@ class Server:
                 lis += player.player_colour
                 lis += ' '
             response.append(lis.encode(FORMAT))
+        elif request[0] == "END_TURN":
+            response.append(f"{request[1]}: YOU HAVE FINISHED YOUR TURN".encode(FORMAT))
+            self.current_player += 1
+            self.current_player %= len(self.players)
+            t = ("TURN", self.players[self.current_player].player_name)
+            for player in self.players:
+                player.message_queue.append(str(t).encode(FORMAT))
+        elif request[0] == "START_GAME":
+            response.append(f"{request[1]}: YOU HAVE STARTED THE GAME".encode(FORMAT))
+            t = ("TURN", self.players[0].player_name)
+            response.append(str(t).encode(FORMAT))
+            for player in self.players:
+                player.message_queue.append(str(t).encode(FORMAT))
         else:
             response.append(f"UNKNOWN OPTION".encode(FORMAT))
         # response.append(f" ")
@@ -103,18 +113,17 @@ class Server:
                 print(f"RECEIVED NEW MESSAGE: {incoming_message} from {addr}")
                 if incoming_message == DISCONNECT_MESSAGE:
                     connected = False
-
                 response = self.parse_request(incoming_message, addr)
                 if len(response) != 0:
                     response_length = self.header_generator(response[0])
                     conn.send(response_length)
                     conn.send(response[0])
                 for i in range(0, len(self.connections)):
-                    if len(self.players[i].message_queue) != 0:
+                    while len(self.players[i].message_queue) != 0:
                         response_length = self.header_generator(self.players[i].message_queue[0])
                         self.connections[i].send(response_length)
                         self.connections[i].send(self.players[i].message_queue[0])
-                        self.players[i].message_queue.clear()
+                        self.players[i].message_queue.pop(0)
         conn.close()
 
     # Funkcja akceptująca przychodzące połączenie i tworząca oddzielny wątek dla każdego klienta
