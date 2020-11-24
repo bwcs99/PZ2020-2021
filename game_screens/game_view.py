@@ -294,6 +294,6 @@ class GameView(arcade.View):
                 if message[1] == self.client.nick:
                     self.my_turn = True
                     self.cur_enemy = ""
-                    break
+                    return
                 else:
                     self.cur_enemy = message[1]
