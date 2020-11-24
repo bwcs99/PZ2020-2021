@@ -56,19 +56,8 @@ class ConnectWindow(QMainWindow):
         host_address = self.text_line.text().strip()  # using strip() for annoying white chars surrounding address
         self.client.connect()
         available_civ = self.client.get_available_civilizations()
+        print(available_civ)
         civ_combo = CivCombo(available_civ)
-        # try:
-        #     # socket.inet_aton(host_address)  here put Błażej's code
-        #     self.client.connect()
-        #     QMessageBox.question(self, "", "Successfully connected", QMessageBox.Ok, QMessageBox.Ok)
-        #     # client-server_utils's logic ...
-        #     civ_combo = CivCombo(["zgredki", "elfy", "40-letnie-panny"],
-        #                          self)  # ["zgredki", "elfy", "40-letnie-panny"] should be civ_list returned from server_utils
-        #
-        # except socket.error:
-        #     QMessageBox.question(self, "host_address", "\"" + host_address + "\"" + " is incorrect address.",
-        #                          QMessageBox.Ok,
-        #                          QMessageBox.Ok)
 
     def set_player_info(self, chosen_civ, nickname):
         """This method ic called within CivCombo. DON'T CHANGE this function's name, even with refactor """
