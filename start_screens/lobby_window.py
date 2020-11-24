@@ -1,10 +1,12 @@
 import sys
 
+from PIL.ImageQt import ImageQt
 from PyQt5.QtCore import QRect
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QTableWidget, QLabel, QPushButton, QApplication, QHeaderView, \
     QTableWidgetItem
 
+from . import img_gen
 from server_utils.client import Client
 
 
@@ -14,26 +16,34 @@ class LobbyWindow(QMainWindow):
     make client save map send to him by server_utils.
     """
 
-    def __init__(self, are_you_host: bool, chosen_nick, chosen_civ):
+    def __init__(self, are_you_host: bool, chosen_nick, chosen_civ, client_object=None):
         """If player is hosting game, constructor should receive True as parameter, else false"""
         super(LobbyWindow, self).__init__()
-        self.players_table = []
-        self.map = None
+        self.players_table = None
+        self.map = QLabel(self)
         self.launch_button = None
+        self.init_ui(are_you_host)
 
-        self.client = Client()
-        self.client.connect()
+        if are_you_host is True:
+            self.client = Client()
+            self.client.connect()
+        else:
+            self.client = client_object
 
         self.client.introduce_yourself(chosen_nick, chosen_civ)
 
-        self.client.send_msg("LIST_PLAYERS:::")
-        response = self.client.rec_msg()
+        response = self.client.get_current_players_from_server()
+        response = response.split(":")
         print(response)
+        self.add_player_to_table(response)
 
-        # self.players_list = response.split(' ')
-        # print(self.players_list)
-        # self.client.disconnect()
-        self.init_ui(are_you_host)
+        tmp_map = self.client.get_map_from_server()
+        print(tmp_map)
+        image = img_gen.get_map_overview(tmp_map)
+        qim = ImageQt(image)
+        new_map = QPixmap.fromImage(qim)
+        self.map.setPixmap(new_map)
+
 
     def init_ui(self, are_you_host: bool):
         self.setWindowTitle("Age of Divisiveness - Game lobby")

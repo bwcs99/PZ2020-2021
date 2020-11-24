@@ -1,5 +1,6 @@
 import os
 import sys
+from time import sleep
 
 from PIL.ImageQt import ImageQt
 from PyQt5.QtCore import QRect
@@ -11,6 +12,7 @@ from server_utils.map_generation import generate_map
 from . import img_gen
 from .lobby_window import LobbyWindow
 from server_utils.server import Server
+from .nick_civ_window import CivCombo
 
 import threading
 
@@ -35,12 +37,12 @@ class MapGeneratorWindow(QMainWindow):
         self.map = QLabel(self)
         self.map.setGeometry(QRect(6, 10, 781, 521))
         # Default map
-        pixmap = QPixmap('resources/images/default_map.jpg')
+        pixmap = QPixmap('resources/images/example_map.png')
         self.map.setPixmap(pixmap)
         self.map.setScaledContents(True)
 
         self.seed_line = QLineEdit(self)
-        self.seed_line.setText("Enter 6 map parameters")
+        self.seed_line.setText("100, 100, 1, 5, 10, 20")
         self.seed_line.setGeometry(QRect(10, 550, 370, 41))
 
         self.generate_button = QPushButton(self)
@@ -77,7 +79,8 @@ class MapGeneratorWindow(QMainWindow):
             return
 
         self.world_map_matrix = generate_map(height=h, width=w, params=[sd, p1, p2, p3])
-        qim = ImageQt(img_gen.get_map_overview(self.world_map_matrix))
+        image = img_gen.get_map_overview(self.world_map_matrix)
+        qim = ImageQt(image)
         new_map = QPixmap.fromImage(qim)
         self.map.setPixmap(new_map)
 
@@ -95,8 +98,8 @@ class MapGeneratorWindow(QMainWindow):
         print(self.chosen_civ, self.chosen_nick)
         self.start_server()
 
-    def create_server_thread(self,):
-        self.sever = Server(self.map)
+    def create_server_thread(self, ):
+        self.sever = Server(self.world_map_matrix)
 
     def start_server(self):
         # TODO BLAZEJ client-server_utils logic
@@ -109,8 +112,8 @@ class MapGeneratorWindow(QMainWindow):
         self.__init_lobby_window()
 
     def __init_lobby_window(self):
+        sleep(0.5)  # time for server to setup
         self.lobby_window = LobbyWindow(True, self.chosen_nick, self.chosen_civ)  # True because this is host.
-        # self.lobby_window.add_player_to_table([self.chosen_nick, self.chosen_civ, "Black"])
         self.lobby_window.show()
         self.hide()
 

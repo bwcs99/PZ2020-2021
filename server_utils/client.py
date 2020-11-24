@@ -65,12 +65,12 @@ class Client:
 
     def introduce_yourself(self, chosen_nick, chosen_civ):
         self.send_msg("ADD_NEW_PLAYER:" + chosen_nick + "::")
-        self.send_msg("CHOOSE_CIVILISATION:" + chosen_civ + ":" + chosen_nick + ":")
+        self.send_msg("CHOOSE_CIVILISATION:" + chosen_nick + ":" + chosen_civ + ":")
 
     # jak w opisie
     def get_available_civilizations_from_server(self):
-        self.available_civilizations = eval(self.send_msg("LIST_CIVILIZATIONS:::"))
-        self.send_msg(DISCONNECT_MESSAGE)
+        self.available_civilizations = self.send_msg("LIST_CIVILIZATIONS:::")
+        return self.available_civilizations
 
     # jak w opisie
     def get_available_civilizations(self):
@@ -79,8 +79,8 @@ class Client:
 
     # jak w opisie
     def get_current_players_from_server(self):
-        self.current_players_on_server = eval(self.send_msg("LIST_PLAYERS:::"))
-        self.send_msg(DISCONNECT_MESSAGE)
+        self.current_players_on_server = self.send_msg("LIST_PLAYERS:::")
+        return self.current_players_on_server
 
     # jak w opisie
     def get_current_players(self):
@@ -93,12 +93,11 @@ class Client:
 
     # jak w opisie
     def get_map_from_server(self):
-        map = eval(self.send_msg("SHOW_MAP:::"))
+        map = self.send_msg("SHOW_MAP:::")
         return map
 
     def end_turn(self):
-        mes = eval(self.send_msg("END_TURN:::"))
-        self.send_msg(DISCONNECT_MESSAGE)
+        mes = self.send_msg("END_TURN:::")
 
     # jak w opisie
     def get_opponents_move(self):

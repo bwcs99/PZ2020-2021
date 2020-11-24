@@ -1,9 +1,7 @@
 import socket
 import threading
 from random import randint
-from player import Player
 
-from .map_generation import generate_map
 from .player import Player
 
 # Proszę nie ruszać zakomentowanego kodu. Będzie on zmieniany
@@ -29,11 +27,13 @@ class Server:
 
     def __init__(self, terrain_map):
         self.map_to_send = terrain_map
+        print(self.map_to_send)
         # print(self.map_to_send)
         self.players = []
         self.connections = []
         self.threads = []
         self.colours = ['pink', 'red', 'purple', 'yellow', 'green', 'brown', 'blue', 'orange', 'grey']
+        self.civilizations = ["zgredki", "elfy", "40-letnie-panny", "antysczepionkowcy"]
 
         self.server_sock = self.create_socket(ADDR)
         self.start_connection(self.server_sock)
@@ -65,27 +65,36 @@ class Server:
                 response.append(f"{request[1]}:YOU HAVE BEEN SUCCESSFULLY ADDED TO THE GAME".encode(FORMAT))
                 for player in self.players:
                     player.message_queue.append(f"NEW PLAYER".encode(FORMAT))
+            return response
         elif request[0] == "CHOOSE_CIVILISATION":
             print("W ustawianiu typu cywilizacji")
             if len(self.civilizations) != 0:
                 for player in self.players:
                     if player.player_name == request[1]:
                         # idx = self.civilizations.index(request[1])
-                        self.civilizations.remove(request[1])
+                        self.civilizations.remove(request[2])
                         player.set_civilisation_type(request[2])
-            response.append(f"{request[1]} CHOSEN TYPE: {request[2]}".encode(FORMAT))
+            # response.append(f"{request[1]} CHOSEN TYPE: {request[2]}".encode(FORMAT))
+            return response
         elif request[0] == "LIST_PLAYERS":
             print("W listowaniu graczy")
             lis = ''
             for player in self.players:
+                print(player.player_name, player.civilisation_type, player.player_colour)
                 lis += player.player_name
-                lis += ' '
-                print(player.civilisation_type)
+                lis += ':'
                 lis += player.civilisation_type
-                lis += ' '
+                lis += ':'
                 lis += player.player_colour
-                lis += ' '
+                print(lis)
             response.append(lis.encode(FORMAT))
+            print(response)
+            return response
+        elif request[0] == "SHOW_MAP":
+            print("W przesyłaniu mapy")
+            map_in_string = str(self.map_to_send)
+            response.append(f"{map_in_string}".encode(FORMAT))
+            return response
         else:
             response.append(f"UNKNOWN OPTION".encode(FORMAT))
         # response.append(f" ")
