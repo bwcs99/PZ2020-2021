@@ -108,7 +108,7 @@ class GameView(arcade.View):
         """
         super().__init__()
         self.client = client
-        self.my_turn = True
+        self.my_turn = False
         self.cur_enemy = ""
 
         self.SCREEN_WIDTH = width
@@ -150,6 +150,7 @@ class GameView(arcade.View):
         col, row = self.absolute_to_tiles(100, 100)
         self.place_unit_on_tile(unit_prototype, col, row)
         self.unit_sprites.append(unit_prototype)
+        threading.Thread(target=self.wait_for_my_turn).start()
 
     def relative_to_absolute(self, x: float, y: float):
         """
@@ -286,9 +287,8 @@ class GameView(arcade.View):
         """
         A prototype function for handling server_utils messages. Will probably be renamed and split later on.
         """
-        # TODO: Actual server_utils communication
-        message = self.client.get_opponents_move()
         while True:
+            message = self.client.get_opponents_move()
             if message[0] == "TURN":
                 if message[1] == self.client.nick:
                     self.my_turn = True
