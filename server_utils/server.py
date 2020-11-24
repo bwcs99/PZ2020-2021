@@ -1,6 +1,7 @@
 import socket
 import threading
 from random import randint
+from player import Player
 
 from .map_generation import generate_map
 from .player import Player
@@ -26,13 +27,16 @@ DISCONNECT_MESSAGE = "DISCONNECT"
 
 class Server:
 
-    def __init__(self, param1, param2):
-        self.map_to_send = generate_map(param1, param2, [1, 8, 28, 6])
-        print(self.map_to_send)
+    def __init__(self, terrain_map):
+        self.map_to_send = terrain_map
+        # print(self.map_to_send)
         self.players = []
         self.connections = []
         self.threads = []
         self.colours = ['pink', 'red', 'purple', 'yellow', 'green', 'brown', 'blue', 'orange', 'grey']
+
+        self.server_sock = self.create_socket(ADDR)
+        self.start_connection(self.server_sock)
 
     # Funkcja tworząca socket servera
     def create_socket(self, addres):
@@ -47,17 +51,6 @@ class Server:
         resp_len += b' ' * (HEADER - len(resp_len))
         return resp_len
 
-    #	def convert_array(self, arr, p1, p2):
-    #		str_list = ''
-    #		for i in range(0, p1):
-    #			for j in range(0, p2):
-    #				alnum = str(arr[i][j])
-    #				str_list += alnum
-    #				if j == p2-1 :
-    #					str_list += 'e'
-    #		print(str_list)
-    #		return str_list
-
     def parse_request(self, incoming_msg, addr):
         request = incoming_msg.split(":")
         response = []
@@ -70,18 +63,17 @@ class Server:
                 new_player = Player(request[1], col)
                 self.players.append(new_player)
                 response.append(f"{request[1]}:YOU HAVE BEEN SUCCESSFULLY ADDED TO THE GAME".encode(FORMAT))
-        # response.append(f"{request[1]} JOINED THE GAME".encode(FORMAT))
+                for player in self.players:
+                    player.message_queue.append(f"NEW PLAYER".encode(FORMAT))
         elif request[0] == "CHOOSE_CIVILISATION":
             print("W ustawianiu typu cywilizacji")
-            for player in self.players:
-                if player.player_name == request[1]:
-                    player.set_civilisation_type(request[2])
-            #	response.append(f"{request[1]}: YOU HAVE CHOSEN: {request[2]}".encode(FORMAT)) # tu zmiana
-            enc_map = str(self.map_to_send)
-            #	print(enc_map)
-            response.append(enc_map.encode(FORMAT))  # tu zmiana
-        # tu zmiana
-        # response.append(f"{request[1]} CHOSEN TYPE: {request[2]}")
+            if len(self.civilizations) != 0:
+                for player in self.players:
+                    if player.player_name == request[1]:
+                        # idx = self.civilizations.index(request[1])
+                        self.civilizations.remove(request[1])
+                        player.set_civilisation_type(request[2])
+            response.append(f"{request[1]} CHOSEN TYPE: {request[2]}".encode(FORMAT))
         elif request[0] == "LIST_PLAYERS":
             print("W listowaniu graczy")
             lis = ''
@@ -111,11 +103,18 @@ class Server:
                 print(f"RECEIVED NEW MESSAGE: {incoming_message} from {addr}")
                 if incoming_message == DISCONNECT_MESSAGE:
                     connected = False
+
                 response = self.parse_request(incoming_message, addr)
                 if len(response) != 0:
                     response_length = self.header_generator(response[0])
                     conn.send(response_length)
                     conn.send(response[0])
+                for i in range(0, len(self.connections)):
+                    if len(self.players[i].message_queue) != 0:
+                        response_length = self.header_generator(self.players[i].message_queue[0])
+                        self.connections[i].send(response_length)
+                        self.connections[i].send(self.players[i].message_queue[0])
+                        self.players[i].message_queue.clear()
         conn.close()
 
     # Funkcja akceptująca przychodzące połączenie i tworząca oddzielny wątek dla każdego klienta
@@ -136,10 +135,6 @@ class Server:
             print("SERVER PROCESS TERMINATED")
 
 
-print("SERVER IS STARTING")
-
-server_obj = Server(50, 50)
-
-server = server_obj.create_socket(ADDR)
-
-server_obj.start_connection(server)
+# for testing
+if __name__ == "__main__":
+    server = Server([1, 2])

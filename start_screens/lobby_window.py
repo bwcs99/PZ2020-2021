@@ -14,20 +14,25 @@ class LobbyWindow(QMainWindow):
     make client save map send to him by server_utils.
     """
 
-    def __init__(self, are_you_host: bool):
+    def __init__(self, are_you_host: bool, chosen_nick, chosen_civ):
         """If player is hosting game, constructor should receive True as parameter, else false"""
         super(LobbyWindow, self).__init__()
         self.players_table = []
         self.map = None
         self.launch_button = None
+
         self.client = Client()
         self.client.connect()
+
+        self.client.introduce_yourself(chosen_nick, chosen_civ)
+
         self.client.send_msg("LIST_PLAYERS:::")
         response = self.client.rec_msg()
         print(response)
-        self.players_list = response.split(' ')
-        print(self.players_list)
-        self.client.disconnect()
+
+        # self.players_list = response.split(' ')
+        # print(self.players_list)
+        # self.client.disconnect()
         self.init_ui(are_you_host)
 
     def init_ui(self, are_you_host: bool):

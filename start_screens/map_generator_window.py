@@ -10,8 +10,9 @@ from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QApplication, QPushButt
 from server_utils.map_generation import generate_map
 from . import img_gen
 from .lobby_window import LobbyWindow
-from .nick_civ_window import CivCombo
-#from server_utils import server
+from server_utils.server import Server
+
+import threading
 
 
 class MapGeneratorWindow(QMainWindow):
@@ -24,6 +25,7 @@ class MapGeneratorWindow(QMainWindow):
         self.world_map_matrix = None
         self.chosen_civ = "fat_dwarves"
         self.chosen_nick = "fat_Bob"
+        self.sever = None
         self.init_ui()
 
     def init_ui(self):
@@ -93,18 +95,22 @@ class MapGeneratorWindow(QMainWindow):
         print(self.chosen_civ, self.chosen_nick)
         self.start_server()
 
+    def create_server_thread(self,):
+        self.sever = Server(self.map)
+
     def start_server(self):
         # TODO BLAZEJ client-server_utils logic
 
         """ mapa przechowywana jest w self.world_map_matrix """
         print("Server is starting...")
-        exec(open('server_utils/server.py').read())
-        self.__init_lobby_window() # serwer startuje, ale jest problem z mapą
-
+        # TODO z całą pewnościa potrzebny wątek
+        server_thread = threading.Thread(target=self.create_server_thread, args=())
+        server_thread.start()
+        self.__init_lobby_window()
 
     def __init_lobby_window(self):
-        self.lobby_window = LobbyWindow(True)  # True because this is host.
-        self.lobby_window.add_player_to_table([self.chosen_nick, self.chosen_civ, "Black"])
+        self.lobby_window = LobbyWindow(True, self.chosen_nick, self.chosen_civ)  # True because this is host.
+        # self.lobby_window.add_player_to_table([self.chosen_nick, self.chosen_civ, "Black"])
         self.lobby_window.show()
         self.hide()
 
