@@ -72,19 +72,17 @@ class Server:
                         # idx = self.civilizations.index(request[1])
                         self.civilizations.remove(request[2])
                         player.set_civilisation_type(request[2])
-            # response.append(f"{request[1]} CHOSEN TYPE: {request[2]}".encode(FORMAT))
+            response.append(f"{request[1]} CHOSEN TYPE: {request[2]}".encode(FORMAT))
         elif request[0] == "LIST_PLAYERS":
-            lis = ''
+            lis = []
             for player in self.players:
-                print(player.player_name, player.civilisation_type, player.player_colour)
-                lis += player.player_name
-                lis += ':'
-                lis += player.civilisation_type
-                lis += ':'
-                lis += player.player_colour
-                print(lis)
-            response.append(lis.encode(FORMAT))
-            print(response)
+                plis = player.player_name
+                plis += ':'
+                plis += player.civilisation_type
+                plis += ':'
+                plis += player.player_colour
+                lis.append(plis)
+            response.append(str(lis).encode(FORMAT))
         elif request[0] == "SHOW_MAP":
             print("W przesyłaniu mapy")
             map_in_string = str(self.map_to_send)

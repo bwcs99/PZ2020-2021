@@ -66,6 +66,7 @@ class Client:
     def introduce_yourself(self, chosen_nick, chosen_civ):
         self.send_msg("ADD_NEW_PLAYER:" + chosen_nick + "::")
         self.send_msg("CHOOSE_CIVILISATION:" + chosen_nick + ":" + chosen_civ + ":")
+        self.rec_msg()
 
     # jak w opisie
     def get_available_civilizations_from_server(self):
@@ -102,9 +103,11 @@ class Client:
     def end_turn(self):
         self.send_msg("END_TURN:::")
 
-    # jak w opisie
     def get_opponents_move(self):
-        # TODO Błażej:
+        """
+        Used while the player is waiting for their turn. Waits for a server message describing an action (turn end,
+        unit moved, etc.) and parses it to a form that game_view is able to understand.
+        """
         # odbierz wiadomość od serwera i sparsuj ją do pary postaci (komenda, reszta parametrow...)
         # na razie wystarczy mi coś w stylu ("TURN", nick gracza którego tura się zaczyna)
         # potem dojdą tu takie rzeczy jak ruch jednostki przez ("MOVE", x0, y0, x1, y1) itp.

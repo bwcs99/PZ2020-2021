@@ -1,5 +1,5 @@
 import sys
-
+from ast import literal_eval
 from PIL.ImageQt import ImageQt
 from PyQt5.QtCore import QRect
 from PyQt5.QtGui import QPixmap
@@ -33,8 +33,8 @@ class LobbyWindow(QMainWindow):
         self.client.introduce_yourself(chosen_nick, chosen_civ)
 
         response = self.client.get_current_players_from_server()
-        response = response.split(":")
-        print(response)
+        response = literal_eval(response)
+        response = response[0].split(":")
         self.add_player_to_table(response)
 
         tmp_map = self.client.get_map_from_server()
