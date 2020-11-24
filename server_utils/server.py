@@ -83,6 +83,9 @@ class Server:
                 plis += player.player_colour
                 lis.append(plis)
             response.append(str(lis).encode(FORMAT))
+        elif request[0] == "LIST_CIVILIZATIONS":
+            civilizations_in_string = str(self.civilizations)
+            response.append(f"{civilizations_in_string}".encode(FORMAT))
         elif request[0] == "SHOW_MAP":
             print("W przesyłaniu mapy")
             map_in_string = str(self.map_to_send)

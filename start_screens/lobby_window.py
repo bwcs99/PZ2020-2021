@@ -1,5 +1,5 @@
 import sys
-from ast import literal_eval
+import ast
 from PIL.ImageQt import ImageQt
 from PyQt5.QtCore import QRect
 from PyQt5.QtGui import QPixmap
@@ -33,14 +33,15 @@ class LobbyWindow(QMainWindow):
         self.client.introduce_yourself(chosen_nick, chosen_civ)
 
         response = self.client.get_current_players_from_server()
-        response = literal_eval(response)
-        response = response[0].split(":")
-        self.add_player_to_table(response)
+        response = ast.literal_eval(response)
+        for player_string in response:
+            nick, civ, col = player_string.split(":")
+            self.add_player_to_table([nick, civ, col])
 
         tmp_map = self.client.get_map_from_server()
-        print(tmp_map)
+        tmp_map = ast.literal_eval(tmp_map)
         image = img_gen.get_map_overview(tmp_map)
-        qim = ImageQt(image)
+        qim = ImageQt(image).copy()
         new_map = QPixmap.fromImage(qim)
         self.map.setPixmap(new_map)
 
