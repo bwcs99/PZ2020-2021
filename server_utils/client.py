@@ -25,6 +25,7 @@ DISCONNECT_MESSAGE = "DISCONNECT"
     - metoda dla mnie to tylko get_opponents_move(), opisałem na dole dokładniej o co chodzi, jakby co pytaj
 """
 
+
 class Client:
     def __init__(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

@@ -1,8 +1,12 @@
 import socket
 import threading
 from random import randint
-from start_screens.map_generator_window import MapGeneratorWindow
 
+from .map_generation import generate_map
+from .player import Player
+
+# Proszę nie ruszać zakomentowanego kodu. Będzie on zmieniany
+# Dane potrzebne do wystartowania serwera. 
 PORT = 65001
 HOST = '127.0.0.1'
 ADDR = (HOST, PORT)
@@ -20,18 +24,15 @@ DISCONNECT_MESSAGE = "DISCONNECT"
 """
 
 
-
 class Server:
 
-    def __init__(self, terrain_map):
-        self.map_to_send = terrain_map
-       # print(self.map_to_send)
+    def __init__(self, param1, param2):
+        self.map_to_send = generate_map(param1, param2, [1, 8, 28, 6])
+        print(self.map_to_send)
         self.players = []
-        self.current_player = 0  # index
         self.connections = []
         self.threads = []
         self.colours = ['pink', 'red', 'purple', 'yellow', 'green', 'brown', 'blue', 'orange', 'grey']
-        self.civilizations = ["zgredki", "elfy", "40-letnie-panny", "antysczepionkowcy"]
 
     # Funkcja tworząca socket servera
     def create_socket(self, addres):
@@ -46,7 +47,17 @@ class Server:
         resp_len += b' ' * (HEADER - len(resp_len))
         return resp_len
 
-   
+    #	def convert_array(self, arr, p1, p2):
+    #		str_list = ''
+    #		for i in range(0, p1):
+    #			for j in range(0, p2):
+    #				alnum = str(arr[i][j])
+    #				str_list += alnum
+    #				if j == p2-1 :
+    #					str_list += 'e'
+    #		print(str_list)
+    #		return str_list
+
     def parse_request(self, incoming_msg, addr):
         request = incoming_msg.split(":")
         response = []
@@ -57,42 +68,35 @@ class Server:
                 col = self.colours[idx]
                 self.colours.remove(col)
                 new_player = Player(request[1], col)
-                new_player.active = True
                 self.players.append(new_player)
                 response.append(f"{request[1]}:YOU HAVE BEEN SUCCESSFULLY ADDED TO THE GAME".encode(FORMAT))
-                for player in players:
-                    player.message_queue.append(f"NEW PLAYER".encode(FORMAT))
+        # response.append(f"{request[1]} JOINED THE GAME".encode(FORMAT))
         elif request[0] == "CHOOSE_CIVILISATION":
             print("W ustawianiu typu cywilizacji")
-            if len(self.civilizations) != 0:
-                for player in self.players:
-                    if player.player_name == request[1]:
-                        idx = self.civilizations.index(request[1])
-                        self.civilizations.remove(request[1])
-                        player.set_civilisation_type(request[2])
-            response.append(f"{request[1]} CHOSEN TYPE: {request[2]}")
+            for player in self.players:
+                if player.player_name == request[1]:
+                    player.set_civilisation_type(request[2])
+            #	response.append(f"{request[1]}: YOU HAVE CHOSEN: {request[2]}".encode(FORMAT)) # tu zmiana
+            enc_map = str(self.map_to_send)
+            #	print(enc_map)
+            response.append(enc_map.encode(FORMAT))  # tu zmiana
+        # tu zmiana
+        # response.append(f"{request[1]} CHOSEN TYPE: {request[2]}")
         elif request[0] == "LIST_PLAYERS":
             print("W listowaniu graczy")
-            to_send = []
+            lis = ''
             for player in self.players:
-                help = [player.player_name, player.civilisation_type, player.player_colour]
-                to_send.append(help)
-            enc_to_send = str(to_send)
-            response.append(enc_to_send.encode(FORMAT))
-        elif request[0] == "LIST_CIVILIZATIONS":
-            enc_lis = str(self.civilizations)
-            response.append(enc_lis.encode(FORMAT))
-        elif request[0] == "END_TURN":
-            self.current_player += 1
-            self.current_player %= len(self.players)
-            t = ("TURN", self.players[self.current_player].player_name)
-            enc_t = str(t)
-            response.append(enc_t.encode(FORMAT))
-        elif request[0] == "SHOW_MAP":
-            enc_map = str(self.map_to_send)
-            response.append(enc_map.encode(FORMAT))
+                lis += player.player_name
+                lis += ' '
+                print(player.civilisation_type)
+                lis += player.civilisation_type
+                lis += ' '
+                lis += player.player_colour
+                lis += ' '
+            response.append(lis.encode(FORMAT))
         else:
             response.append(f"UNKNOWN OPTION".encode(FORMAT))
+        # response.append(f" ")
         return response
 
     # Służy do obsługi klientów
@@ -112,12 +116,6 @@ class Server:
                     response_length = self.header_generator(response[0])
                     conn.send(response_length)
                     conn.send(response[0])
-                for i in range(0, len(connections)):
-                    if len(players[i].message_queue) != 0:
-                        response_length = self.header_generator(message_queue[0])
-                        connections[i].send(response_length)
-                        connections[i].send(message_queue[0])
-                        message_queue.clear()
         conn.close()
 
     # Funkcja akceptująca przychodzące połączenie i tworząca oddzielny wątek dla każdego klienta
@@ -137,8 +135,11 @@ class Server:
                 thread.join()
             print("SERVER PROCESS TERMINATED")
 
-server_obj = Server(MapGeneratorWindow.map)
-server_sock = server_obj.create_socket(ADDR)
-server_obj.start_connection(server_sock)
 
+print("SERVER IS STARTING")
 
+server_obj = Server(50, 50)
+
+server = server_obj.create_socket(ADDR)
+
+server_obj.start_connection(server)

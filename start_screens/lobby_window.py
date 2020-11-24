@@ -1,11 +1,11 @@
-import os
 import sys
-from server_utils.client import Client
 
 from PyQt5.QtCore import QRect
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QTableWidget, QLabel, QPushButton, QApplication, QHeaderView, \
     QTableWidgetItem
+
+from server_utils.client import Client
 
 
 class LobbyWindow(QMainWindow):
