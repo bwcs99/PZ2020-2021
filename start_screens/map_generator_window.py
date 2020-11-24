@@ -11,6 +11,7 @@ from server_utils.map_generation import generate_map
 from . import img_gen
 from .lobby_window import LobbyWindow
 from server_utils.server import Server
+from start_screens.nick_civ_window import CivCombo
 
 import threading
 
@@ -95,7 +96,12 @@ class MapGeneratorWindow(QMainWindow):
         print(self.chosen_civ, self.chosen_nick)
         self.start_server()
 
-    def create_server_thread(self,):
+    def create_server_thread(self):
+        # transpose the map for easier usage in game_view and server
+        self.world_map_matrix = [
+            [self.world_map_matrix[y][x] for y in range(len(self.world_map_matrix))]
+            for x in range(len(self.world_map_matrix[0]))
+        ]
         self.sever = Server(self.map)
 
     def start_server(self):
