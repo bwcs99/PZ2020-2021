@@ -1,4 +1,5 @@
 import arcade
+
 from .game_view import GameView
 
 SCREEN_WIDTH = 1080
@@ -9,6 +10,7 @@ class Game(arcade.Window):
     """
     The window containing game screens.
     """
+
     def __init__(self, width: int, height: int, tiles: list, client):
         """
         :param width: Window width.

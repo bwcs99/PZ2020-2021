@@ -3,6 +3,11 @@ import threading
 from random import randint
 from player import Player
 
+from .map_generation import generate_map
+from .player import Player
+
+# Proszę nie ruszać zakomentowanego kodu. Będzie on zmieniany
+# Dane potrzebne do wystartowania serwera. 
 PORT = 65001
 HOST = '127.0.0.1'
 ADDR = (HOST, PORT)
@@ -26,11 +31,9 @@ class Server:
         self.map_to_send = terrain_map
         # print(self.map_to_send)
         self.players = []
-        self.current_player = 0  # index
         self.connections = []
         self.threads = []
         self.colours = ['pink', 'red', 'purple', 'yellow', 'green', 'brown', 'blue', 'orange', 'grey']
-        self.civilizations = ["zgredki", "elfy", "40-letnie-panny", "antysczepionkowcy"]
 
         self.server_sock = self.create_socket(ADDR)
         self.start_connection(self.server_sock)
@@ -58,7 +61,6 @@ class Server:
                 col = self.colours[idx]
                 self.colours.remove(col)
                 new_player = Player(request[1], col)
-                new_player.active = True
                 self.players.append(new_player)
                 response.append(f"{request[1]}:YOU HAVE BEEN SUCCESSFULLY ADDED TO THE GAME".encode(FORMAT))
                 for player in self.players:
@@ -74,26 +76,19 @@ class Server:
             response.append(f"{request[1]} CHOSEN TYPE: {request[2]}".encode(FORMAT))
         elif request[0] == "LIST_PLAYERS":
             print("W listowaniu graczy")
-            to_send = []
+            lis = ''
             for player in self.players:
-                help = [player.player_name, player.civilisation_type, player.player_colour]
-                to_send.append(help)
-            enc_to_send = str(to_send)
-            response.append(enc_to_send.encode(FORMAT))
-        elif request[0] == "LIST_CIVILIZATIONS":
-            enc_lis = str(self.civilizations)
-            response.append(enc_lis.encode(FORMAT))
-        elif request[0] == "END_TURN":
-            self.current_player += 1
-            self.current_player %= len(self.players)
-            t = ("TURN", self.players[self.current_player].player_name)
-            enc_t = str(t)
-            response.append(enc_t.encode(FORMAT))
-        elif request[0] == "SHOW_MAP":
-            enc_map = str(self.map_to_send)
-            response.append(enc_map.encode(FORMAT))
+                lis += player.player_name
+                lis += ' '
+                print(player.civilisation_type)
+                lis += player.civilisation_type
+                lis += ' '
+                lis += player.player_colour
+                lis += ' '
+            response.append(lis.encode(FORMAT))
         else:
             response.append(f"UNKNOWN OPTION".encode(FORMAT))
+        # response.append(f" ")
         return response
 
     # Służy do obsługi klientów

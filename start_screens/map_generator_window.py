@@ -1,12 +1,14 @@
 import os
 import sys
 
+from PIL.ImageQt import ImageQt
 from PyQt5.QtCore import QRect
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QApplication, QPushButton, \
     QLineEdit, QLabel
 
-from .nick_civ_window import CivCombo
+from server_utils.map_generation import generate_map
+from . import img_gen
 from .lobby_window import LobbyWindow
 from server_utils.server import Server
 
@@ -20,6 +22,7 @@ class MapGeneratorWindow(QMainWindow):
         self.generate_button = None
         self.ok_button = None
         self.seed_line = None
+        self.world_map_matrix = None
         self.chosen_civ = "fat_dwarves"
         self.chosen_nick = "fat_Bob"
         self.sever = None
@@ -37,7 +40,7 @@ class MapGeneratorWindow(QMainWindow):
         self.map.setScaledContents(True)
 
         self.seed_line = QLineEdit(self)
-        self.seed_line.setText("Enter seed.")
+        self.seed_line.setText("Enter 6 map parameters")
         self.seed_line.setGeometry(QRect(10, 550, 370, 41))
 
         self.generate_button = QPushButton(self)
@@ -54,10 +57,28 @@ class MapGeneratorWindow(QMainWindow):
         self.show()
 
     def generate_map(self):
-        # TODO KRZYSZTOF this function should use MapGenerator interface and set new pixmap. self.map will refresh automatically.
-        seed = self.seed_line.text()  # this way you get seed_line value
-        print(seed)
-        new_map = QPixmap('resources/images/example_map_2.png')
+        """ Generate world map and show its overview using 6 parameters from textflied in following order:
+        height, width, seed, water quantizer, land quantizer, hills quantizer,
+        Integers only, separated by ','.
+        Look 'generate_map' for more info."""
+        parameters = self.seed_line.text().split(',')  # array of arguments
+        if len(parameters) != 6:
+            self.seed_line.setText("Not enough parameters")
+            return
+        try:
+            h = int(parameters[0])
+            w = int(parameters[1])
+            sd = int(parameters[2])
+            p1 = int(parameters[3])
+            p2 = int(parameters[4])
+            p3 = int(parameters[5])
+        except ValueError:
+            self.seed_line.setText("Only integers allowed")
+            return
+
+        self.world_map_matrix = generate_map(height=h, width=w, params=[sd, p1, p2, p3])
+        qim = ImageQt(img_gen.get_map_overview(self.world_map_matrix))
+        new_map = QPixmap.fromImage(qim)
         self.map.setPixmap(new_map)
 
     def prepare_for_game(self):
@@ -78,6 +99,9 @@ class MapGeneratorWindow(QMainWindow):
         self.sever = Server(self.map)
 
     def start_server(self):
+        # TODO BLAZEJ client-server_utils logic
+
+        """ mapa przechowywana jest w self.world_map_matrix """
         print("Server is starting...")
         # TODO z całą pewnościa potrzebny wątek
         server_thread = threading.Thread(target=self.create_server_thread, args=())

@@ -1,6 +1,7 @@
+import threading
+
 import arcade
 import arcade.gui
-import threading
 
 TOP_BAR_SIZE = 0.0625  # expressed as the percentage of the current screen height
 
