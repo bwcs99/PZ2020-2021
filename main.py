@@ -17,7 +17,7 @@ if __name__ == "__main__":
     # print(win.map_generator_window.chosen_nick)
     # uruchom ekrany startowe i niech one zrobia swoje w kwestiach serwera
     # niech zwracaja macierz mapy
-    world_map = [[randrange(0, 4) for _ in range(40)] for _ in range(25)]
+    world_map = win.map_generator_window.world_map_matrix
     client = "..."  # TODO Gabi: klient z twoich klas
     window = Game(SCREEN_WIDTH, SCREEN_HEIGHT, world_map, client)
     window.run()

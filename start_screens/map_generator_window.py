@@ -98,7 +98,12 @@ class MapGeneratorWindow(QMainWindow):
         print(self.chosen_civ, self.chosen_nick)
         self.start_server()
 
-    def create_server_thread(self, ):
+    def create_server_thread(self):
+        # transpose the map for easier usage in game_view and server
+        self.world_map_matrix = [
+            [self.world_map_matrix[y][x] for y in range(len(self.world_map_matrix))]
+            for x in range(len(self.world_map_matrix[0]))
+        ]
         self.sever = Server(self.world_map_matrix)
 
     def start_server(self):

@@ -96,8 +96,11 @@ class Client:
         map = self.send_msg("SHOW_MAP:::")
         return map
 
+    def start_game(self):
+        self.send_msg("START_GAME:::")
+
     def end_turn(self):
-        mes = self.send_msg("END_TURN:::")
+        self.send_msg("END_TURN:::")
 
     # jak w opisie
     def get_opponents_move(self):
