@@ -6,8 +6,8 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QTableWidget, QLabel, QPushButton, QApplication, QHeaderView, \
     QTableWidgetItem
 
-from . import img_gen
 from server_utils.client import Client
+from . import img_gen
 
 
 class LobbyWindow(QMainWindow):
@@ -44,7 +44,6 @@ class LobbyWindow(QMainWindow):
         new_map = QPixmap.fromImage(qim)
         self.map.setPixmap(new_map)
 
-
     def init_ui(self, are_you_host: bool):
         self.setWindowTitle("Age of Divisiveness - Game lobby")
         self.setFixedSize(1070, 630)
@@ -58,9 +57,16 @@ class LobbyWindow(QMainWindow):
 
         self.map = QLabel(self)
         self.map.setGeometry(QRect(480, 30, 570, 570))
-        # TODO KRZYSZTOF also this place needs code from Krzysztof to change matrix into png
+
         # TODO this path should determine place where map sent by server_utils is.
-        pixmap = QPixmap('/resources/images/example_map_2.png')
+
+        # TODO uncomment following block when world_map_matrix is known
+        # image = img_gen.get_map_overview(world_map_matrix)  # get image overview of generated world
+        # image = img_gen.get_resized_map_overview(image, 570, 570)  # (width, height)
+        # qim = ImageQt(image).copy()
+        # pixmap = QPixmap(qim)
+
+        pixmap = QPixmap('/resources/images/example_map_2.png')  # and delete this after uncommenting above
         self.map.setPixmap(pixmap)
         self.map.setScaledContents(True)
 

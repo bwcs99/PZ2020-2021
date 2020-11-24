@@ -1,5 +1,6 @@
-import os
+
 import sys
+import threading
 from time import sleep
 
 from PIL.ImageQt import ImageQt
@@ -9,12 +10,10 @@ from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QApplication, QPushButt
     QLineEdit, QLabel
 
 from server_utils.map_generation import generate_map
+from server_utils.server import Server
 from . import img_gen
 from .lobby_window import LobbyWindow
-from server_utils.server import Server
 from .nick_civ_window import CivCombo
-
-import threading
 
 
 class MapGeneratorWindow(QMainWindow):
@@ -78,11 +77,12 @@ class MapGeneratorWindow(QMainWindow):
             self.seed_line.setText("Only integers allowed")
             return
 
-        self.world_map_matrix = generate_map(height=h, width=w, params=[sd, p1, p2, p3])
-        image = img_gen.get_map_overview(self.world_map_matrix)
-        qim = ImageQt(image)
-        new_map = QPixmap.fromImage(qim)
-        self.map.setPixmap(new_map)
+        self.world_map_matrix = generate_map(height=h, width=w, params=[sd, p1, p2, p3])  # get world matrix
+        image = img_gen.get_map_overview(self.world_map_matrix)  # get image overview of generated world
+        image = img_gen.get_resized_map_overview(image, 781, 521)
+        qim = ImageQt(image).copy()
+        new_map = QPixmap.fromImage(qim)  # convert to QPixmap
+        self.map.setPixmap(new_map)  # display
 
     def prepare_for_game(self):
         """ When CivCombo object is created, window opens, and after closing it changes self.chosen_civ field in

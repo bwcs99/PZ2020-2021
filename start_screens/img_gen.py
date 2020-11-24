@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 from PIL import Image
 
@@ -29,3 +30,12 @@ def get_map_overview(world_map):
     # img.save('testrgb.png')
     return img
 
+
+def get_resized_map_overview(overview, width, height):
+    opencvImage = cv2.cvtColor(np.array(overview), cv2.COLOR_RGB2BGR)  # convert image to openCV
+
+    # enlarge image and enhance its resolution:
+    opencvImage = cv2.resize(opencvImage, (width, height), interpolation=cv2.INTER_AREA)
+    opencvImage = cv2.cvtColor(opencvImage, cv2.COLOR_BGR2RGB)  # swap BGR -> RGB
+    image = Image.fromarray(opencvImage)  # convert back to image
+    return image
