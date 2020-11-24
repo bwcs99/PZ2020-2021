@@ -64,7 +64,7 @@ class Server:
                 new_player = Player(request[1], col)
                 self.players.append(new_player)
                 response.append(f"{request[1]}:YOU HAVE BEEN SUCCESSFULLY ADDED TO THE GAME".encode(FORMAT))
-                broadcast = f"NEW PLAYER".encode(FORMAT)
+                # broadcast = f"NEW PLAYER".encode(FORMAT)
         elif request[0] == "CHOOSE_CIVILISATION":
             if len(self.civilizations) != 0:
                 for player in self.players:
@@ -72,6 +72,7 @@ class Server:
                         # idx = self.civilizations.index(request[1])
                         self.civilizations.remove(request[2])
                         player.set_civilisation_type(request[2])
+                        broadcast = f"NEW_PLAYER:{player.player_name}:{player.civilisation_type}:{player.player_colour}".encode(FORMAT)
             response.append(f"{request[1]} CHOSEN TYPE: {request[2]}".encode(FORMAT))
         elif request[0] == "LIST_PLAYERS":
             lis = []
@@ -83,6 +84,9 @@ class Server:
                 plis += player.player_colour
                 lis.append(plis)
             response.append(str(lis).encode(FORMAT))
+        elif request[0] == "LIST_CIVILIZATIONS":
+            civilizations_in_string = str(self.civilizations)
+            response.append(f"{civilizations_in_string}".encode(FORMAT))
         elif request[0] == "SHOW_MAP":
             print("W przesyłaniu mapy")
             map_in_string = str(self.map_to_send)
@@ -97,6 +101,9 @@ class Server:
             response.append(f"{request[1]}: YOU HAVE STARTED THE GAME".encode(FORMAT))
             t = ("TURN", self.players[0].player_name)
             broadcast = str(t).encode(FORMAT)
+        elif request[0] == "EXIT_LOBBY":
+            response.append(f"ALL_EXIT_LOBBY".encode(FORMAT))
+            broadcast = f"FINISH:::".encode(FORMAT)
         else:
             response.append(f"UNKNOWN OPTION".encode(FORMAT))
         # response.append(f" ")

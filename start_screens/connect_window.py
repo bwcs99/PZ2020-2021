@@ -1,10 +1,9 @@
 import os
-import socket
 
-from PyQt5.QtCore import QRect, Qt
+import ast
+
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QLabel, QLineEdit, QPushButton, QMessageBox, QComboBox
-from .img_gen import get_map_overview
+from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QLabel, QLineEdit, QPushButton
 
 from .nick_civ_window import CivCombo
 from .lobby_window import LobbyWindow
@@ -56,32 +55,22 @@ class ConnectWindow(QMainWindow):
         host_address = self.text_line.text().strip()  # using strip() for annoying white chars surrounding address
         self.client.connect()
         available_civ = self.client.get_available_civilizations()
+        available_civ = ast.literal_eval(available_civ)
         print(available_civ)
-        civ_combo = CivCombo(available_civ)
+        CivCombo(available_civ, self)
 
     def set_player_info(self, chosen_civ, nickname):
         """This method ic called within CivCombo. DON'T CHANGE this function's name, even with refactor """
         self.chosen_civ = chosen_civ
         self.chosen_nick = nickname
-        # print(self.chosen_civ, self.chosen_nick)
-        self.describe_yourself()
-    
 
-    def describe_yourself(self):
-        # TODO wyślij swoj nick i cywilizacje na serwer
-        # TODO to co jest poniżej powinno być zapakowane w jedną metodę
-        self.client.send_msg("ADD_NEW_PLAYER:"+self.chosen_nick +"::")
-        self.client.send_msg("CHOOSE_CIVILISATION:"+self.chosen_nick+":"+self.chosen_civ+":")
         self.__init_lobby_window()
 
     def __init_lobby_window(self):
-        current_players = self.client.get_current_players()
-        self.lobby_window = LobbyWindow(False)
-        for player in current_players:
-            self.lobby_window. add_player_to_table(player)
+        self.lobby_window = LobbyWindow(False, self.chosen_nick, self.chosen_civ, self.client)
         self.lobby_window.show()
         self.hide()
-    
+
     # typical function for getting window in the middle of a screen
     def __center(self):
         qr = self.frameGeometry()

@@ -107,11 +107,8 @@ class MapGeneratorWindow(QMainWindow):
         self.sever = Server(self.world_map_matrix)
 
     def start_server(self):
-        # TODO BLAZEJ client-server_utils logic
-
         """ mapa przechowywana jest w self.world_map_matrix """
         print("Server is starting...")
-        # TODO z całą pewnościa potrzebny wątek
         server_thread = threading.Thread(target=self.create_server_thread, args=())
         server_thread.start()
         self.__init_lobby_window()

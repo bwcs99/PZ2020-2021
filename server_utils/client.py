@@ -100,8 +100,15 @@ class Client:
     def start_game(self):
         self.send_msg("START_GAME:::")
 
+    def exit_lobby(self):
+        self.send_msg("EXIT_LOBBY:::")
+
     def end_turn(self):
         self.send_msg("END_TURN:::")
+
+    def get_new_player(self):
+        new_player = self.rec_msg()
+        return new_player.split(":")
 
     def get_opponents_move(self):
         """
