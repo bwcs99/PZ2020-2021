@@ -27,6 +27,7 @@ class Server:
         self.map_to_send = terrain_map
        # print(self.map_to_send)
         self.players = []
+        self.current_player = 0  # index
         self.connections = []
         self.threads = []
         self.colours = ['pink', 'red', 'purple', 'yellow', 'green', 'brown', 'blue', 'orange', 'grey']
@@ -81,15 +82,15 @@ class Server:
         elif request[0] == "LIST_CIVILIZATIONS":
             enc_lis = str(self.civilizations)
             response.append(enc_lis.encode(FORMAT))
-        elif request[0] == "WHOSE_TURN":
-            for player in players:
-                if player.active:
-                    t = ("TURN", player.player_name)
-                    enc_t = str(t)
-                    response.append(enc_t.encode(FORMAT))
+        elif request[0] == "END_TURN":
+            self.current_player += 1
+            self.current_player %= len(self.players)
+            t = ("TURN", self.players[self.current_player].player_name)
+            enc_t = str(t)
+            response.append(enc_t.encode(FORMAT))
         elif request[0] == "SHOW_MAP":
             enc_map = str(self.map_to_send)
-            reponse.append(enc_map.encode(FORMAT))
+            response.append(enc_map.encode(FORMAT))
         else:
             response.append(f"UNKNOWN OPTION".encode(FORMAT))
         return response

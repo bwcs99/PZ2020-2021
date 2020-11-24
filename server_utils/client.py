@@ -92,6 +92,10 @@ class Client:
         map = eval(self.send_msg("SHOW_MAP:::"))
         return map
 
+    def end_turn(self):
+        mes = eval(self.send_msg("END_TURN:::"))
+        self.send_msg(DISCONNECT_MESSAGE)
+
     # jak w opisie
     def get_opponents_move(self):
         # TODO Błażej:
@@ -107,8 +111,8 @@ class Client:
 
         # i jak gracz dostanie ("TURN", jego własny nick) to wtedy wie, że może się ruszać
         # pewnie w serwerze musi się pojawić jakieś sposób przydzielania kogo kolej teraz
-        t = eval(self.send_msg("WHOSE_TRUN:::"))
-        self.send_msg(DISCONNECT)
+        t = eval(self.send_msg("WHOSE_TURN:::"))
+        self.send_msg(DISCONNECT_MESSAGE)
         turn, name = t
         return turn, name
 

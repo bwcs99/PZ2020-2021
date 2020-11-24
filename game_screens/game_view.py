@@ -279,6 +279,7 @@ class GameView(arcade.View):
             # get an answer about ending successfully, preferably
             # and then learn whose turn it is now
             self.my_turn = False
+            self.client.end_turn()
             threading.Thread(target=self.wait_for_my_turn).start()
 
     def wait_for_my_turn(self):
@@ -292,5 +293,6 @@ class GameView(arcade.View):
                 if message[1] == self.client.nick:
                     self.my_turn = True
                     self.cur_enemy = ""
+                    break
                 else:
                     self.cur_enemy = message[1]
