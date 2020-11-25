@@ -276,17 +276,14 @@ class GameView(arcade.View):
 
     def on_key_press(self, symbol, modifiers):
         if symbol == ord(" ") and self.my_turn:
-            print("end")
-            # TODO: use client to send the message to server_utils
-            # get an answer about ending successfully, preferably
-            # and then learn whose turn it is now
             self.my_turn = False
             self.client.end_turn()
             threading.Thread(target=self.wait_for_my_turn).start()
 
     def wait_for_my_turn(self):
         """
-        A prototype function for handling server_utils messages. Will probably be renamed and split later on.
+        A prototype function for handling server messages about other players' actions. Will probably be renamed and
+        maybe split later on.
         """
         while True:
             message = self.client.get_opponents_move()
