@@ -275,7 +275,7 @@ class GameView(arcade.View):
                         tile.color = color
 
     def on_key_press(self, symbol, modifiers):
-        if symbol == ord(" "):
+        if symbol == ord(" ") and self.my_turn:
             print("end")
             # TODO: use client to send the message to server_utils
             # get an answer about ending successfully, preferably

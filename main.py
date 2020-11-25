@@ -1,5 +1,4 @@
 import sys
-from random import randrange
 
 from PyQt5.QtWidgets import QApplication
 
@@ -14,9 +13,6 @@ if __name__ == "__main__":
     win = WelcomeWindow()
     win.show()
     app.exec_()
-    # print(win.map_generator_window.chosen_nick)
-    # uruchom ekrany startowe i niech one zrobia swoje w kwestiach serwera
-    # niech zwracaja macierz mapy
     try:
         world_map = win.connect_window.lobby_window.game_map
         client = win.connect_window.client

@@ -102,7 +102,7 @@ class Server:
             t = ("TURN", self.players[0].player_name)
             broadcast = str(t).encode(FORMAT)
         elif request[0] == "EXIT_LOBBY":
-            response.append(f"ALL_EXIT_LOBBY".encode(FORMAT))
+            #response.append(f"ALL_EXIT_LOBBY".encode(FORMAT))
             broadcast = f"FINISH:::".encode(FORMAT)
         else:
             response.append(f"UNKNOWN OPTION".encode(FORMAT))

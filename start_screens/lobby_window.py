@@ -99,9 +99,9 @@ class LobbyWindow(QMainWindow):
 
     def __launch_game(self):
         # TODO "Warto się pochylić"
-        self.lock = True
+        #self.lock = True
         self.client.exit_lobby()
-        self.lock = False
+        #self.lock = False
 
     def center(self):
         qr = self.frameGeometry()

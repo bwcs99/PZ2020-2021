@@ -1,3 +1,4 @@
+import ast
 import socket
 
 # Dane potrzebne do połączenia się z serwerem
@@ -56,6 +57,14 @@ class Client:
             print(response)
         return response
 
+    def only_send(self, msg):
+        message = msg.encode(FORMAT)
+        message_length = len(message)
+        send_length = str(message_length).encode(FORMAT)
+        send_length += b' ' * (HEADER - len(send_length))
+        self.sock.send(send_length)
+        self.sock.send(message)
+
     def connect(self):
         self.sock.connect(ADDR)
 
@@ -64,6 +73,7 @@ class Client:
         self.sock.close()
 
     def introduce_yourself(self, chosen_nick, chosen_civ):
+        self.nick = chosen_nick
         self.send_msg("ADD_NEW_PLAYER:" + chosen_nick + "::")
         self.send_msg("CHOOSE_CIVILISATION:" + chosen_nick + ":" + chosen_civ + ":")
         self.rec_msg()
@@ -101,7 +111,7 @@ class Client:
         self.send_msg("START_GAME:::")
 
     def exit_lobby(self):
-        self.send_msg("EXIT_LOBBY:::")
+        self.only_send("EXIT_LOBBY:::")
 
     def end_turn(self):
         self.send_msg("END_TURN:::")
@@ -127,7 +137,6 @@ class Client:
 
         # i jak gracz dostanie ("TURN", jego własny nick) to wtedy wie, że może się ruszać
         # pewnie w serwerze musi się pojawić jakieś sposób przydzielania kogo kolej teraz
-        t = eval(self.send_msg("WHOSE_TURN:::"))
-        self.send_msg(DISCONNECT_MESSAGE)
-        turn, name = t
+        mes = self.rec_msg()
+        turn, name = ast.literal_eval(mes)
         return turn, name
