@@ -2,6 +2,7 @@ import ast
 import sys
 import threading
 
+from PIL import Image
 from PIL.ImageQt import ImageQt
 from PyQt5.QtCore import QRect
 from PyQt5.QtGui import QPixmap
@@ -51,7 +52,8 @@ class LobbyWindow(QMainWindow):
         self.game_map = self.client.get_map_from_server()
         self.game_map = ast.literal_eval(self.game_map)
 
-        image = img_gen.get_map_overview(self.game_map)
+        image = img_gen.get_map_overview(self.game_map).rotate(270, expand=1).transpose(Image.FLIP_LEFT_RIGHT)
+        image = img_gen.get_resized_map_overview(image, 570, 570)
         qim = ImageQt(image).copy()  # this copy is to keep buffer clean
         new_map = QPixmap.fromImage(qim)
         self.map_label.setPixmap(new_map)
