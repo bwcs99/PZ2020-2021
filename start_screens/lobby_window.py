@@ -26,6 +26,8 @@ class LobbyWindow(QMainWindow):
         self.init_ui(are_you_host)
         self.game_map = None
 
+        self.lock = False
+
         if are_you_host is True:
             self.client = Client()
             self.client.connect()
@@ -47,7 +49,7 @@ class LobbyWindow(QMainWindow):
         new_map = QPixmap.fromImage(qim)
         self.map_label.setPixmap(new_map)
 
-        waiting_for_new_players = threading.Thread(target=self.wait_for_new_players, args=(are_you_host, ))
+        waiting_for_new_players = threading.Thread(target=self.wait_for_new_players, args=(are_you_host,))
         waiting_for_new_players.start()
 
     def init_ui(self, are_you_host: bool):
@@ -96,7 +98,10 @@ class LobbyWindow(QMainWindow):
             self.players_table.setItem(row_position, i, QTableWidgetItem(peace))
 
     def __launch_game(self):
+        # TODO "Warto się pochylić"
+        self.lock = True
         self.client.exit_lobby()
+        self.lock = False
 
     def center(self):
         qr = self.frameGeometry()
@@ -106,15 +111,15 @@ class LobbyWindow(QMainWindow):
 
     def wait_for_new_players(self, are_you_host):
         while True:
-            new_player_info = self.client.get_new_player()
-            if new_player_info[0] == "FINISH":
-                break
-            else:
-                self.add_player_to_table(new_player_info[1:])
+            if not self.lock:
+                new_player_info = self.client.get_new_player()
+                if new_player_info[0] == "FINISH":
+                    break
+                else:
+                    self.add_player_to_table(new_player_info[1:])
         if are_you_host is True:
             self.client.start_game()
         self.close()
-
 
 
 # for testing
