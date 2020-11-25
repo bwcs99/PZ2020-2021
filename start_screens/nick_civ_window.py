@@ -7,16 +7,22 @@ from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QLabel, QLineEdit, QPus
 
 
 class CivCombo(QMainWindow):
-    """This class is only for choosing civ from available delivered from server_utils
-    Server should send list of available civilizations and (probably) client should call choose_civ() in ConnectWindow."""
+    """
+    This class is for choosing civ from available delivered from server_utils and typing your nick.
+    Server should send list of available civilizations before running constructor of this class.
+    Available civilizations should be passed via constructor.
+    """
 
     def __init__(self, civ_list, parent=None):
         super(CivCombo, self).__init__(parent)
+        # it's for going back to window which called this window and more importantly for
+        # setting up value of chosen_nick and chosen_civ in parent class
         self.parent = parent
+
         self.setWindowModality(Qt.WindowModal)
         self.setWindowTitle("Choose nickname and your civilization")
         self.setFixedSize(560, 200)
-       
+
         """In case we would like background image in this window.
         choose_civ_background.png is a fine png. One does not simply find good png."""
         # self.image_label = QLabel(self)  # background label
@@ -43,10 +49,12 @@ class CivCombo(QMainWindow):
         self.show()
 
     def choose_civ(self):
-        """ By calling this method, you set up chosen_civ field in parent class (in our case ConnectWindow)"""
+        """
+         By calling this method, you set up chosen_civ field in parent class
+         (in our case ConnectWindow or MapGeneratorWindow)
+         """
         civilization = self.combo_box.currentText()  # this how you get value from combo box
         nickname = self.nickname_line.text()
-        # print(civilization)
         self.parent.set_player_info(civilization, nickname)
         self.hide()
 

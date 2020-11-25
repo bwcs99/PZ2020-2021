@@ -12,7 +12,7 @@ from .map_generator_window import MapGeneratorWindow
 class WelcomeWindow(QMainWindow):
     """
     This is main window of the application.
-    Because from here we can go to ConnectWindow and LobbyWindow
+    From here we can go to ConnectWindow and LobbyWindow
     class has two fields responsible for holding newly created windows.
     """
 
