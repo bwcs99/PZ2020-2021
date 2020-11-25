@@ -246,10 +246,10 @@ class GameView(arcade.View):
 
     def on_mouse_press(self, x, y, button, modifiers):
         if button == 1 and self.my_turn:
-            # the x and y argument are relative to the current zoom, so we need to scale and shift them
-            x, y = self.relative_to_absolute(x, y)
-            # and also not let the player click on tiles through the top bar
-            if y < arcade.get_viewport()[3] - self.top_bar.height:
+            # don't let the player click on tiles through the top bar
+            if y < self.SCREEN_HEIGHT * (1 - TOP_BAR_SIZE):
+                # the x and y arguments are relative to the current zoom, so we need to scale and shift them
+                x, y = self.relative_to_absolute(x, y)
                 # aaand then turn them into grid coords
                 tile_col, tile_row = self.absolute_to_tiles(x, y)
 
