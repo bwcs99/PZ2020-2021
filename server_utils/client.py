@@ -124,20 +124,10 @@ class Client:
     def get_opponents_move(self):
         """
         Used while the player is waiting for their turn. Waits for a server message describing an action (turn end,
-        unit moved, etc.) and parses it to a form that game_view is able to understand.
+        unit moved, etc.) and parses it to a form that game_view is able to understand - a tuple of (ACTION, args...),
+        for instance ("TURN", name of the player whose turn begins) or ("MOVE", x0, y0, x1, y1) when a unit is moved
+        from (x0, y0) to (x1, y1).
         """
-        # odbierz wiadomość od serwera i sparsuj ją do pary postaci (komenda, reszta parametrow...)
-        # na razie wystarczy mi coś w stylu ("TURN", nick gracza którego tura się zaczyna)
-        # potem dojdą tu takie rzeczy jak ruch jednostki przez ("MOVE", x0, y0, x1, y1) itp.
-        # ale na razie sie tym nie martw, miej tylko na uwadze na przyszłość
-        # tak w zasadzie na teraz potrzeba mi czegoś postaci
-
-        # message = receive(...)
-        # if (wyłuskany typ otrzymanej wiadomości) == (ten typ co odpowiada za to że ktos zaczyna turę):
-        #   return "TURN", (nick wyłuskany z wiadomości)
-
-        # i jak gracz dostanie ("TURN", jego własny nick) to wtedy wie, że może się ruszać
-        # pewnie w serwerze musi się pojawić jakieś sposób przydzielania kogo kolej teraz
         mes = self.rec_msg()
         turn, name = ast.literal_eval(mes)
         return turn, name

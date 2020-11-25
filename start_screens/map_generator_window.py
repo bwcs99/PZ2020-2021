@@ -8,7 +8,7 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QApplication, QPushButton, \
     QLineEdit, QLabel
 
-from server_utils.map_generation import generate_map
+from map_generation import generate_map
 from server_utils.server import Server
 from . import img_gen
 from .lobby_window import LobbyWindow

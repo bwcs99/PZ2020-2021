@@ -13,6 +13,7 @@ if __name__ == "__main__":
     win = WelcomeWindow()
     win.show()
     app.exec_()
+    # TODO this is pretty dziadowskie im ngl
     try:
         world_map = win.connect_window.lobby_window.game_map
         client = win.connect_window.client
