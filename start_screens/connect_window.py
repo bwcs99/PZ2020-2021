@@ -11,6 +11,10 @@ from server_utils.client import Client
 
 
 class ConnectWindow(QMainWindow):
+    """
+    This window is open only when you are client, who is connecting to server. After all it only provides field for
+    typing ip address and creating Client which is afterwards passed to Lobby in constructor
+    """
 
     def __init__(self):
         super(ConnectWindow, self).__init__()
@@ -19,7 +23,7 @@ class ConnectWindow(QMainWindow):
         self.button = None
         self.chosen_civ = ''
         self.chosen_nick = ''
-        self.client = Client()
+        self.client = Client()  # client may be open here
         self.lobby_window = None
 
         self.__init_ui()
@@ -54,10 +58,11 @@ class ConnectWindow(QMainWindow):
     def on_click(self):
         host_address = self.text_line.text().strip()  # using strip() for annoying white chars surrounding address
         self.client.connect()
-        available_civ = self.client.get_available_civilizations()
-        available_civ = ast.literal_eval(available_civ)
-        print(available_civ)
-        CivCombo(available_civ, self)
+
+        available_civ = self.client.get_available_civilizations()  # getting not yet chosen civilizations from server.
+        #  available_civ now looks like "['a','b','c']". It's string!
+        available_civ = ast.literal_eval(available_civ)  # evaluating string to list
+        CivCombo(available_civ, self)  # by opening CivCombo with self it's possible to go back
 
     def set_player_info(self, chosen_civ, nickname):
         """This method ic called within CivCombo. DON'T CHANGE this function's name, even with refactor """
@@ -67,11 +72,12 @@ class ConnectWindow(QMainWindow):
         self.__init_lobby_window()
 
     def __init_lobby_window(self):
-        self.lobby_window = LobbyWindow(False, self.chosen_nick, self.chosen_civ, self.client)
+        self.lobby_window = LobbyWindow(False, self.chosen_nick, self.chosen_civ,
+                                        self.client)  # False because it's client scenario.
         self.lobby_window.show()
         self.hide()
 
-    # typical function for getting window in the middle of a screen
+    # typical function for getting window in the middle of the screen
     def __center(self):
         qr = self.frameGeometry()
         cp = QDesktopWidget().availableGeometry().center()

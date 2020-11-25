@@ -1,6 +1,7 @@
-import sys
 import ast
+import sys
 import threading
+
 from PIL.ImageQt import ImageQt
 from PyQt5.QtCore import QRect
 from PyQt5.QtGui import QPixmap
@@ -13,12 +14,12 @@ from . import img_gen
 
 class LobbyWindow(QMainWindow):
     """
-    LobbyWindow class needs to have line transforming matrix of ints into png, also i think the best solution will be to 
-    make client save map send to him by server_utils.
+    LobbyWindow is the biggest rogue of this app's gui.
+    If you are host, client is constructed inside, if you are client it's passed to constructor.
     """
 
     def __init__(self, are_you_host: bool, chosen_nick, chosen_civ, client_object=None):
-        """If player is hosting game, constructor should receive True as parameter, else false"""
+        """ If player is hosting game, constructor should receive True as parameter, else false. """
         super(LobbyWindow, self).__init__()
         self.players_table = None
         self.map_label = QLabel(self)
@@ -26,29 +27,39 @@ class LobbyWindow(QMainWindow):
         self.init_ui(are_you_host)
         self.game_map = None
 
-        self.lock = False
+        self.lock = False  # this should be think over. Deeply.
 
-        if are_you_host is True:
+        if are_you_host is True:  # if you are host, client hasn't been created yet, no it's his time
             self.client = Client()
             self.client.connect()
-        else:
+        else:  # if you are client, you already used client for getting available civilizations
             self.client = client_object
 
-        self.client.introduce_yourself(chosen_nick, chosen_civ)
+        self.client.introduce_yourself(chosen_nick, chosen_civ)  # this sends nick and civ to server.
 
+        # this gets list of current players, in order to print them in player.table
         response = self.client.get_current_players_from_server()
+
+        # response is in string, looks something like "["a:b:c","d:e:f",...]" , so it has to be evaluated
         response = ast.literal_eval(response)
+
         for player_string in response:
             nick, civ, col = player_string.split(":")
             self.add_player_to_table([nick, civ, col])
 
+        # part which gets map from server (even if you are host) and evaluates it (cause it's string)
         self.game_map = self.client.get_map_from_server()
         self.game_map = ast.literal_eval(self.game_map)
+
         image = img_gen.get_map_overview(self.game_map)
-        qim = ImageQt(image).copy()
+        qim = ImageQt(image).copy()  # this copy is to keep buffer clean
         new_map = QPixmap.fromImage(qim)
         self.map_label.setPixmap(new_map)
 
+        """ 
+        Crucial thread. 
+        As long as host doesn't click LAUNCH, everyone is waiting in lobby and updating theirs player's table
+        """
         waiting_for_new_players = threading.Thread(target=self.wait_for_new_players, args=(are_you_host,))
         waiting_for_new_players.start()
 
@@ -65,16 +76,7 @@ class LobbyWindow(QMainWindow):
 
         self.map_label = QLabel(self)
         self.map_label.setGeometry(QRect(480, 30, 570, 570))
-
-        # TODO this path should determine place where map sent by server_utils is.
-
-        # TODO uncomment following block when world_map_matrix is known
-        # image = img_gen.get_map_overview(world_map_matrix)  # get image overview of generated world
-        # image = img_gen.get_resized_map_overview(image, 570, 570)  # (width, height)
-        # qim = ImageQt(image).copy()
-        # pixmap = QPixmap(qim)
-
-        pixmap = QPixmap('/resources/images/example_map_2.png')  # and delete this after uncommenting above
+        pixmap = QPixmap('/resources/images/example_map_2.png')  # not sure if it's needed.
         self.map_label.setPixmap(pixmap)
         self.map_label.setScaledContents(True)
 
@@ -99,9 +101,9 @@ class LobbyWindow(QMainWindow):
 
     def __launch_game(self):
         # TODO "Warto się pochylić"
-        #self.lock = True
+        # self.lock = True
         self.client.exit_lobby()
-        #self.lock = False
+        # self.lock = False
 
     def center(self):
         qr = self.frameGeometry()
@@ -110,6 +112,11 @@ class LobbyWindow(QMainWindow):
         self.move(qr.topLeft())
 
     def wait_for_new_players(self, are_you_host):
+        """
+        This is thread method.
+        It listens for new player info which is being broadcast by server.
+        It's a bit wicked with sending and receiving, but for now it's ok. It's ok.
+        """
         while True:
             if not self.lock:
                 new_player_info = self.client.get_new_player()
@@ -125,7 +132,7 @@ class LobbyWindow(QMainWindow):
 # for testing
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    win = LobbyWindow(True)
+    win = LobbyWindow(True, "fat", "zgredki")
     win.add_player_to_table(["12", "34", "56"])
     win.show()
     sys.exit(app.exec_())
