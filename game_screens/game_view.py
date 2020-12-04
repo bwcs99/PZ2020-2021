@@ -17,9 +17,10 @@ MARGIN = 1  # space between two tiles (vertically & horizontally) in pixels (whi
 
 
 class Unit(arcade.sprite.Sprite):
-    def __init__(self, color):
+    def __init__(self, color, x, y):
         super().__init__(":resources:images/enemies/saw.png")
         self.color = color
+        self.tile = x, y
         self.health = 99
         self.movement = 2
 
@@ -110,9 +111,9 @@ class GameView(arcade.View):
 
         # this is ugly but she's moving out soon i promise
         self.unit_sprites = arcade.SpriteList()
-        unit_prototype = Unit(arcade.color.CORAL)
-        unit_prototype.height = unit_prototype.width = self.tile_size
         col, row = self.absolute_to_tiles(100, 100)
+        unit_prototype = Unit(arcade.color.CORAL, col, row)
+        unit_prototype.height = unit_prototype.width = self.tile_size
         self.place_unit_on_tile(unit_prototype, col, row)
         self.unit_sprites.append(unit_prototype)
         self.blinkers = arcade.SpriteList()
@@ -134,7 +135,7 @@ class GameView(arcade.View):
         """
         return map(lambda a: int(a // (self.tile_size + MARGIN)), (x, y))
 
-    def place_unit_on_tile(self, unit: arcade.Sprite, col: int, row: int):
+    def place_unit_on_tile(self, unit: Unit, col: int, row: int):
         """
         Places the provided unit on the tile identified by the map matrix coordinates.
         """
@@ -142,6 +143,21 @@ class GameView(arcade.View):
         unit.center_x = tile.center_x
         unit.center_y = tile.center_y
         tile.occupant = unit
+
+    def get_unit_move_pool(self, unit: Unit):
+        x, y = unit.tile
+        visited = {(x, y): 0}
+        queue = [(x, y)]
+        while queue:
+            x, y = queue.pop(0)
+            cur_cost = visited[(x, y)]
+            for col, row in [(x, y+1), (x+1, y), (x, y-1), (x-1, y)]:
+                if 0 <= col < self.TILE_ROWS and 0 <= row < self.TILE_COLS:
+                    alt = cur_cost + self.tiles[row][col]  # TODO why does this have to happen
+                    if alt <= unit.movement and ((col, row) not in visited or alt < visited[col, row]):
+                        queue.append((col, row))
+                        visited[col, row] = alt
+        print(visited)
 
     def on_show(self):
         arcade.set_background_color(arcade.csscolor.BLACK)
@@ -236,6 +252,7 @@ class GameView(arcade.View):
 
                     if tile.occupied():
                         self.unit_popup.display(tile.occupant)
+                        self.get_unit_move_pool(tile.occupant)
                     elif self.unit_popup.visible():
                         self.unit_popup.hide()
                     elif self.my_turn:
