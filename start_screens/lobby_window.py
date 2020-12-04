@@ -2,6 +2,8 @@ import ast
 import sys
 import threading
 
+from arcade import color
+
 from PIL import Image
 from PIL.ImageQt import ImageQt
 from PyQt5.QtCore import QRect
@@ -47,6 +49,8 @@ class LobbyWindow(QMainWindow):
         for player_string in response:
             nick, civ, col = player_string.split(":")
             self.add_player_to_table([nick, civ, col])
+            if nick == self.client.nick:
+                self.client.color = eval(f"color.{str.upper(col)}")
 
         # part which gets map from server (even if you are host) and evaluates it (cause it's string)
         self.game_map = self.client.get_map_from_server()
