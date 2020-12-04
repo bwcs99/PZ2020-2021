@@ -26,6 +26,16 @@ class Unit(arcade.sprite.Sprite):
     def get_stats(self):
         return self.health, self.movement
 
+class BlinkingTile(arcade.SpriteSolidColor):
+    def __init__(self, size: int):
+        super().__init__(size, size, arcade.color.WHITE)
+        self.alpha = 150
+        self.alpha_change = 10
+
+    def update(self):
+        if self.alpha == 150 or self.alpha == 0:
+            self.alpha_change = -self.alpha_change
+        self.alpha += self.alpha_change
 
 class Tile(arcade.SpriteSolidColor):
     """
@@ -105,6 +115,7 @@ class GameView(arcade.View):
         col, row = self.absolute_to_tiles(100, 100)
         self.place_unit_on_tile(unit_prototype, col, row)
         self.unit_sprites.append(unit_prototype)
+        self.blinkers = arcade.SpriteList()
         threading.Thread(target=self.wait_for_my_turn).start()
 
     def relative_to_absolute(self, x: float, y: float):
@@ -137,10 +148,14 @@ class GameView(arcade.View):
         self.top_bar.adjust()
         self.unit_popup.adjust()
 
+    def on_update(self, delta_time: float):
+        self.blinkers.update()
+
     def on_draw(self):
         self.top_bar.turn_change(self.cur_enemy)
         arcade.start_render()
         self.tile_sprites.draw()
+        self.blinkers.draw()
         self.unit_sprites.draw()
         # top bar
         self.top_bar.draw_background()
@@ -236,7 +251,10 @@ class GameView(arcade.View):
                         else:
                             color = (128, 128, 128)
                         tile.color = color
-
+                        blink = BlinkingTile(self.tile_size)
+                        blink.center_x = tile.center_x
+                        blink.center_y = tile.center_y
+                        self.blinkers.append(blink)
 
     def on_key_press(self, symbol, modifiers):
         if symbol == ord(" ") and self.my_turn:
