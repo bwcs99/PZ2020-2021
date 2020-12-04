@@ -143,11 +143,9 @@ class GameView(arcade.View):
         self.tile_sprites.draw()
         self.unit_sprites.draw()
         # top bar
-        # arcade.draw_lrtb_rectangle_filled(*self.top_bar.coords_lrtb, arcade.color.ST_PATRICK_BLUE)
         self.top_bar.draw_background()
         # unit popup
-        if self.unit_popup.unit:
-            arcade.draw_lrtb_rectangle_filled(*self.unit_popup.coords_lrtb, arcade.color.ST_PATRICK_BLUE)
+        self.unit_popup.draw_background()
 
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
         if 0 <= self.zoom + scroll_y < MAX_ZOOM:
@@ -206,7 +204,7 @@ class GameView(arcade.View):
             self.unit_popup.adjust()
 
     def on_mouse_press(self, x, y, button, modifiers):
-        if button == 1 and self.my_turn:
+        if button == 1:
             # don't let the player click through the unit pop-up or the top bar
             if self.unit_popup.is_hit(x, y) or self.top_bar.is_hit(x, y):
                 pass
@@ -223,8 +221,9 @@ class GameView(arcade.View):
 
                     if tile.occupied():
                         self.unit_popup.display(tile.occupant)
-                    else:
+                    elif self.unit_popup.visible():
                         self.unit_popup.hide()
+                    elif self.my_turn:
                         self.tiles[tile_row][tile_col] += 1
                         self.tiles[tile_row][tile_col] %= 4
                         color = self.tiles[tile_row][tile_col]
@@ -237,6 +236,7 @@ class GameView(arcade.View):
                         else:
                             color = (128, 128, 128)
                         tile.color = color
+
 
     def on_key_press(self, symbol, modifiers):
         if symbol == ord(" ") and self.my_turn:

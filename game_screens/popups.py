@@ -141,15 +141,16 @@ class UnitPopup(PopUp):
         """ Attaches a unit to the pop-up and makes it visible. """
         self.hide()
         self.unit = unit
-        self.update()
         self.add_ui_element(self.health_label)
         self.add_ui_element(self.move_label)
-        self.adjust()
+        self.update()
 
     def update(self):
         """ Updates the labels with the current state of the attached unit. """
-        self.health_label.text = f"Health: {str(self.unit.health).rjust(3, ' ')}"
-        self.move_label.text = f"Movement: {self.unit.movement}"
+        if self.visible():
+            self.health_label.text = f"Health: {str(self.unit.health).rjust(3, ' ')}"
+            self.move_label.text = f"Movement: {self.unit.movement}"
+            self.adjust()
 
     def hide(self):
         """ Detaches the unit and hides the pop-up. """
@@ -168,6 +169,6 @@ class UnitPopup(PopUp):
         left, right, top, bottom = self.coords_lrtb
         self.health_label.center_y = bottom + self.height / 3
         self.move_label.center_y = bottom + 2 * self.height / 3
-        self.health_label.height = self.move_label.height = 0.2 * self.height
+        self.health_label.height = self.move_label.height = 0.15 * self.height
         self.health_label.center_x = self.move_label.center_x = left + 0.5 * self.width
         self.health_label.width = self.move_label.width = 0.8 * self.width
