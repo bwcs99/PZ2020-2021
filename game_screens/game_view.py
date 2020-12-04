@@ -4,6 +4,7 @@ import arcade
 import arcade.gui
 
 from .popups import TopBar, UnitPopup, FONT_COLOR
+from .game_logic import GameLogic, Tile
 
 TOP_BAR_SIZE = 0.0625  # expressed as the percentage of the current screen height
 UNIT_POPUP_SIZE = 3 * TOP_BAR_SIZE
@@ -14,41 +15,6 @@ MAX_ZOOM = int(1 / (2 * SCROLL_STEP))
 # TILE_ROWS = 25
 # TILE_COLS = 40
 MARGIN = 1  # space between two tiles (vertically & horizontally) in pixels (while fully zoomed out)
-
-
-class Unit(arcade.sprite.Sprite):
-    def __init__(self, color, x, y):
-        super().__init__(":resources:images/enemies/saw.png")
-        self.color = color
-        self.tile = x, y
-        self.health = 99
-        self.movement = 2
-
-    def get_stats(self):
-        return self.health, self.movement
-
-class BlinkingTile(arcade.SpriteSolidColor):
-    def __init__(self, size: int):
-        super().__init__(size, size, arcade.color.WHITE)
-        self.alpha = 150
-        self.alpha_change = 10
-
-    def update(self):
-        if self.alpha == 150 or self.alpha == 0:
-            self.alpha_change = -self.alpha_change
-        self.alpha += self.alpha_change
-
-class Tile(arcade.SpriteSolidColor):
-    """
-    Represents a single square map tile. Has the ability to hold information about the potential unit occupying it.
-    """
-
-    def __init__(self, size: int):
-        super().__init__(size, size, arcade.color.WHITE)
-        self.occupant = None
-
-    def occupied(self):
-        return bool(self.occupant)
 
 
 class GameView(arcade.View):
@@ -88,12 +54,7 @@ class GameView(arcade.View):
         self.unit_popup = UnitPopup(UNIT_POPUP_SIZE, UNIT_POPUP_SIZE)
 
         self.tiles = tiles
-        tile_types = [
-            (0, 64, 128),
-            (112, 169, 0),
-            (16, 128, 64),
-            (128, 128, 128)
-        ]
+
         self.tile_sprites = arcade.SpriteList()
         # needs to be smarter tbh but depends on the size of a real map
         self.tile_size = int((height - self.top_bar.height) / self.TILE_ROWS) - MARGIN
@@ -103,20 +64,13 @@ class GameView(arcade.View):
 
         for row in range(self.TILE_ROWS):
             for col in range(self.TILE_COLS):
-                tile = Tile(self.tile_size)
-                tile.color = tile_types[tiles[row][col]]  # can and will be changed to sprites as soon as we have em
+                tile = Tile(col, row, self.tile_size, tiles[row][col])
                 tile.center_x = col * (self.tile_size + MARGIN) + (self.tile_size / 2) + MARGIN + self.centering_x
                 tile.center_y = row * (self.tile_size + MARGIN) + (self.tile_size / 2) + MARGIN + self.centering_y
                 self.tile_sprites.append(tile)
 
-        # this is ugly but she's moving out soon i promise
-        self.unit_sprites = arcade.SpriteList()
-        col, row = self.absolute_to_tiles(100, 100)
-        unit_prototype = Unit(arcade.color.CORAL, col, row)
-        unit_prototype.height = unit_prototype.width = self.tile_size
-        self.place_unit_on_tile(unit_prototype, col, row)
-        self.unit_sprites.append(unit_prototype)
-        self.blinkers = arcade.SpriteList()
+        self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS)
+        self.game_logic.add_unit(7, 7)
         threading.Thread(target=self.wait_for_my_turn).start()
 
     def relative_to_absolute(self, x: float, y: float):
@@ -135,29 +89,8 @@ class GameView(arcade.View):
         """
         return map(lambda a: int(a // (self.tile_size + MARGIN)), (x, y))
 
-    def place_unit_on_tile(self, unit: Unit, col: int, row: int):
-        """
-        Places the provided unit on the tile identified by the map matrix coordinates.
-        """
-        tile = self.tile_sprites[row * self.TILE_COLS + col]
-        unit.center_x = tile.center_x
-        unit.center_y = tile.center_y
-        tile.occupant = unit
-
-    def get_unit_move_pool(self, unit: Unit):
-        x, y = unit.tile
-        visited = {(x, y): 0}
-        queue = [(x, y)]
-        while queue:
-            x, y = queue.pop(0)
-            cur_cost = visited[(x, y)]
-            for col, row in [(x, y+1), (x+1, y), (x, y-1), (x-1, y)]:
-                if 0 <= col < self.TILE_ROWS and 0 <= row < self.TILE_COLS:
-                    alt = cur_cost + self.tiles[row][col]  # TODO why does this have to happen
-                    if alt <= unit.movement and ((col, row) not in visited or alt < visited[col, row]):
-                        queue.append((col, row))
-                        visited[col, row] = alt
-        print(visited)
+    def get_tile(self, x, y):
+        return self.tile_sprites[y * self.TILE_COLS + x]
 
     def on_show(self):
         arcade.set_background_color(arcade.csscolor.BLACK)
@@ -165,14 +98,12 @@ class GameView(arcade.View):
         self.unit_popup.adjust()
 
     def on_update(self, delta_time: float):
-        self.blinkers.update()
+        self.game_logic.update()
 
     def on_draw(self):
         self.top_bar.turn_change(self.cur_enemy)
         arcade.start_render()
-        self.tile_sprites.draw()
-        self.blinkers.draw()
-        self.unit_sprites.draw()
+        self.game_logic.draw()
         # top bar
         self.top_bar.draw_background()
         # unit popup
@@ -251,32 +182,25 @@ class GameView(arcade.View):
                     tile = self.tile_sprites[tile_row * self.TILE_COLS + tile_col]
 
                     if tile.occupied():
-                        self.unit_popup.display(tile.occupant)
-                        self.get_unit_move_pool(tile.occupant)
+                        unit = tile.occupant
+                        self.unit_popup.display(unit)
+                        if self.my_turn:  # TODO if unit is mine
+                            self.game_logic.display_unit_range(unit)
                     elif self.unit_popup.visible():
-                        self.unit_popup.hide()
-                    elif self.my_turn:
-                        self.tiles[tile_row][tile_col] += 1
-                        self.tiles[tile_row][tile_col] %= 4
-                        color = self.tiles[tile_row][tile_col]
-                        if color == 0:
-                            color = (0, 64, 128)
-                        elif color == 1:
-                            color = (112, 169, 0)
-                        elif color == 2:
-                            color = (16, 128, 64)
+                        unit = self.unit_popup.unit
+                        if self.my_turn and self.game_logic.move_unit(unit, tile_col, tile_row):
+                            self.unit_popup.update()
                         else:
-                            color = (128, 128, 128)
-                        tile.color = color
-                        blink = BlinkingTile(self.tile_size)
-                        blink.center_x = tile.center_x
-                        blink.center_y = tile.center_y
-                        self.blinkers.append(blink)
+                            self.unit_popup.hide()
+                            self.game_logic.hide_unit_range()
+                    elif self.my_turn:
+                        print("Clicked tile:", tile_row, tile_col)
 
     def on_key_press(self, symbol, modifiers):
         if symbol == ord(" ") and self.my_turn:
             self.my_turn = False
             self.client.end_turn()
+            self.game_logic.end_turn()
             threading.Thread(target=self.wait_for_my_turn).start()
 
     def wait_for_my_turn(self):
