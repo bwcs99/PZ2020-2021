@@ -8,6 +8,18 @@ TILE_COLORS = [
             (128, 128, 128)  # mountains
         ]
 
+class City(arcade.sprite.Sprite):
+    def __init__(self, unit):
+        super().__init__(":resources:images/tiles/brickGrey.png")
+        self.color = unit.color
+        self.tile = unit.tile
+        self.tile.city = self
+        self.width = self.tile.width
+        self.height = self.tile.height
+        self.owner = unit.owner
+        self.center_x = self.tile.center_x
+        self.center_y = self.tile.center_y
+
 
 class Unit(arcade.sprite.Sprite):
     def __init__(self, color, tile):
@@ -16,9 +28,13 @@ class Unit(arcade.sprite.Sprite):
         self.tile = tile
         self.width = tile.width
         self.height = tile.height
+        self.owner = "me"
         self.health = 100
-        self.max_movement = self.movement =  5
+        self.max_movement = self.movement = 5
         self.move_to(tile, 0)
+
+    def __str__(self):
+        return f"{self.owner}'s {type(self).__name__}"
 
     def get_stats(self):
         return self.health, self.movement
@@ -33,6 +49,12 @@ class Unit(arcade.sprite.Sprite):
 
     def reset_movement(self):
         self.movement = self.max_movement
+
+
+class Settler(Unit):
+    def build_city(self):
+        self.movement = 0
+        return City(self)
 
 
 class BlinkingTile(arcade.SpriteSolidColor):
@@ -58,6 +80,7 @@ class Tile(arcade.SpriteSolidColor):
         super().__init__(size, size, TILE_COLORS[cost])
         self.coords = x, y
         self.occupant = None
+        self.city = None
         self.cost = cost if 0 < cost < 3 else inf
 
     def occupied(self):
@@ -104,9 +127,9 @@ class GameLogic:
         self.unit_range = arcade.SpriteList()
         self.move_costs = None
 
-    def add_unit(self, x, y):
+    def add_unit(self, x, y, settler=False):
         tile = self.get_tile(x, y)
-        unit = Unit(arcade.color.PASTEL_RED, tile)  # TODO ownership
+        unit = Settler(arcade.color.PASTEL_RED, tile) if settler else Unit(arcade.color.PASTEL_RED, tile)  # TODO ownership
         self.units.append(unit)
 
     def move_unit(self, unit, x, y):
@@ -121,6 +144,12 @@ class GameLogic:
             return True
         except KeyError:
             return False
+
+    def build_city(self, unit):
+        city = unit.build_city()
+        self.cities.append(city)
+        self.hide_unit_range()
+        self.display_unit_range(unit)
 
     def get_unit_range(self, unit: Unit):
         x, y = unit.tile.coords

@@ -1,6 +1,7 @@
 from copy import copy
 
 import arcade
+from .game_logic import Settler
 
 BACKGROUND_COLOR = arcade.color.ST_PATRICK_BLUE
 FONT_COLOR = arcade.color.WHITE
@@ -130,6 +131,8 @@ class UnitPopup(PopUp):
         """
         super().__init__(0, 0, size_x, size_y, background_color)
 
+        self.owner_label = arcade.gui.UILabel("", 0, 0)
+        self.action_label = arcade.gui.UILabel("", 0, 0)
         self.health_label = arcade.gui.UILabel("", 0, 0)
         self.health_label.color = font_color
         self.move_label = arcade.gui.UILabel("", 0, 0)
@@ -141,6 +144,8 @@ class UnitPopup(PopUp):
         """ Attaches a unit to the pop-up and makes it visible. """
         self.hide()
         self.unit = unit
+        self.add_ui_element(self.owner_label)
+        self.add_ui_element(self.action_label)
         self.add_ui_element(self.health_label)
         self.add_ui_element(self.move_label)
         self.update()
@@ -148,8 +153,10 @@ class UnitPopup(PopUp):
     def update(self):
         """ Updates the labels with the current state of the attached unit. """
         if self.visible():
-            self.health_label.text = f"Health: {str(self.unit.health).rjust(3, ' ')}"
-            self.move_label.text = f"Movement: {self.unit.movement}"
+            self.owner_label.text = str(self.unit)
+            self.action_label.text = "(Press N to build a city)" if self.can_build_city() else ""
+            self.health_label.text = f"Health: {f'{self.unit.health}%'.rjust(10, ' ')}"
+            self.move_label.text = f"Movement: {f'{self.unit.movement}/{self.unit.max_movement}'.rjust(7, ' ')}"
             self.adjust()
 
     def hide(self):
@@ -161,14 +168,23 @@ class UnitPopup(PopUp):
         """ Determines if the pop-up is visible. Used in hit box and drawing."""
         return self.unit is not None
 
+    def can_build_city(self):
+        return type(self.unit) == Settler and self.visible() # TODO and i'm the owner
+
     def adjust(self):
         """
         Adjusts the coords of the pop-up and its elements to the current screen borders.
         """
         self.adjust_coords()
         left, right, top, bottom = self.coords_lrtb
-        self.health_label.center_y = bottom + self.height / 3
-        self.move_label.center_y = bottom + 2 * self.height / 3
-        self.health_label.height = self.move_label.height = 0.15 * self.height
-        self.health_label.center_x = self.move_label.center_x = left + 0.5 * self.width
-        self.health_label.width = self.move_label.width = 0.8 * self.width
+        self.health_label.center_y = bottom + self.height / 5
+        self.move_label.center_y = bottom + 2 * self.height / 5
+        self.health_label.height = self.move_label.height = self.action_label.height = 0.1 * self.height
+        self.owner_label.height = 0.2 * self.height
+        self.health_label.center_x = self.move_label.center_x = self.owner_label.center_x = self.action_label.center_x = left + 0.5 * self.width
+        self.health_label.width = self.move_label.width = self.owner_label.width = self.action_label.width = 0.8 * self.width
+        if self.action_label.text:
+            self.owner_label.center_y = top - self.height / 5
+            self.action_label.center_y = top - 1.75 * self.height / 5
+        else:
+            self.owner_label.center_y = top - 1.5 * self.height / 5

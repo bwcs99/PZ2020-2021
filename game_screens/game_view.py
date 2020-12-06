@@ -51,7 +51,7 @@ class GameView(arcade.View):
         self.zoom = 0
 
         self.top_bar = TopBar(TOP_BAR_SIZE)
-        self.unit_popup = UnitPopup(UNIT_POPUP_SIZE, UNIT_POPUP_SIZE)
+        self.unit_popup = UnitPopup(4 * TOP_BAR_SIZE, 3 * TOP_BAR_SIZE)
 
         self.tiles = tiles
 
@@ -70,7 +70,7 @@ class GameView(arcade.View):
                 self.tile_sprites.append(tile)
 
         self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS)
-        self.game_logic.add_unit(7, 7)
+        self.game_logic.add_unit(7, 7, True)
         threading.Thread(target=self.wait_for_my_turn).start()
 
     def relative_to_absolute(self, x: float, y: float):
@@ -197,11 +197,16 @@ class GameView(arcade.View):
                         print("Clicked tile:", tile_row, tile_col)
 
     def on_key_press(self, symbol, modifiers):
-        if symbol == ord(" ") and self.my_turn:
-            self.my_turn = False
-            self.client.end_turn()
-            self.game_logic.end_turn()
-            threading.Thread(target=self.wait_for_my_turn).start()
+        if self.my_turn:
+            if symbol == ord(" "):
+                self.my_turn = False
+                self.client.end_turn()
+                self.game_logic.end_turn()
+                threading.Thread(target=self.wait_for_my_turn).start()
+            elif symbol == ord("n") and self.unit_popup.can_build_city():
+                # TODO self.client.build_city()
+                self.game_logic.build_city(self.unit_popup.unit)
+                self.unit_popup.update()
 
     def wait_for_my_turn(self):
         """
