@@ -1,7 +1,7 @@
 from copy import copy
 
 import arcade
-from .game_logic import Settler
+from .units import Settler
 
 BACKGROUND_COLOR = arcade.color.ST_PATRICK_BLUE
 FONT_COLOR = arcade.color.WHITE
@@ -169,7 +169,7 @@ class UnitPopup(PopUp):
         return self.unit is not None
 
     def can_build_city(self):
-        return type(self.unit) == Settler and self.visible() # TODO and i'm the owner
+        return type(self.unit) == Settler and self.visible()  # TODO and i'm the owner
 
     def adjust(self):
         """

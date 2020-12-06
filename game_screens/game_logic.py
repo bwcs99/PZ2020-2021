@@ -1,94 +1,11 @@
 import arcade
-from math import inf
 
-TILE_COLORS = [
-            (0, 64, 128),    # water
-            (112, 169, 0),   # plains
-            (16, 128, 64),   # hills
-            (128, 128, 128)  # mountains
-        ]
-
-class City(arcade.sprite.Sprite):
-    def __init__(self, unit):
-        super().__init__(":resources:images/tiles/brickGrey.png")
-        self.color = unit.color
-        self.tile = unit.tile
-        self.tile.city = self
-        self.width = self.tile.width
-        self.height = self.tile.height
-        self.owner = unit.owner
-        self.center_x = self.tile.center_x
-        self.center_y = self.tile.center_y
-
-
-class Unit(arcade.sprite.Sprite):
-    def __init__(self, color, tile):
-        super().__init__(":resources:images/enemies/saw.png")
-        self.color = color
-        self.tile = tile
-        self.width = tile.width
-        self.height = tile.height
-        self.owner = "me"
-        self.health = 100
-        self.max_movement = self.movement = 5
-        self.move_to(tile, 0)
-
-    def __str__(self):
-        return f"{self.owner}'s {type(self).__name__}"
-
-    def get_stats(self):
-        return self.health, self.movement
-
-    def move_to(self, tile, cost):
-        self.tile.occupant = None
-        self.tile = tile
-        self.tile.occupant = self
-        self.center_x = tile.center_x
-        self.center_y = tile.center_y
-        self.movement -= cost
-
-    def reset_movement(self):
-        self.movement = self.max_movement
-
-
-class Settler(Unit):
-    def build_city(self):
-        self.movement = 0
-        return City(self)
-
-
-class BlinkingTile(arcade.SpriteSolidColor):
-    def __init__(self, tile):
-        super().__init__(tile.width, tile.height, arcade.color.WHITE)
-        self.center_x = tile.center_x
-        self.center_y = tile.center_y
-        self.alpha = 0
-        self.alpha_change = -10
-
-    def update(self):
-        if self.alpha == 150 or self.alpha == 0:
-            self.alpha_change = -self.alpha_change
-        self.alpha += self.alpha_change
-
-
-class Tile(arcade.SpriteSolidColor):
-    """
-    Represents a single square map tile. Has the ability to hold information about the potential unit occupying it.
-    """
-
-    def __init__(self, x, y, size: int, cost: int):
-        super().__init__(size, size, TILE_COLORS[cost])
-        self.coords = x, y
-        self.occupant = None
-        self.city = None
-        self.cost = cost if 0 < cost < 3 else inf
-
-    def occupied(self):
-        return bool(self.occupant)
+from .tiles import Tile, BlinkingTile
+from .units import Unit, Settler
 
 
 class GameLogic:
-    def __init__(self, tiles, row_no, col_no):
+    def __init__(self, tiles: arcade.SpriteList, row_no: int, col_no: int):
         self.TILE_ROWS = row_no
         self.TILE_COLS = col_no
         self.tiles = tiles
@@ -107,17 +24,22 @@ class GameLogic:
         self.units.draw()
 
     def end_turn(self):
+        """ Gives units their movement points back, and possibly does other cleanup stuff when a player's turn ends."""
         for unit in self.units:
             unit.reset_movement()
         self.hide_unit_range()
 
-    def get_tile(self, x, y):
+    def get_tile(self, x: int, y: int) -> Tile or None:
+        """
+        :return: the tile in column x, row y if it exists, else None
+        """
         try:
             return self.tiles[y * self.TILE_COLS + x]
         except IndexError:
             return None
 
-    def display_unit_range(self, unit):
+    def display_unit_range(self, unit: Unit):
+        """ Makes every tile the unit can move to blink. """
         self.move_costs = self.get_unit_range(unit)
         for x, y in self.move_costs:
             tile = self.get_tile(x, y)
@@ -125,31 +47,62 @@ class GameLogic:
             self.unit_range.append(blink)
 
     def hide_unit_range(self):
+        """ Removes all blinking tiles from the map. """
         self.unit_range = arcade.SpriteList()
         self.move_costs = None
 
-    def add_unit(self, x, y, settler=False):
+    def add_unit(self, x: int, y: int, settler: bool = False):
+        """
+        Adds a new unit to the map.
+
+        :param x: the x (column) coord of the tile to place the unit on
+        :param y: the y (row) coord of the tile to place the unit on
+        :param settler: whether the unit is a settler
+        """
         tile = self.get_tile(x, y)
         unit = Settler(arcade.color.PASTEL_RED, tile) if settler else Unit(arcade.color.PASTEL_RED, tile)  # TODO ownership
         self.units.append(unit)
 
-    def can_unit_move(self, unit, x, y):
+    def can_unit_move(self, unit: Unit, x: int, y: int) -> bool:
+        """
+        Determines whether a unit is able to move to the specified tile.
+
+        :param unit: a unit to be moved
+        :param x: the x (column) coord of the tile to move the unit to
+        :param y: the y (row) coord of the tile to move the unit to
+        """
         return (x, y) in self.move_costs  # TODO and unit.mine?
 
-    def move_unit(self, unit, x, y):
+    def move_unit(self, unit: Unit, x: int, y: int):
+        """
+        Moves a unit to the specified tile and updates its movement range.
+
+        :param unit: a unit to be moved
+        :param x: the x (column) coord of the tile to move the unit to
+        :param y: the y (row) coord of the tile to move the unit to
+        """
         cost = self.move_costs[x, y]
         tile = self.get_tile(x, y)
         unit.move_to(tile, cost)
         self.hide_unit_range()
         self.display_unit_range(unit)
 
-    def build_city(self, unit):
+    def build_city(self, unit: Settler):
+        """
+        Turns a settler unit into a city.
+        :param unit: a settler unit establishing the city
+        """
         city = unit.build_city()
+        self.units.remove(unit)
         self.cities.append(city)
-        self.hide_unit_range()
-        self.display_unit_range(unit)
 
-    def get_unit_range(self, unit: Unit):
+    def get_unit_range(self, unit: Unit) -> dict:
+        """
+        Determines a unit's movement range.
+
+        :param unit: a unit to be moved
+        :return: a dictionary with elements of (x,y):cost
+        """
         x, y = unit.tile.coords
         visited = {(x, y): 0}
         queue = [(x, y)]
@@ -158,7 +111,7 @@ class GameLogic:
             parent_cost = visited[(x, y)]
             for col, row in [(x, y + 1), (x + 1, y), (x, y - 1), (x - 1, y)]:
                 tile = self.get_tile(col, row)
-                if tile:
+                if tile:  # TODO one unit per tile but i will do that after the battling system
                     alt_cost = parent_cost + tile.cost
                     if alt_cost <= unit.movement and ((col, row) not in visited or alt_cost < visited[col, row]):
                         queue.append((col, row))

@@ -4,7 +4,8 @@ import arcade
 import arcade.gui
 
 from .popups import TopBar, UnitPopup, FONT_COLOR
-from .game_logic import GameLogic, Tile
+from .game_logic import GameLogic
+from .tiles import Tile
 
 TOP_BAR_SIZE = 0.0625  # expressed as the percentage of the current screen height
 UNIT_POPUP_SIZE = 3 * TOP_BAR_SIZE
@@ -208,7 +209,8 @@ class GameView(arcade.View):
             elif symbol == ord("n") and self.unit_popup.can_build_city():
                 # TODO self.client.build_city()
                 self.game_logic.build_city(self.unit_popup.unit)
-                self.unit_popup.update()
+                self.unit_popup.hide()
+                self.game_logic.hide_unit_range()
 
     def wait_for_my_turn(self):
         """
