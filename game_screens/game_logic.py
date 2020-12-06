@@ -109,6 +109,7 @@ class GameLogic:
     def end_turn(self):
         for unit in self.units:
             unit.reset_movement()
+        self.hide_unit_range()
 
     def get_tile(self, x, y):
         try:
@@ -132,18 +133,15 @@ class GameLogic:
         unit = Settler(arcade.color.PASTEL_RED, tile) if settler else Unit(arcade.color.PASTEL_RED, tile)  # TODO ownership
         self.units.append(unit)
 
+    def can_unit_move(self, unit, x, y):
+        return (x, y) in self.move_costs  # TODO and unit.mine?
+
     def move_unit(self, unit, x, y):
-        if False:  # TODO if unit not mine
-            return False
-        try:
-            cost = self.move_costs[x, y]
-            tile = self.get_tile(x, y)
-            unit.move_to(tile, cost)
-            self.hide_unit_range()
-            self.display_unit_range(unit)
-            return True
-        except KeyError:
-            return False
+        cost = self.move_costs[x, y]
+        tile = self.get_tile(x, y)
+        unit.move_to(tile, cost)
+        self.hide_unit_range()
+        self.display_unit_range(unit)
 
     def build_city(self, unit):
         city = unit.build_city()

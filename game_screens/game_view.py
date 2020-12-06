@@ -188,7 +188,8 @@ class GameView(arcade.View):
                             self.game_logic.display_unit_range(unit)
                     elif self.unit_popup.visible():
                         unit = self.unit_popup.unit
-                        if self.my_turn and self.game_logic.move_unit(unit, tile_col, tile_row):
+                        if self.my_turn and self.game_logic.can_unit_move(unit, tile_col, tile_row):
+                            self.game_logic.move_unit(unit, tile_col, tile_row)
                             self.unit_popup.update()
                         else:
                             self.unit_popup.hide()
@@ -201,6 +202,7 @@ class GameView(arcade.View):
             if symbol == ord(" "):
                 self.my_turn = False
                 self.client.end_turn()
+                self.unit_popup.hide()
                 self.game_logic.end_turn()
                 threading.Thread(target=self.wait_for_my_turn).start()
             elif symbol == ord("n") and self.unit_popup.can_build_city():
