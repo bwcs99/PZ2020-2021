@@ -131,8 +131,7 @@ class Client:
         from (x0, y0) to (x1, y1).
         """
         mes = self.rec_msg()
-        turn, name = ast.literal_eval(mes)
-        return turn, name
+        return mes.split(':')
 
     """ Funkcja służąca do kończenia gry przez hosta """
     def end_game_by_host(self):
@@ -161,9 +160,27 @@ class Client:
 
     """ Wysyłanie zmienionej mapy na serwer (move_unit i put_unit w jednym przy założeniu, że zmiany na mapach
     odbywają się po stronie klienta) """
+    # być może przyda się w momencie gdy ktoś będzie out of sync, ale ja na razie wolałem to zrobić tak jak niżej /P
     def send_changed(self, changed_map):
         map_to_str = str(changed_map)
         self.only_send("CHANGE_MAP:"+":"+map_to_str+":")
+
+    def move_unit(self, x0, y0, x1, y1, cost):
+        """ Moves the unit located on the tile (x0, y0) to the tile (x1, y1) at a specified cost."""
+        msg = f"MOVE_UNIT:({x0},{y0}):({x1},{y1}):{cost}"
+        self.only_send(msg)
+        if self.rec_msg() != msg:
+            print("ERROR: move_unit")
+
+    def add_unit(self, x, y, unit_type):
+        """
+        Adds a unit of the specified type on tile (x,y). It's owner is the player sending the message since only
+        they can create a unit for themself.
+        """
+        msg = f"ADD_UNIT:{self.nick}:({x},{y}):{unit_type}"
+        self.only_send(msg)
+        if self.rec_msg() != msg:
+            print("ERROR: add_unit")
 
     """ Miasta od gracza 1 idą do gracza 2 (użyteczne przy bitwach)"""
     def give_cities(self, player_name1, player_name2, cities):
@@ -175,8 +192,11 @@ class Client:
         rep = self.send_msg("LIST_CITIES:::")
         return eval(rep)
 
-    """ Dodawanie miasta do listy miast gracza """
-    def add_city(self, player_name, city_name):
-        self.only_send("ADD_CITY:" + player_name + ":" + city_name + ":")
+    def add_city(self, x, y, city_name):
+        """ Adds a city with the specified name on tile (x, y). It's owner is the player sending the message. """
+        msg = f"ADD_CITY:{self.nick}:({x},{y}):{city_name}"
+        self.only_send(msg)
+        if self.rec_msg() != msg:
+            print("ERROR: add_city")
 
 

@@ -136,13 +136,11 @@ class Server:
             response.append(f"{request[1]}: YOU HAVE FINISHED YOUR TURN".encode(FORMAT))
             self.current_player += 1
             self.current_player %= len(self.players)
-            t = ("TURN", self.players[self.current_player].player_name)
-            broadcast = str(t).encode(FORMAT)
+            broadcast = f"TURN:{self.players[self.current_player].player_name}".encode(FORMAT)
 
         elif request[0] == "START_GAME":
             response.append(f"{request[1]}: YOU HAVE STARTED THE GAME".encode(FORMAT))
-            t = ("TURN", self.players[0].player_name)
-            broadcast = str(t).encode(FORMAT)
+            broadcast = f"TURN:{self.players[0].player_name}".encode(FORMAT)
 
         elif request[0] == "EXIT_LOBBY":
             # TODO rethink Client.only_send() being used here
@@ -195,11 +193,15 @@ class Server:
          #   print('W change map')
          #   print(request[2])
             broadcast = request[2].encode(FORMAT)
+
+        elif request[0] == "ADD_UNIT" or request[0] == "MOVE_UNIT":
+            broadcast = incoming_msg.encode(FORMAT)
         
         elif request[0] == "ADD_CITY":
           #  print('W add_city')
             wanted = next((player for player in self.players if player.player_name == request[1]), None)
-            wanted.city_list.append(request[2])
+            wanted.city_list.append(request[3])
+            broadcast = incoming_msg.encode(FORMAT)
           #  print('Lista: ', wanted.city_list)
 
         elif request[0] == "GIVE_CITIES":
@@ -243,7 +245,7 @@ class Server:
                 msg_len = int(msg_len)
                 incoming_message = conn.recv(msg_len).decode(FORMAT)
                 print(f"RECEIVED NEW MESSAGE: {incoming_message} from {addr}")
-                if incoming_message == DISCONNECT_MESSAGE or finish:
+                if incoming_message == DISCONNECT_MESSAGE or self.finish:
                     connected = False
                            
                 response, broadcast = self.parse_request(incoming_message, addr)
@@ -267,7 +269,7 @@ class Server:
             while True:
                 conn, addr = server_socket.accept()
                 self.connections.append(conn)
-                new_thread = threading.Thread(target=self.connection_handler, args=(conn, addr))
+                new_thread = threading.Thread(target=self.connection_handler, args=(conn, addr), daemon=True)
                 self.threads.append(new_thread)
                 new_thread.start()
                 print(f"N_O ACTIVE CONNECTIONS: {threading.activeCount() - 1}")

@@ -37,6 +37,11 @@ class Unit(arcade.sprite.Sprite):
 
 
 class Settler(Unit):
+    def __init__(self, tile, owner):
+        super().__init__(tile, owner)
+        self.angle = 90
+
     def build_city(self):
+        # TODO not on the same tile as another city!! Not on another player's territory too
         self.tile.occupant = None
         return City(self)

@@ -138,9 +138,10 @@ class UnitPopup(PopUp):
         self.move_label = arcade.gui.UILabel("", 0, 0)
         self.move_label.color = font_color
         self.unit = None
+        self.is_unit_mine = False
         self.adjust()
 
-    def display(self, unit):
+    def display(self, unit, mine: bool):
         """ Attaches a unit to the pop-up and makes it visible. """
         self.hide()
         self.unit = unit
@@ -148,6 +149,7 @@ class UnitPopup(PopUp):
         self.add_ui_element(self.action_label)
         self.add_ui_element(self.health_label)
         self.add_ui_element(self.move_label)
+        self.is_unit_mine = mine
         self.update()
 
     def update(self):
@@ -164,12 +166,21 @@ class UnitPopup(PopUp):
         self.purge_ui_elements()
         self.unit = None
 
+    def hide_if_on_tile(self, x, y):
+        """
+        Hides the pop-up if the unit it references is located on the tile (x, y). Useful for when opponent's settlers
+        build a city.
+        """
+        if self.unit and self.unit.tile.coords == (x, y):
+            self.hide()
+
     def visible(self):
         """ Determines if the pop-up is visible. Used in hit box and drawing."""
         return self.unit is not None
 
     def can_build_city(self):
-        return type(self.unit) == Settler and self.visible()  # TODO and i'm the owner
+        """ Determines whether to show the message that a settler can build a city. """
+        return self.is_unit_mine and type(self.unit) == Settler and self.visible()
 
     def adjust(self):
         """

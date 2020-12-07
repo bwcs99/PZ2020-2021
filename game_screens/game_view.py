@@ -53,7 +53,7 @@ class GameView(arcade.View):
 
         self.top_bar = TopBar(TOP_BAR_SIZE)
         self.unit_popup = UnitPopup(4 * TOP_BAR_SIZE, 3 * TOP_BAR_SIZE)
-
+        self.update_popup = False  # used to only update pop-up once per opponent's move, otherwise game is laggy
         self.tiles = tiles
 
         self.tile_sprites = arcade.SpriteList()
@@ -71,6 +71,7 @@ class GameView(arcade.View):
                 self.tile_sprites.append(tile)
 
         self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS, self.client.players, self.client.nick)
+
         threading.Thread(target=self.wait_for_my_turn).start()
 
     def relative_to_absolute(self, x: float, y: float):
@@ -99,10 +100,14 @@ class GameView(arcade.View):
 
     def on_update(self, delta_time: float):
         self.game_logic.update()
+        if self.update_popup:
+            self.unit_popup.update()
+            self.update_popup = False
 
     def on_draw(self):
         self.top_bar.turn_change(self.cur_enemy)
         arcade.start_render()
+        # units, cities, move ranges
         self.game_logic.draw()
         # top bar
         self.top_bar.draw_background()
@@ -183,33 +188,45 @@ class GameView(arcade.View):
 
                     if tile.occupied():
                         unit = tile.occupant
-                        self.unit_popup.display(unit)
+                        # hide the range cause we might have clicked another unit while it was displayed
+                        self.game_logic.hide_unit_range()
                         if self.my_turn and self.game_logic.is_unit_mine(unit):
-                            self.game_logic.hide_unit_range()
+                            # show me where can i move it
+                            self.unit_popup.display(unit, mine=True)
                             self.game_logic.display_unit_range(unit)
+                        else:
+                            # just show the info
+                            self.unit_popup.display(unit, mine=False)
                     elif self.unit_popup.visible():
                         unit = self.unit_popup.unit
-                        if self.my_turn and self.game_logic.can_unit_move(unit, tile_col, tile_row):
-                            self.game_logic.move_unit(unit, tile_col, tile_row)
+                        cost = self.game_logic.can_unit_move(unit, tile_col, tile_row)
+                        if self.my_turn and cost:
+                            # if it's my turn and my unit and i clicked within its range, move it
+                            self.client.move_unit(*unit.tile.coords, tile_col, tile_row, cost)
+                            self.game_logic.move_unit(unit, tile_col, tile_row, cost)
                             self.unit_popup.update()
                         else:
+                            # otherwise it means that i "unclicked" the popup
                             self.unit_popup.hide()
                             self.game_logic.hide_unit_range()
                     elif self.my_turn:
-                        self.game_logic.add_unit(tile_col, tile_row, self.client.nick, False)
+                        self.game_logic.add_unit(tile_col, tile_row, self.client.nick, settler=True)
+                        self.client.add_unit(tile_col, tile_row, "settler")
 
     def on_key_press(self, symbol, modifiers):
         if self.my_turn:
+            # END TURN
             if symbol == ord(" "):
                 self.my_turn = False
                 self.client.end_turn()
                 self.unit_popup.hide()
                 self.game_logic.end_turn()
-                threading.Thread(target=self.wait_for_my_turn).start()
+                threading.Thread(target=self.wait_for_my_turn, daemon=True).start()
+            # BUILD A CITY
             elif symbol == ord("n") and self.unit_popup.can_build_city():
                 unit = self.unit_popup.unit
                 if self.game_logic.is_unit_mine(unit):
-                    # TODO self.client.build_city()
+                    self.client.add_city(*unit.tile.coords, "PLACEHOLDER_NAME")
                     self.game_logic.build_city(self.unit_popup.unit)
                     self.unit_popup.hide()
                     self.game_logic.hide_unit_range()
@@ -228,3 +245,23 @@ class GameView(arcade.View):
                     return
                 else:
                     self.cur_enemy = message[1]
+
+            elif message[0] == "ADD_UNIT":
+                nick = message[1]
+                x, y = eval(message[2])
+                self.game_logic.add_unit(x, y, nick, message[3] == "settler")
+
+            elif message[0] == "MOVE_UNIT":
+                x0, y0 = eval(message[1])
+                x1, y1 = eval(message[2])
+                cost = int(message[3])
+                self.game_logic.move_opponents_unit(x0, y0, x1, y1, cost)
+                self.update_popup = True
+
+            elif message[0] == "ADD_CITY":
+                nick = message[1]
+                x, y = eval(message[2])
+                city_name = message[3]
+                self.game_logic.build_opponents_city(x, y)
+                self.unit_popup.hide_if_on_tile(x, y)
+

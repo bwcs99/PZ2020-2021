@@ -70,34 +70,50 @@ class GameLogic:
             unit = Settler(tile, owner)
         else:
             unit = Unit(tile, owner)
+        tile.occupant = unit
         owner.units.append(unit)
 
-    def can_unit_move(self, unit: Unit, x: int, y: int) -> bool:
+    def can_unit_move(self, unit: Unit, x: int, y: int) -> int or None:
         """
         Determines whether a unit is able to move to the specified tile.
 
         :param unit: a unit to be moved
         :param x: the x (column) coord of the tile to move the unit to
         :param y: the y (row) coord of the tile to move the unit to
+        :returns: the cost of the move if it's possible, else None
         """
-        return unit.owner == self.me and (x, y) in self.move_costs and not self.get_tile(x, y).occupied()
+        if not self.move_costs:
+            return None
+        if unit.owner == self.me and (x, y) in self.move_costs and not self.get_tile(x, y).occupied():
+            return self.move_costs[x, y]
+        else:
+            return None
 
     def is_unit_mine(self, unit: Unit) -> bool:
+        """ Allows to check if the specified unit belongs to the player. """
         return unit.owner == self.me
 
-    def move_unit(self, unit: Unit, x: int, y: int):
+    def move_unit(self, unit: Unit, x: int, y: int, cost: int):
         """
         Moves a unit to the specified tile and updates its movement range.
 
         :param unit: a unit to be moved
         :param x: the x (column) coord of the tile to move the unit to
         :param y: the y (row) coord of the tile to move the unit to
+        :param cost: cost of the move
         """
-        cost = self.move_costs[x, y]
         tile = self.get_tile(x, y)
         unit.move_to(tile, cost)
         self.hide_unit_range()
         self.display_unit_range(unit)
+
+    def move_opponents_unit(self, x0, y0, x1, y1, cost):
+        """
+        Moves a unit located on the tile (x0, y0) to the tile (x1, y1) at a specified cost.
+        """
+        unit = self.get_tile(x0, y0).occupant
+        target = self.get_tile(x1, y1)
+        unit.move_to(target, cost)
 
     def build_city(self, unit: Settler):
         """
@@ -105,8 +121,14 @@ class GameLogic:
         :param unit: a settler unit establishing the city
         """
         city = unit.build_city()
-        self.units.remove(unit)
-        self.cities.append(city)
+        owner = unit.owner
+        owner.units.remove(unit)
+        owner.cities.append(city)
+
+    def build_opponents_city(self, x: int, y: int):
+        """ Turns a settler unit located on tile (x, y) into a city. """
+        unit = self.get_tile(x, y).occupant
+        self.build_city(unit)
 
     def get_unit_range(self, unit: Unit) -> dict:
         """
