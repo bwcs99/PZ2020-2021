@@ -5,6 +5,10 @@ class Granary:
         self.stone = stone
         self.food = food
 
+    def __str__(self):
+        return f" In granary there is " \
+               f"gold = {self.gold}, wood = {self.wood}, stone = {self.stone}, food = {self.food}, Master."
+
     def empty_granary(self):
         self.gold = 0
         self.wood = 0

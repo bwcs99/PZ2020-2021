@@ -41,7 +41,8 @@ class Settler(Unit):
         super().__init__(tile, owner)
         self.angle = 90
 
-    def build_city(self):
+    def build_city(self, surrondings: list):
         # TODO not on the same tile as another city!! Not on another player's territory too
         self.tile.occupant = None
-        return City(self)
+        city = City(self, surrondings)
+        return city

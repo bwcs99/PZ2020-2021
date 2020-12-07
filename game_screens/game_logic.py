@@ -32,6 +32,7 @@ class GameLogic:
         for unit in self.me.units:
             unit.reset_movement()
         self.hide_unit_range()
+        self.me.collect_from_cities()  # maybe this should be here?
 
     def get_tile(self, x: int, y: int) -> Tile or None:
         """
@@ -120,18 +121,18 @@ class GameLogic:
         Turns a settler unit into a city.
         :param unit: a settler unit establishing the city
         """
-        city = unit.build_city()
-        x, y = city.tile.coords
-        for x1 in range(x-1, x+2):
-            for y1 in range(y-1, y+2):
+        surroundings = []
+        x, y = unit.tile.coords
+        for x1 in range(x - 1, x + 2):
+            for y1 in range(y - 1, y + 2):
                 tile = self.get_tile(x1, y1)
                 if tile:
-                    city.area.append(tile)
-        # city.area.remove(city.tile)
-        owner = unit.owner
-        owner.units.remove(unit)
-        owner.cities.append(city)
-        print(city.area)
+                    surroundings.append(tile)
+
+        city = unit.build_city(surroundings)
+        unit.owner.units.remove(unit)
+        unit.owner.cities.append(city)
+        print("Created city area:", city.area)
 
     def build_opponents_city(self, x: int, y: int):
         """ Turns a settler unit located on tile (x, y) into a city. """
