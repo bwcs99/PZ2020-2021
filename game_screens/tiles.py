@@ -21,6 +21,7 @@ class Tile(arcade.SpriteSolidColor):
         self.occupant = None
         self.city = None
         self.cost = cost if 0 < cost < 3 else inf
+        self.type = cost  # variable to determine what kind of tile it is.
 
     def occupied(self):
         return bool(self.occupant)
