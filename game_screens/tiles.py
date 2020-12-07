@@ -22,6 +22,9 @@ class Tile(arcade.SpriteSolidColor):
         self.city = None
         self.cost = cost if 0 < cost < 3 else inf
 
+    def __repr__(self):
+        return str(self.coords)
+
     def occupied(self):
         return bool(self.occupant)
 

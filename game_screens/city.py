@@ -7,6 +7,7 @@ class City(arcade.sprite.Sprite):
         self.color = unit.color
         self.tile = unit.tile
         self.tile.city = self
+        self.area = []
         self.width = self.tile.width
         self.height = self.tile.height
         self.owner = unit.owner
