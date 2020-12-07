@@ -2,7 +2,7 @@ import socket
 import threading
 from random import randint
 
-from player import Player
+from .player import Player
 
 # Dane potrzebne do wystartowania serwera.
 PORT = 65001
