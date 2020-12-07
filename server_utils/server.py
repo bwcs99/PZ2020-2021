@@ -31,7 +31,7 @@ class Server:
         self.players = []
         self.connections = []
         self.threads = []
-        self.colours = ['pink', 'red', 'purple', 'yellow', 'green', 'brown', 'blue', 'orange', 'grey']
+        self.colours = ['pink', 'red', 'purple', 'yellow', 'green', 'brown', 'blue', 'orange', 'gray']
         self.civilizations = ["zgredki", "elfy", "40-letnie-panny", "antysczepionkowcy"]
         self.current_player = 0  # index in self.players that indicates who is active
         self.finish = False

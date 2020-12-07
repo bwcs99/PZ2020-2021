@@ -22,6 +22,8 @@ class Client:
         self.available_civilizations = None
         self.current_players_on_server = None
         self.nick = None
+        self.players = []
+
 
     # This method listens for messages from server.
     def rec_msg(self):

@@ -124,6 +124,7 @@ class MapGeneratorWindow(QMainWindow):
         """ Starting thread with server """
         print("Server is starting...")
         server_thread = threading.Thread(target=self.create_server_thread, args=())
+        server_thread.daemon = True
         server_thread.start()
         self.__init_lobby_window()  # this line continues flow of main thread to lobby window.
 

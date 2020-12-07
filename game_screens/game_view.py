@@ -3,7 +3,12 @@ import threading
 import arcade
 import arcade.gui
 
+from .popups import TopBar, UnitPopup, FONT_COLOR
+from .game_logic import GameLogic
+from .tiles import Tile
+
 TOP_BAR_SIZE = 0.0625  # expressed as the percentage of the current screen height
+UNIT_POPUP_SIZE = 3 * TOP_BAR_SIZE
 
 SCROLL_STEP = 0.125  # new_height = old_height +- 2 * scroll_step * original_height, same with width
 MAX_ZOOM = int(1 / (2 * SCROLL_STEP))
@@ -11,88 +16,6 @@ MAX_ZOOM = int(1 / (2 * SCROLL_STEP))
 # TILE_ROWS = 25
 # TILE_COLS = 40
 MARGIN = 1  # space between two tiles (vertically & horizontally) in pixels (while fully zoomed out)
-
-
-class TopBar(arcade.gui.UIManager):
-    """
-    A representation of the game window's top bar containing info about the player's treasury and the name of the
-    player whose turn is currently taking place. Holds and updates the current position of the bar on the screen.
-    """
-
-    def __init__(self, screen_width: int, screen_height: int, size: float = TOP_BAR_SIZE):
-        """
-        :param size: Should be between 0 and 1. Determines what part of the current screen height should the bar occupy.
-        """
-        super().__init__()
-
-        self.width = screen_width
-        self.size = size
-        self.max_height = self.height = size * screen_height
-        self.coords_lrtb = (0, screen_width, screen_height, screen_height - self.height)
-
-        # this can go into a file later maybe
-        arcade.gui.elements.UIStyle.set_class_attrs(
-            arcade.gui.elements.UIStyle.default_style(),
-            "label",
-            font_name="resources/fonts/november",
-            font_color=arcade.color.WHITE,
-            font_size=64
-        )
-
-        self.money_label = arcade.gui.UILabel("Treasury: 0 (+0)", 0, 0)
-        self.time_label = arcade.gui.UILabel("Press SPACE to end turn (5:00)", 0, 0)
-        self.adjust()
-        self.add_ui_element(self.money_label)
-        self.add_ui_element(self.time_label)
-
-    def adjust(self):
-        """
-        Adjusts the coords of the bar and it's elements to the current screen borders.
-        """
-        left, right, bottom, top = arcade.get_viewport()
-        self.width = right - left
-        self.height = self.size * (top - bottom)
-        self.coords_lrtb = (left, right, top, top - self.height)
-        # prosze pana ale niech pan to zrobi porzadnie
-        self.money_label.center_y = self.time_label.center_y = top - self.height / 2
-        self.money_label.height = self.time_label.height = 0.4 * self.height
-        self.money_label.center_x = left + 0.125 * self.width
-        self.time_label.center_x = left + 0.775 * self.width
-        self.money_label.width = len(self.money_label.text) / 75 * self.width
-        self.time_label.width = len(self.time_label.text) / 75 * self.width
-
-    def turn_change(self, nick: str = None):
-        """
-        Changes the label to reflect the player whose turn is taking place. No nick should be provided if it's the
-        turn of the player running the client.
-        """
-        if nick:
-            self.time_label.text = f"{nick}'s turn (5:00)"
-        else:
-            self.time_label.text = "Press SPACE to end turn (5:00)"
-        self.adjust()
-
-    def on_mouse_press(self, x, y, button, modifiers):
-        pass
-
-    def on_mouse_release(self, x, y, button, modifiers):
-        pass
-
-    def on_mouse_motion(self, x, y, button, modifiers):
-        pass
-
-
-class Tile(arcade.SpriteSolidColor):
-    """
-    Represents a single square map tile. Has the ability to hold information about the potential unit occupying it.
-    """
-
-    def __init__(self, size: int):
-        super().__init__(size, size, arcade.color.WHITE)
-        self.occupant = None
-
-    def occupied(self):
-        return bool(self.occupant)
 
 
 class GameView(arcade.View):
@@ -108,6 +31,14 @@ class GameView(arcade.View):
         :param client: A client object for server communication.
         """
         super().__init__()
+        arcade.gui.elements.UIStyle.set_class_attrs(
+            arcade.gui.elements.UIStyle.default_style(),
+            "label",
+            font_name="resources/fonts/november",
+            font_color=FONT_COLOR,
+            font_size=64
+        )
+
         self.client = client
         self.my_turn = False
         self.cur_enemy = ""
@@ -120,15 +51,11 @@ class GameView(arcade.View):
         self.TILE_COLS = len(tiles[0])
         self.zoom = 0
 
-        self.top_bar = TopBar(width, height)
+        self.top_bar = TopBar(TOP_BAR_SIZE)
+        self.unit_popup = UnitPopup(4 * TOP_BAR_SIZE, 3 * TOP_BAR_SIZE)
 
         self.tiles = tiles
-        tile_types = [
-            (0, 64, 128),
-            (112, 169, 0),
-            (16, 128, 64),
-            (128, 128, 128)
-        ]
+
         self.tile_sprites = arcade.SpriteList()
         # needs to be smarter tbh but depends on the size of a real map
         self.tile_size = int((height - self.top_bar.height) / self.TILE_ROWS) - MARGIN
@@ -138,19 +65,12 @@ class GameView(arcade.View):
 
         for row in range(self.TILE_ROWS):
             for col in range(self.TILE_COLS):
-                tile = Tile(self.tile_size)
-                tile.color = tile_types[tiles[row][col]]  # can and will be changed to sprites as soon as we have em
+                tile = Tile(col, row, self.tile_size, tiles[row][col])
                 tile.center_x = col * (self.tile_size + MARGIN) + (self.tile_size / 2) + MARGIN + self.centering_x
                 tile.center_y = row * (self.tile_size + MARGIN) + (self.tile_size / 2) + MARGIN + self.centering_y
                 self.tile_sprites.append(tile)
 
-        # this is ugly but she's moving out soon i promise
-        self.unit_sprites = arcade.SpriteList()
-        unit_prototype = arcade.Sprite(":resources:images/items/star.png")
-        unit_prototype.height = unit_prototype.width = self.tile_size
-        col, row = self.absolute_to_tiles(100, 100)
-        self.place_unit_on_tile(unit_prototype, col, row)
-        self.unit_sprites.append(unit_prototype)
+        self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS, self.client.players, self.client.nick)
         threading.Thread(target=self.wait_for_my_turn).start()
 
     def relative_to_absolute(self, x: float, y: float):
@@ -169,26 +89,25 @@ class GameView(arcade.View):
         """
         return map(lambda a: int(a // (self.tile_size + MARGIN)), (x, y))
 
-    def place_unit_on_tile(self, unit: arcade.Sprite, col: int, row: int):
-        """
-        Places the provided unit on the tile identified by the map matrix coordinates.
-        """
-        tile = self.tile_sprites[row * self.TILE_COLS + col]
-        unit.center_x = tile.center_x
-        unit.center_y = tile.center_y
-        tile.occupant = unit
+    def get_tile(self, x, y):
+        return self.tile_sprites[y * self.TILE_COLS + x]
 
     def on_show(self):
         arcade.set_background_color(arcade.csscolor.BLACK)
         self.top_bar.adjust()
+        self.unit_popup.adjust()
+
+    def on_update(self, delta_time: float):
+        self.game_logic.update()
 
     def on_draw(self):
         self.top_bar.turn_change(self.cur_enemy)
         arcade.start_render()
-        self.tile_sprites.draw()
-        self.unit_sprites.draw()
+        self.game_logic.draw()
         # top bar
-        arcade.draw_lrtb_rectangle_filled(*self.top_bar.coords_lrtb, arcade.color.ST_PATRICK_BLUE)
+        self.top_bar.draw_background()
+        # unit popup
+        self.unit_popup.draw_background()
 
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
         if 0 <= self.zoom + scroll_y < MAX_ZOOM:
@@ -216,7 +135,7 @@ class GameView(arcade.View):
                 # actually, in no zoom we can move all the way up there
                 # so the max camera_top for when zoomed in n times is:
                 # screen_height - (max_top_bar_height - top_bar_height_after_zoom_change)
-                y_shift = (self.SCREEN_HEIGHT - (self.zoom * 2 * self.SCROLL_STEP_Y) * self.top_bar.size) - (
+                y_shift = (self.SCREEN_HEIGHT - (self.zoom * 2 * self.SCROLL_STEP_Y) * self.top_bar.size_y) - (
                         new_bottom + new_height)
                 if y_shift < 0:
                     new_bottom += y_shift
@@ -225,6 +144,7 @@ class GameView(arcade.View):
 
             arcade.set_viewport(new_left, new_left + new_width, new_bottom, new_bottom + new_height)
             self.top_bar.adjust()
+            self.unit_popup.adjust()
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         if buttons == 4:
@@ -243,11 +163,14 @@ class GameView(arcade.View):
 
             arcade.set_viewport(current[0] - dx, current[1] - dx, current[2] - dy, current[3] - dy)
             self.top_bar.adjust()
+            self.unit_popup.adjust()
 
     def on_mouse_press(self, x, y, button, modifiers):
-        if button == 1 and self.my_turn:
-            # don't let the player click on tiles through the top bar
-            if y < self.SCREEN_HEIGHT * (1 - TOP_BAR_SIZE):
+        if button == 1:
+            # don't let the player click through the unit pop-up or the top bar
+            if self.unit_popup.is_hit(x, y) or self.top_bar.is_hit(x, y):
+                pass
+            else:
                 # the x and y arguments are relative to the current zoom, so we need to scale and shift them
                 x, y = self.relative_to_absolute(x, y)
                 # aaand then turn them into grid coords
@@ -259,26 +182,37 @@ class GameView(arcade.View):
                     tile = self.tile_sprites[tile_row * self.TILE_COLS + tile_col]
 
                     if tile.occupied():
-                        print("There's a unit here!")
-                    else:
-                        self.tiles[tile_row][tile_col] += 1
-                        self.tiles[tile_row][tile_col] %= 4
-                        color = self.tiles[tile_row][tile_col]
-                        if color == 0:
-                            color = (0, 64, 128)
-                        elif color == 1:
-                            color = (112, 169, 0)
-                        elif color == 2:
-                            color = (16, 128, 64)
+                        unit = tile.occupant
+                        self.unit_popup.display(unit)
+                        if self.my_turn and self.game_logic.is_unit_mine(unit):
+                            self.game_logic.hide_unit_range()
+                            self.game_logic.display_unit_range(unit)
+                    elif self.unit_popup.visible():
+                        unit = self.unit_popup.unit
+                        if self.my_turn and self.game_logic.can_unit_move(unit, tile_col, tile_row):
+                            self.game_logic.move_unit(unit, tile_col, tile_row)
+                            self.unit_popup.update()
                         else:
-                            color = (128, 128, 128)
-                        tile.color = color
+                            self.unit_popup.hide()
+                            self.game_logic.hide_unit_range()
+                    elif self.my_turn:
+                        self.game_logic.add_unit(tile_col, tile_row, self.client.nick, False)
 
     def on_key_press(self, symbol, modifiers):
-        if symbol == ord(" ") and self.my_turn:
-            self.my_turn = False
-            self.client.end_turn()
-            threading.Thread(target=self.wait_for_my_turn).start()
+        if self.my_turn:
+            if symbol == ord(" "):
+                self.my_turn = False
+                self.client.end_turn()
+                self.unit_popup.hide()
+                self.game_logic.end_turn()
+                threading.Thread(target=self.wait_for_my_turn).start()
+            elif symbol == ord("n") and self.unit_popup.can_build_city():
+                unit = self.unit_popup.unit
+                if self.game_logic.is_unit_mine(unit):
+                    # TODO self.client.build_city()
+                    self.game_logic.build_city(self.unit_popup.unit)
+                    self.unit_popup.hide()
+                    self.game_logic.hide_unit_range()
 
     def wait_for_my_turn(self):
         """
