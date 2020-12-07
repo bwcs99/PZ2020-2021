@@ -12,14 +12,13 @@ FORMAT = 'utf-8'
 HEADER = 200
 DISCONNECT_MESSAGE = "DISCONNECT"
 default_game_time = 30
-finish = False
 
-dummy1 = Player('edzia', 'red')
-dummy2 = Player('marcel', 'pink')
-dummy1.civilisation_type = 'zgredki'
-dummy2.civilisation_type = 'antysczepionkowcy'
-dummy1.city_list = ['Fangorn', 'Moskwa', 'Berlin']
-dummy2.city_list = ['Rumunia', 'Peja', 'Rychu', 'Bieda']
+#dummy1 = Player('edzia', 'red')
+#dummy2 = Player('marcel', 'pink')
+#dummy1.civilisation_type = 'zgredki'
+#dummy2.civilisation_type = 'antysczepionkowcy'
+#dummy1.city_list = ['Fangorn', 'Moskwa', 'Berlin']
+#dummy2.city_list = ['Rumunia', 'Peja', 'Rychu', 'Bieda']
 
 
 class Server:
@@ -29,7 +28,7 @@ class Server:
         :param terrain_map: A 2D list of integer values representing tile types on the map.
         """
         self.map_to_send = terrain_map
-        self.players = [dummy1, dummy2]
+        self.players = []
         self.connections = []
         self.threads = []
         self.colours = ['pink', 'red', 'purple', 'yellow', 'green', 'brown', 'blue', 'orange', 'grey']
