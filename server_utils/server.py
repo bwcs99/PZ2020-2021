@@ -2,9 +2,8 @@ import socket
 import threading
 from random import randint
 
-from .player import Player
+from player import Player
 
-# Proszę nie ruszać zakomentowanego kodu. Będzie on zmieniany
 # Dane potrzebne do wystartowania serwera.
 PORT = 65001
 HOST = '127.0.0.1'
@@ -12,6 +11,16 @@ ADDR = (HOST, PORT)
 FORMAT = 'utf-8'
 HEADER = 200
 DISCONNECT_MESSAGE = "DISCONNECT"
+default_game_time = 30
+finish = False
+
+dummy1 = Player('edzia', 'red')
+dummy2 = Player('marcel', 'pink')
+dummy1.civilisation_type = 'zgredki'
+dummy2.civilisation_type = 'antysczepionkowcy'
+dummy1.city_list = ['Fangorn', 'Moskwa', 'Berlin']
+dummy2.city_list = ['Rumunia', 'Peja', 'Rychu', 'Bieda']
+
 
 class Server:
 
@@ -20,15 +29,19 @@ class Server:
         :param terrain_map: A 2D list of integer values representing tile types on the map.
         """
         self.map_to_send = terrain_map
-        self.players = []
+        self.players = [dummy1, dummy2]
         self.connections = []
         self.threads = []
         self.colours = ['pink', 'red', 'purple', 'yellow', 'green', 'brown', 'blue', 'orange', 'grey']
         self.civilizations = ["zgredki", "elfy", "40-letnie-panny", "antysczepionkowcy"]
         self.current_player = 0  # index in self.players that indicates who is active
-
+        self.finish = False
         self.server_sock = self.create_socket(ADDR)
         self.start_connection(self.server_sock)
+
+ #   def custom_timer(self, time):
+ #       sleep(time*60)
+ #       finish = True
 
     def create_socket(self, address):
         """
@@ -51,6 +64,23 @@ class Server:
         resp_len += b' ' * (HEADER - len(resp_len))
         return resp_len
 
+    ''' Funkcja obliczająca ranking na podstawie liczby przyznanych punktów '''
+    def compute_rank(self, player_list):
+        player_list.sort(key=lambda player: player.scores, reverse=True)
+        rank = 1
+        player_list[0].rank = rank
+        rank_list = []
+        for i in range(1, len(player_list)):
+            if player_list[i-1].scores == player_list[i].scores:
+                player_list[i].rank = rank
+                continue
+            else:
+                rank += 1
+                player_list[i].rank = rank
+        for player in player_list:
+            rank_list.append((player.player_name, player.rank))
+        return rank_list
+        
     def parse_request(self, incoming_msg, addr):
         """
         Used to generate a response/broadcast reacting to a clients message. A response is only sent to the original
@@ -120,6 +150,82 @@ class Server:
             # response.append(f"ALL_EXIT_LOBBY".encode(FORMAT))
             broadcast = f"FINISH:::".encode(FORMAT)
 
+        elif request[0] == "MORE_MONEY":
+          #  print('W more_money')
+            wanted = next((player for player in self.players if player.player_name == request[1]), None)
+            wanted.treasury += int(request[2])
+          #  print(wanted.treasury)
+        
+        elif request[0] == "LESS_MONEY":
+        #   print('W less_money')
+            wanted = next((player for player in self.players if player.player_name == request[1]), None)
+            wanted.treasury -= int(request[2])
+        #    print(wanted.treasury)
+
+        elif request[0] == "GET_TREASURY":
+     #       print('W get_treasury_state')
+            wanted = next((player for player in self.players if player.player_name == request[1]), None)
+      #      print("Stan skarbca: ", wanted.treasury)
+            response.append(f"{wanted.treasury}".encode(FORMAT)) 
+
+        elif request[0] == "QUIT_GAME":
+        #    print('W quit_game')
+        #    print(self.connections)
+            wanted = next((player for player in self.players if player.player_name == request[1]), None)
+            self.players.remove(wanted)
+            idx = self.players.index(wanted)
+            self.connections[idx].close()
+            self.connections.pop(idx)
+            self.threads[idx].join()
+            self.threads.pop(idx)
+        #   print(self.connections)
+
+        elif request[0] == "ADD_SCORES":
+           # print('W add_scores')
+            wanted = next((player for player in self.players if player.player_name == request[1]), None)
+            wanted.scores += int(request[2])
+           # print('Punkty: ', wanted.scores)
+
+        elif request[0] == "END_GAME":
+            ranking = self.compute_rank(self.players)
+         #   print(ranking)
+            broadcast = str(self.compute_rank(self.players)).encode(FORMAT)
+         #   print(broadcast)
+
+        elif request[0] == "CHANGE_MAP":
+         #   print('W change map')
+         #   print(request[2])
+            broadcast = request[2].encode(FORMAT)
+        
+        elif request[0] == "ADD_CITY":
+          #  print('W add_city')
+            wanted = next((player for player in self.players if player.player_name == request[1]), None)
+            wanted.city_list.append(request[2])
+          #  print('Lista: ', wanted.city_list)
+
+        elif request[0] == "GIVE_CITIES":
+          #  print('W give_cities')
+            wanted1 = next((player for player in self.players if player.player_name == request[1]), None)
+            wanted2 = next((player for player in self.players if player.player_name == request[2]), None)
+            cities = eval(request[3])
+          #  print(cities)
+          #  print('Listy gracza 1: ', wanted1.city_list)
+          #  print('Listy gracza 2: ', wanted2.city_list)
+            for city in cities:
+                wanted2.city_list.append(city)
+                wanted1.city_list.remove(city)
+          #  print("Pierwszy gracz: ", wanted1.city_list)
+          #  print('Drugi gracz: ', wanted2.city_list)
+        
+        elif request[0] == "LIST_CITIES":
+          #  print('W list_cities')
+            temp_list = []
+            for player in self.players:
+                temp_list.append((player.player_name, player.city_list))
+            temp_list_to_str = str(temp_list)
+          #  print(temp_list_to_str)
+            response.append(temp_list_to_str.encode(FORMAT))
+
         else:
             response.append(f"UNKNOWN OPTION".encode(FORMAT))
         return response, broadcast
@@ -138,8 +244,9 @@ class Server:
                 msg_len = int(msg_len)
                 incoming_message = conn.recv(msg_len).decode(FORMAT)
                 print(f"RECEIVED NEW MESSAGE: {incoming_message} from {addr}")
-                if incoming_message == DISCONNECT_MESSAGE:
+                if incoming_message == DISCONNECT_MESSAGE or finish:
                     connected = False
+                           
                 response, broadcast = self.parse_request(incoming_message, addr)
                 if len(response) != 0:
                     response_length = self.header_generator(response[0])
@@ -150,7 +257,6 @@ class Server:
                         length = self.header_generator(broadcast)
                         c.send(length)
                         c.send(broadcast)
-        conn.close()
 
     def start_connection(self, server_socket):
         """

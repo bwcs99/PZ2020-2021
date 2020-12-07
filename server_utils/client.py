@@ -99,8 +99,8 @@ class Client:
 
     # Method gets map from server
     def get_map_from_server(self):
-        map = self.send_msg("SHOW_MAP:::")
-        return map
+        map_from_server = self.send_msg("SHOW_MAP:::")
+        return map_from_server
 
     # Method used only by server to inform all connected clients to begin exit lobby procedure
     def exit_lobby(self):
@@ -131,3 +131,50 @@ class Client:
         mes = self.rec_msg()
         turn, name = ast.literal_eval(mes)
         return turn, name
+
+    """ Funkcja służąca do kończenia gry przez hosta """
+    def end_game_by_host(self):
+        self.only_send("END_GAME:::")
+
+    """ Funkcja służąca do kończenia gry przez danego gracza """
+    def quit_game(self, player_nick):
+        self.only_send("QUIT_GAME:"+player_nick+"::")
+
+    """ Funkcja zwiększająca stan skarbca danego gracza """
+    def more_money(self, number, player_nick):
+        self.only_send("MORE_MONEY:"+player_nick+":"+str(number)+":")
+
+    """ Funkcja zmniejszająca stan skarbca danego gracza """
+    def less_money(self, number, player_nick):
+        self.only_send("LESS_MONEY:"+player_nick+":"+str(number)+":")
+
+    """ Funkcja zwracjąca aktualny stan skarbca danego gracza """
+    def get_treasury_state(self, player_nick):
+        state = self.send_msg("GET_TREASURY:"+player_nick+"::")
+        return int(state)
+
+    """ Służy do doawania punktów konkretnemu graczowi (tu trzeba opracować polityke przyznawania punktów)"""
+    def add_scores(self, new_scores, player_nick):
+        self.only_send("ADD_SCORES:"+player_nick+":"+str(new_scores)+":")
+
+    """ Wysyłanie zmienionej mapy na serwer (move_unit i put_unit w jednym przy założeniu, że zmiany na mapach
+    odbywają się po stronie klienta) """
+    def send_changed(self, changed_map):
+        map_to_str = str(changed_map)
+        self.only_send("CHANGE_MAP:"+":"+map_to_str+":")
+
+    """ Miasta od gracza 1 idą do gracza 2 (użyteczne przy bitwach)"""
+    def give_cities(self, player_name1, player_name2, cities):
+        cities_to_str = str(cities)
+        self.only_send("GIVE_CITIES:" + player_name1 + ":" + player_name2 + ":" + cities_to_str + ":")
+
+    """ Funkcja do wylistowania wszystkich miast """
+    def get_cities_from_server(self):
+        rep = self.send_msg("LIST_CITIES:::")
+        return eval(rep)
+
+    """ Dodawanie miasta do listy miast gracza """
+    def add_city(self, player_name, city_name):
+        self.only_send("ADD_CITY:" + player_name + ":" + city_name + ":")
+
+

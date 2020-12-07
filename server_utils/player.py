@@ -1,6 +1,8 @@
 import sys
 
-# Klada definiająca gracza i podstawowe informacje z nim związane
+# Klasa definiująca gracza i podstawowe informacje z nim związane
+
+
 class Player:
 
     def __init__(self, player_name, colour):
@@ -17,10 +19,17 @@ class Player:
         # kolor gracz
         self.player_colour = colour
         self.message_queue = []
+        ''' Nowa rzecz - skarbiec gracza '''
+        self.treasury = 2000
+        ''' Ranking  - potrzebny przy określanu miejsc na koniec '''
+        self.rank = None
+        ''' Liczba punktów - na jej podstawie tworzony jest ranking '''
+        self.scores = 0
+        ''' Lista miast należących do gracza'''
+        self.city_list = []
+
     def set_civilisation_type(self, civ_type):
         self.civilisation_type = civ_type
         self.is_civilisation_set = True
-       
 
 
-    
