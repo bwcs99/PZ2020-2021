@@ -2,10 +2,11 @@ import arcade
 
 from .tiles import Tile, BlinkingTile
 from .units import Unit, Settler
+from .player import Player
 
 
 class GameLogic:
-    def __init__(self, tiles: arcade.SpriteList, row_no: int, col_no: int):
+    def __init__(self, tiles: arcade.SpriteList, row_no: int, col_no: int, players: list, my_nick: str):
         self.TILE_ROWS = row_no
         self.TILE_COLS = col_no
         self.tiles = tiles
@@ -13,6 +14,8 @@ class GameLogic:
         self.unit_range = arcade.SpriteList()
         self.move_costs = None
         self.cities = arcade.SpriteList()
+        self.players = {nick: Player(nick, civ, col) for nick, civ, col in players}
+        self.me = self.players[my_nick]
 
     def update(self):
         self.unit_range.update()
@@ -20,12 +23,13 @@ class GameLogic:
     def draw(self):
         self.tiles.draw()
         self.unit_range.draw()
-        self.cities.draw()
-        self.units.draw()
+        for player in self.players.values():
+            player.cities.draw()
+            player.units.draw()
 
     def end_turn(self):
         """ Gives units their movement points back, and possibly does other cleanup stuff when a player's turn ends."""
-        for unit in self.units:
+        for unit in self.me.units:
             unit.reset_movement()
         self.hide_unit_range()
 
@@ -51,17 +55,22 @@ class GameLogic:
         self.unit_range = arcade.SpriteList()
         self.move_costs = None
 
-    def add_unit(self, x: int, y: int, settler: bool = False):
+    def add_unit(self, x: int, y: int, owner: str, settler: bool = False):
         """
         Adds a new unit to the map.
 
         :param x: the x (column) coord of the tile to place the unit on
         :param y: the y (row) coord of the tile to place the unit on
+        :param owner: the nickname of the player owning the unit
         :param settler: whether the unit is a settler
         """
         tile = self.get_tile(x, y)
-        unit = Settler(arcade.color.PASTEL_RED, tile) if settler else Unit(arcade.color.PASTEL_RED, tile)  # TODO ownership
-        self.units.append(unit)
+        owner = self.players[owner]
+        if settler:
+            unit = Settler(tile, owner)
+        else:
+            unit = Unit(tile, owner)
+        owner.units.append(unit)
 
     def can_unit_move(self, unit: Unit, x: int, y: int) -> bool:
         """
@@ -71,7 +80,10 @@ class GameLogic:
         :param x: the x (column) coord of the tile to move the unit to
         :param y: the y (row) coord of the tile to move the unit to
         """
-        return (x, y) in self.move_costs  # TODO and unit.mine?
+        return unit.owner == self.me and (x, y) in self.move_costs and not self.get_tile(x, y).occupied()
+
+    def is_unit_mine(self, unit: Unit) -> bool:
+        return unit.owner == self.me
 
     def move_unit(self, unit: Unit, x: int, y: int):
         """

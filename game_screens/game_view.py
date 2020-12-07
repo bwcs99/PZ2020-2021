@@ -70,8 +70,7 @@ class GameView(arcade.View):
                 tile.center_y = row * (self.tile_size + MARGIN) + (self.tile_size / 2) + MARGIN + self.centering_y
                 self.tile_sprites.append(tile)
 
-        self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS)
-        self.game_logic.add_unit(7, 7, True)
+        self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS, self.client.players, self.client.nick)
         threading.Thread(target=self.wait_for_my_turn).start()
 
     def relative_to_absolute(self, x: float, y: float):
@@ -185,7 +184,8 @@ class GameView(arcade.View):
                     if tile.occupied():
                         unit = tile.occupant
                         self.unit_popup.display(unit)
-                        if self.my_turn:  # TODO if unit is mine
+                        if self.my_turn and self.game_logic.is_unit_mine(unit):
+                            self.game_logic.hide_unit_range()
                             self.game_logic.display_unit_range(unit)
                     elif self.unit_popup.visible():
                         unit = self.unit_popup.unit
@@ -196,7 +196,7 @@ class GameView(arcade.View):
                             self.unit_popup.hide()
                             self.game_logic.hide_unit_range()
                     elif self.my_turn:
-                        print("Clicked tile:", tile_row, tile_col)
+                        self.game_logic.add_unit(tile_col, tile_row, self.client.nick, False)
 
     def on_key_press(self, symbol, modifiers):
         if self.my_turn:
@@ -207,10 +207,12 @@ class GameView(arcade.View):
                 self.game_logic.end_turn()
                 threading.Thread(target=self.wait_for_my_turn).start()
             elif symbol == ord("n") and self.unit_popup.can_build_city():
-                # TODO self.client.build_city()
-                self.game_logic.build_city(self.unit_popup.unit)
-                self.unit_popup.hide()
-                self.game_logic.hide_unit_range()
+                unit = self.unit_popup.unit
+                if self.game_logic.is_unit_mine(unit):
+                    # TODO self.client.build_city()
+                    self.game_logic.build_city(self.unit_popup.unit)
+                    self.unit_popup.hide()
+                    self.game_logic.hide_unit_range()
 
     def wait_for_my_turn(self):
         """

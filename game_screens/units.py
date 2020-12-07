@@ -5,19 +5,19 @@ from game_screens.tiles import Tile
 
 
 class Unit(arcade.sprite.Sprite):
-    def __init__(self, color, tile):
+    def __init__(self, tile, owner):
         super().__init__(":resources:images/enemies/saw.png")
-        self.color = color
+        self.owner = owner
+        self.color = owner.color
         self.tile = tile
         self.width = tile.width
         self.height = tile.height
-        self.owner = "me"
         self.health = 100
         self.max_movement = self.movement = 5
         self.move_to(tile, 0)
 
     def __str__(self):
-        return f"{self.owner}'s {type(self).__name__}"
+        return f"{self.owner.civilisation}'s {type(self).__name__}"
 
     def move_to(self, tile: Tile, cost: int):
         """

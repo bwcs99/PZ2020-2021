@@ -49,8 +49,7 @@ class LobbyWindow(QMainWindow):
         for player_string in response:
             nick, civ, col = player_string.split(":")
             self.add_player_to_table([nick, civ, col])
-            if nick == self.client.nick:
-                self.client.color = eval(f"color.{str.upper(col)}")
+            self.client.players.append([nick, civ, col])
 
         # part which gets map from server (even if you are host) and evaluates it (cause it's string)
         self.game_map = self.client.get_map_from_server()
@@ -130,6 +129,7 @@ class LobbyWindow(QMainWindow):
                     break
                 else:
                     self.add_player_to_table(new_player_info[1:])
+                    self.client.players.append(new_player_info[1:])
         if are_you_host is True:
             self.client.start_game()
         self.close()
