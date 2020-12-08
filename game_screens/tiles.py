@@ -20,6 +20,7 @@ class Tile(arcade.SpriteSolidColor):
         self.coords = x, y
         self.occupant = None
         self.city = None
+        self.owner = None
         self.cost = cost if 0 < cost < 3 else inf
         self.type = cost  # variable to determine what kind of tile it is.
 
@@ -28,6 +29,10 @@ class Tile(arcade.SpriteSolidColor):
 
     def occupied(self):
         return bool(self.occupant)
+
+    def set_owner(self, new_owner):
+        self.owner = new_owner
+        #self.color = new_owner.color
 
 
 class BlinkingTile(arcade.SpriteSolidColor):
@@ -43,3 +48,14 @@ class BlinkingTile(arcade.SpriteSolidColor):
         if self.alpha == 150 or self.alpha == 0:
             self.alpha_change = -self.alpha_change
         self.alpha += self.alpha_change
+
+
+class BorderTile(arcade.Sprite):
+    def __init__(self, tile, angle):
+        super().__init__("resources/sprites/border.png")
+        self.width = tile.width
+        self.height = tile.height
+        self.center_x = tile.center_x
+        self.center_y = tile.center_y
+        self.angle = angle
+        self.color = tile.owner.color

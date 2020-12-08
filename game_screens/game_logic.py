@@ -1,6 +1,6 @@
 import arcade
 
-from .tiles import Tile, BlinkingTile
+from .tiles import Tile, BlinkingTile, BorderTile
 from .units import Unit, Settler
 from .player import Player
 
@@ -25,6 +25,7 @@ class GameLogic:
         self.unit_range.draw()
         for player in self.players.values():
             player.cities.draw()
+            player.borders.draw()
             player.units.draw()
 
     def end_turn(self):
@@ -128,16 +129,27 @@ class GameLogic:
                 tile = self.get_tile(x1, y1)
                 if tile:
                     surroundings.append(tile)
+                    tile.set_owner(unit.owner)
 
         city = unit.build_city(surroundings)
         unit.owner.units.remove(unit)
         unit.owner.cities.append(city)
+        self.update_players_borders(unit.owner)
         print("Created city area:", city.area)
 
     def build_opponents_city(self, x: int, y: int):
         """ Turns a settler unit located on tile (x, y) into a city. """
         unit = self.get_tile(x, y).occupant
         self.build_city(unit)
+
+    def update_players_borders(self, player):
+        player.borders = arcade.SpriteList()
+        for city in player.cities:
+            for tile in city.area:
+                x, y = tile.coords
+                for (x1, y1), angle in zip([(x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y)], [0, 90, 180, 270]):
+                    if self.get_tile(x1, y1).owner != player:
+                        player.borders.append(BorderTile(tile, angle))
 
     def get_unit_range(self, unit: Unit) -> dict:
         """

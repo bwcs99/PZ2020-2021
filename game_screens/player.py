@@ -10,6 +10,7 @@ class Player:
 
         self.units = arcade.SpriteList()
         self.cities = arcade.SpriteList()
+        self.borders = arcade.SpriteList()
 
         self.granary = Granary()
 
@@ -22,3 +23,4 @@ class Player:
             city.gather_materials()  # may show some warning, don't worry brother
             city.collect_from_city()  # it's ok
             print(self.granary)
+
