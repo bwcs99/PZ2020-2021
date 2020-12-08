@@ -32,7 +32,7 @@ class Server:
         self.connections = []
         self.threads = []
         self.colours = ['pink', 'red', 'purple', 'yellow', 'green', 'brown', 'blue', 'orange', 'gray']
-        self.civilizations = ["zgredki", "elfy", "40-letnie-panny", "antysczepionkowcy"]
+        self.civilizations = ["The Great Northern", "Kaediredameria", "Mixtec", "Kintsugi"]
         self.current_player = 0  # index in self.players that indicates who is active
         self.finish = False
         self.server_sock = self.create_socket(ADDR)

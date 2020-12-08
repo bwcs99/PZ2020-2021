@@ -17,7 +17,7 @@ class Unit(arcade.sprite.Sprite):
         self.move_to(tile, 0)
 
     def __str__(self):
-        return f"{self.owner.civilisation}'s {type(self).__name__}"
+        return f"{self.owner.short_civ.capitalize()}'s {type(self).__name__}"
 
     def move_to(self, tile: Tile, cost: int):
         """

@@ -17,7 +17,7 @@ class CityView(arcade.View):
 
     def on_draw(self):
         self.top_bar.adjust()
-        img = arcade.load_texture(":resources:images/backgrounds/abstract_2.jpg")
+        img = arcade.load_texture(f"{self.city.path_to_visualization}")
         arcade.draw_lrwh_rectangle_textured(0, 0, self.window.width, self.window.height, img)
         self.buttons.draw()
         self.top_bar.draw_background()
