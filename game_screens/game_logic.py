@@ -127,7 +127,7 @@ class GameLogic:
         for x1 in range(x - 1, x + 2):
             for y1 in range(y - 1, y + 2):
                 tile = self.get_tile(x1, y1)
-                if tile:
+                if tile and not tile.owner:
                     surroundings.append(tile)
                     tile.set_owner(unit.owner)
 
