@@ -99,7 +99,7 @@ class MapGeneratorWindow(QMainWindow):
         parent object by calling set_player_info method from CivCombo.
         """
 
-        CivCombo(["zgredki", "elfy", "40-letnie-panny", "antysczepionkowcy"], self)  # here should be all civilizations
+        CivCombo(["The Great Northern", "Kaediredameria", "Mixtec", "Kintsugi"], self)  # here should be all civilizations
 
     def set_player_info(self, chosen_civ, chosen_nick):
         """ This method ic called within CivCombo. DON'T CHANGE this function's name, even with refactor. """

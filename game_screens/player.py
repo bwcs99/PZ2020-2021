@@ -6,6 +6,10 @@ class Player:
     def __init__(self, nickname, civ, color):
         self.nick = nickname
         self.civilisation = civ
+        self.adjective_dic = {"The Great Northern": "northern", "Kaediredameria": "kaediredameria", "Mixtec": "mixtec",
+                              "Kintsugi": "kintsugi"}
+        self.short_civ = self.adjective_dic[self.civilisation]
+
         self.color = eval(f"arcade.color.{str.upper(color)}")
 
         self.units = arcade.SpriteList()

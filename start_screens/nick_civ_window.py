@@ -52,7 +52,7 @@ class CivCombo(QMainWindow):
         """
          By calling this method, you set up chosen_civ field in parent class
          (in our case ConnectWindow or MapGeneratorWindow)
-         """
+        """
         civilization = self.combo_box.currentText()  # this how you get value from combo box
         nickname = self.nickname_line.text()
         self.parent.set_player_info(civilization, nickname)
