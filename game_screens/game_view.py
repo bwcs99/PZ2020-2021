@@ -3,6 +3,7 @@ import threading
 import arcade
 import arcade.gui
 
+from city_view import CityView
 from .popups import TopBar, UnitPopup, FONT_COLOR
 from .game_logic import GameLogic
 from .tiles import Tile
@@ -94,9 +95,12 @@ class GameView(arcade.View):
         return self.tile_sprites[y * self.TILE_COLS + x]
 
     def on_show(self):
-        arcade.set_background_color(arcade.csscolor.BLACK)
+        arcade.set_background_color(arcade.color.BLACK)
         self.top_bar.adjust()
         self.unit_popup.adjust()
+
+    def on_hide_view(self):
+        print("im hidden")
 
     def on_update(self, delta_time: float):
         self.game_logic.update()
@@ -210,8 +214,11 @@ class GameView(arcade.View):
                             self.unit_popup.hide()
                             self.game_logic.hide_unit_range()
                     elif self.my_turn:
-                        self.game_logic.add_unit(tile_col, tile_row, self.client.nick, settler=True)
-                        self.client.add_unit(tile_col, tile_row, "settler")
+                        if tile.city:
+                            self.window.show_view(CityView(tile.city, self.top_bar))  # TODO Gabi to tutaj
+                        else:
+                            self.game_logic.add_unit(tile_col, tile_row, self.client.nick, settler=True)
+                            self.client.add_unit(tile_col, tile_row, "settler")
 
     def on_key_press(self, symbol, modifiers):
         if self.my_turn:
