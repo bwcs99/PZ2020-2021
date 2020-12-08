@@ -1,6 +1,7 @@
 from copy import copy
 
 import arcade
+
 from .units import Settler
 
 BACKGROUND_COLOR = arcade.color.ST_PATRICK_BLUE
@@ -171,7 +172,7 @@ class UnitPopup(PopUp):
         Hides the pop-up if the unit it references is located on the tile (x, y). Useful for when opponent's settlers
         build a city.
         """
-        if self.unit and self.unit.tile.coords == (x, y):
+        if self.unit and self.unit.tile.cords == (x, y):
             self.hide()
 
     def visible(self):

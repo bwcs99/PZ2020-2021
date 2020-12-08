@@ -23,7 +23,7 @@ class City(arcade.sprite.Sprite):
         self.granary = Granary()
 
     def __str__(self):
-        return f"City_name: {self.name}, Owner: {self.owner.nick}, Civ: {self.owner.civilisation}, Coordinates: {self.tile.coords}, Goods: {self.goods}."
+        return f"City_name: {self.name}, Owner: {self.owner.nick}, Civ: {self.owner.civilisation}, Coordinates: {self.tile.cords}, Goods: {self.goods}."
 
     def gather_materials(self):
         """

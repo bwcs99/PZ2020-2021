@@ -1,12 +1,12 @@
 import unittest
 
-from .battle import go_fighting, SOLDIER_PROPS
-from .garrison import Garrison
+from .battle import go_fighting
+from .garrison import Garrison, SOLDIER_PROPS
 
 
 class MyTestCase(unittest.TestCase):
     def test_combat_1(self):
-        # no tile, no owner needed
+        # no tile nor owner needed
         g1 = Garrison(None, None, SOLDIER_PROPS[0], 0)
         g2 = Garrison(None, None, SOLDIER_PROPS[1], 10)
         winner = go_fighting(g1, g2)
