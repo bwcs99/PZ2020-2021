@@ -26,6 +26,9 @@ class City(arcade.sprite.Sprite):
     def __str__(self):
         return f"City_name: {self.name}, Owner: {self.owner.nick}, Civ: {self.owner.civilisation}, Coordinates: {self.tile.coords}, Goods: {self.goods}."
 
+    def get_city_goods_income(self):
+        return self.goods
+
     def gather_materials(self):
         """
         Gathering materials works as follows: checking all tiles in self.area and adding appropriate values to granary.

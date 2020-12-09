@@ -1,7 +1,9 @@
 from copy import copy
 
 import arcade
-from .units import Settler
+
+from city import City
+from game_screens.units import Settler
 
 BACKGROUND_COLOR = arcade.color.ST_PATRICK_BLUE
 FONT_COLOR = arcade.color.WHITE
@@ -11,6 +13,7 @@ class PopUp(arcade.gui.UIManager):
     """
     An abstract class representing a pop-up window.
     """
+
     def __init__(self, left: float, bottom: float, size_x: float, size_y: float, background_color=BACKGROUND_COLOR):
         """
         :param left: The popup's left margin expressed as a percentage of current screen width, between 0 and 1.
@@ -83,7 +86,7 @@ class TopBar(PopUp):
         """
         :param size: Should be between 0 and 1. Determines what part of the current screen height should the bar occupy.
         """
-        super().__init__(0, 1-size, 1, size, background_color)
+        super().__init__(0, 1 - size, 1, size, background_color)
 
         self.money_label = arcade.gui.UILabel("Treasury: 0 (+0)", 0, 0)
         self.money_label.color = font_color
@@ -199,3 +202,40 @@ class UnitPopup(PopUp):
             self.action_label.center_y = top - 1.75 * self.height / 5
         else:
             self.owner_label.center_y = top - 1.5 * self.height / 5
+
+
+class GranaryPopup(PopUp):
+    """
+    Popup used in the CityView for showing city Granary info.
+    """
+
+    def __init__(self, size_x: float, size_y: float, city: City, background_color=BACKGROUND_COLOR,
+                 font_color=FONT_COLOR):
+        """
+        :param size: Should be between 0 and 1. Determines what part of the current screen height should the bar occupy.
+        """
+        super().__init__(0, 0, size_x, size_y, background_color)
+        self.city = city
+        pretty_goods = ""
+        for key in self.city.get_city_goods_income():
+            pretty_goods += str(key) + ": " + str(self.city.get_city_goods_income()[key]) + ", "
+        self.materials_label = arcade.gui.UILabel(f"This city produces {pretty_goods} Master.", 0, 0)
+        self.materials_label.color = font_color
+        self.adjust()
+        self.max_height = self.height
+        self.add_ui_element(self.materials_label)
+
+    def adjust(self):
+        """
+        Adjusts the coords of the bar and its elements to the current screen borders.
+        """
+        self.adjust_coords()
+        left, right, top, bottom = self.coords_lrtb
+        self.materials_label.center_y = bottom + self.height / 2
+        self.materials_label.center_x = left + 0.5 * self.width
+        self.materials_label.height = 0.5 * self.height
+        self.materials_label.width = 0.8 * self.width
+
+    def hide(self):
+        """ Detaches the unit and hides the pop-up. """
+        self.purge_ui_elements()
