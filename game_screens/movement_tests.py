@@ -65,9 +65,7 @@ class MovementTests(unittest.TestCase):
         expected_range[1, 2] = expected_range[3, 2] = 1
 
         unit_range = self.game_logic.get_unit_range(self.unit)
-        assert set(unit_range.keys()) == set(expected_range.keys())
-        for coords in unit_range.keys():
-            assert unit_range[coords] == expected_range[coords]
+        assert unit_range == expected_range
 
     def test_simple_move(self):
         # we move one up
