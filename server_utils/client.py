@@ -64,7 +64,7 @@ class Client:
 
     # Standard disconnection method
     def disconnect(self):
-        self.send_msg(DISCONNECT_MESSAGE)
+        self.only_send(f"DISCONNECT:{self.nick}")
         self.sock.close()
 
     # Method allowing to send basic info to server
@@ -198,5 +198,11 @@ class Client:
         self.only_send(msg)
         if self.rec_msg() != msg:
             print("ERROR: add_city")
+
+    def receiver(self, mes):
+        new_msg = None
+        while new_msg != mes:
+            new_msg = self.rec_msg()
+            yield new_msg
 
 

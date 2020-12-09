@@ -29,7 +29,7 @@ class Server:
         """
         self.map_to_send = terrain_map
         self.players = []
-        self.connections = []
+        self.connections = dict()
         self.threads = []
         self.colours = ['pink', 'red', 'purple', 'yellow', 'green', 'brown', 'blue', 'orange', 'gray']
         self.civilizations = ["The Great Northern", "Kaediredameria", "Mixtec", "Kintsugi"]
@@ -80,18 +80,18 @@ class Server:
             rank_list.append((player.player_name, player.rank))
         return rank_list
         
-    def parse_request(self, incoming_msg, addr):
+    def parse_request(self, incoming_msg, conn):
         """
         Used to generate a response/broadcast reacting to a clients message. A response is only sent to the original
         caller, whereas a broadcast is sent to every client that's currently connected.
         :param incoming_msg: the message that's being responded to
-        :param addr: the address of the client whose call is being responded to
+        :param conn: the connection with the client whose call is being responded to
         :return: a tuple of response (a list of messages that will be sent to the og caller) and broadcast (a single
         message that will be sent to everybody)
         """
         request = incoming_msg.split(":")
         response = []
-        broadcast = None
+        broadcast = []
         if request[0] == "ADD_NEW_PLAYER":
             if len(self.colours) != 0:
                 idx = randint(0, len(self.colours) - 1)
@@ -99,6 +99,7 @@ class Server:
                 self.colours.remove(col)
                 new_player = Player(request[1], col)
                 self.players.append(new_player)
+                self.connections[conn] = new_player
                 response.append(f"{request[1]}:YOU HAVE BEEN SUCCESSFULLY ADDED TO THE GAME".encode(FORMAT))
                 # broadcast = f"NEW PLAYER".encode(FORMAT)
 
@@ -110,8 +111,20 @@ class Server:
                         self.civilizations.remove(request[2])
                         player.set_civilisation_type(request[2])
                         broadcast = f"NEW_PLAYER:{player.player_name}:{player.civilisation_type}:{player.player_colour}"
-                        broadcast = broadcast.encode(FORMAT)
+                        broadcast = [broadcast.encode(FORMAT)]
             response.append(f"{request[1]} CHOSEN TYPE: {request[2]}".encode(FORMAT))
+
+        elif request[0] == "DISCONNECT":
+            broadcast = [incoming_msg.encode(FORMAT)]
+            player = self.connections[conn]
+            ind = self.players.index(player)
+            self.players.remove(player)
+            if ind == self.current_player:
+                ind = ind % len(self.players)
+                broadcast.append(f"TURN:{self.players[ind].player_name}".encode(FORMAT))
+            elif ind < self.current_player:
+                self.current_player = (self.current_player - 1) % len(self.players)
+            self.connections.pop(conn)
 
         elif request[0] == "LIST_PLAYERS":
             player_list = []
@@ -136,16 +149,16 @@ class Server:
             response.append(f"{request[1]}: YOU HAVE FINISHED YOUR TURN".encode(FORMAT))
             self.current_player += 1
             self.current_player %= len(self.players)
-            broadcast = f"TURN:{self.players[self.current_player].player_name}".encode(FORMAT)
+            broadcast = [f"TURN:{self.players[self.current_player].player_name}".encode(FORMAT)]
 
         elif request[0] == "START_GAME":
             response.append(f"{request[1]}: YOU HAVE STARTED THE GAME".encode(FORMAT))
-            broadcast = f"TURN:{self.players[0].player_name}".encode(FORMAT)
+            broadcast = [f"TURN:{self.players[0].player_name}".encode(FORMAT)]
 
         elif request[0] == "EXIT_LOBBY":
             # TODO rethink Client.only_send() being used here
             # response.append(f"ALL_EXIT_LOBBY".encode(FORMAT))
-            broadcast = f"FINISH:::".encode(FORMAT)
+            broadcast = [f"FINISH:::".encode(FORMAT)]
 
         elif request[0] == "MORE_MONEY":
           #  print('W more_money')
@@ -186,22 +199,22 @@ class Server:
         elif request[0] == "END_GAME":
             ranking = self.compute_rank(self.players)
          #   print(ranking)
-            broadcast = str(self.compute_rank(self.players)).encode(FORMAT)
+            broadcast = [str(self.compute_rank(self.players)).encode(FORMAT)]
          #   print(broadcast)
 
         elif request[0] == "CHANGE_MAP":
          #   print('W change map')
          #   print(request[2])
-            broadcast = request[2].encode(FORMAT)
+            broadcast = [request[2].encode(FORMAT)]
 
         elif request[0] == "ADD_UNIT" or request[0] == "MOVE_UNIT":
-            broadcast = incoming_msg.encode(FORMAT)
+            broadcast = [incoming_msg.encode(FORMAT)]
         
         elif request[0] == "ADD_CITY":
           #  print('W add_city')
             wanted = next((player for player in self.players if player.player_name == request[1]), None)
             wanted.city_list.append(request[3])
-            broadcast = incoming_msg.encode(FORMAT)
+            broadcast = [incoming_msg.encode(FORMAT)]
           #  print('Lista: ', wanted.city_list)
 
         elif request[0] == "GIVE_CITIES":
@@ -247,17 +260,19 @@ class Server:
                 print(f"RECEIVED NEW MESSAGE: {incoming_message} from {addr}")
                 if incoming_message == DISCONNECT_MESSAGE or self.finish:
                     connected = False
+                    self.connections.pop(conn)
                            
-                response, broadcast = self.parse_request(incoming_message, addr)
+                response, broadcast = self.parse_request(incoming_message, conn)
                 if len(response) != 0:
                     response_length = self.header_generator(response[0])
                     conn.send(response_length)
                     conn.send(response[0])
-                if broadcast:
+                while broadcast:
+                    mes = broadcast.pop(0)
                     for c in self.connections:
-                        length = self.header_generator(broadcast)
+                        length = self.header_generator(mes)
                         c.send(length)
-                        c.send(broadcast)
+                        c.send(mes)
 
     def start_connection(self, server_socket):
         """
@@ -268,7 +283,7 @@ class Server:
             print(f"IM HERE: {HOST} {PORT}")
             while True:
                 conn, addr = server_socket.accept()
-                self.connections.append(conn)
+                self.connections[conn] = None
                 new_thread = threading.Thread(target=self.connection_handler, args=(conn, addr), daemon=True)
                 self.threads.append(new_thread)
                 new_thread.start()

@@ -32,3 +32,10 @@ class Game(arcade.Window):
     def run(self):
         arcade.run()
 
+    def on_close(self):
+        if False:  # TODO i'm host
+            self.client.end_game_by_host()
+        else:
+            self.client.disconnect()
+        self.close()
+

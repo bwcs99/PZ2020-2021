@@ -294,3 +294,6 @@ class GameView(arcade.View):
                 self.game_logic.build_opponents_city(x, y)
                 self.unit_popup.hide_if_on_tile(x, y)
 
+            elif message[0] == "DISCONNECT":
+                nick = message[1]
+                self.game_logic.players.pop(nick)
