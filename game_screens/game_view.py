@@ -219,7 +219,8 @@ class GameView(arcade.View):
                         cost = self.game_logic.can_unit_move(unit, tile_col, tile_row)
                         if self.my_turn and cost:
                             # if it's my turn and my unit and i clicked within its range, move it
-                            self.client.move_unit(*unit.tile.coords, tile_col, tile_row, cost)
+                            messages = self.client.move_unit(*unit.tile.coords, tile_col, tile_row, cost)
+                            self.handle_additional_messages(messages)
                             self.game_logic.move_unit(unit, tile_col, tile_row, cost)
                             self.unit_popup.update()
                         else:
@@ -231,7 +232,8 @@ class GameView(arcade.View):
                             self.window.show_view(CityView(tile.city, self.top_bar))  # TODO Gabi to tutaj
                         else:
                             self.game_logic.add_unit(tile_col, tile_row, self.client.nick, settler=True)
-                            self.client.add_unit(tile_col, tile_row, "settler")
+                            messages = self.client.add_unit(tile_col, tile_row, "settler")
+                            self.handle_additional_messages(messages)
 
     def on_key_press(self, symbol, modifiers):
         if self.my_turn:
@@ -241,7 +243,8 @@ class GameView(arcade.View):
                 elif symbol == arcade.key.ENTER:
                     city_name = self.city_popup.hide()
                     unit = self.unit_popup.unit
-                    self.client.add_city(*unit.tile.coords, city_name)
+                    messages = self.client.add_city(*unit.tile.coords, city_name)
+                    self.handle_additional_messages(messages)
                     self.game_logic.build_city(self.unit_popup.unit)
                     self.unit_popup.hide()
                     self.game_logic.hide_unit_range()
@@ -249,7 +252,8 @@ class GameView(arcade.View):
                 # END TURN
                 if symbol == arcade.key.SPACE:
                     self.my_turn = False
-                    self.client.end_turn()
+                    messages = self.client.end_turn()
+                    self.handle_additional_messages(messages)
                     self.unit_popup.hide()
                     self.game_logic.end_turn()
                     threading.Thread(target=self.wait_for_my_turn, daemon=True).start()
@@ -259,6 +263,21 @@ class GameView(arcade.View):
                     if self.game_logic.is_unit_mine(unit):
                         self.city_popup.display(unit)
                         return
+
+    def handle_additional_messages(self, messages):
+        """
+        A method that allows players to disconnect anytime, sort of a "panic mode". Has to be called everytime a request
+        is sent to the server! Reads and handles all messages that the client didn't expect at this particular moment
+        (for now just disconnecting). For instance, a client sends a request to add a unit to the map, and they expect
+        to receive that same message as confirmation. Before they sent their request, another player has disconnected.
+        This method will remove the disconnected player and then allow the game to go back to normal.
+        :param messages: a generator of unexpected messages (see Client.unexpected_messages)
+        """
+        for mes in messages:
+            print(mes)
+            if mes[0] == "DISCONNECT":
+                nick = mes[1]
+                self.game_logic.players.pop(nick)
 
     def wait_for_my_turn(self):
         """

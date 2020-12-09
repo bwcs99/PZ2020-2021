@@ -86,8 +86,8 @@ class Server:
         caller, whereas a broadcast is sent to every client that's currently connected.
         :param incoming_msg: the message that's being responded to
         :param conn: the connection with the client whose call is being responded to
-        :return: a tuple of response (a list of messages that will be sent to the og caller) and broadcast (a single
-        message that will be sent to everybody)
+        :return: a tuple of response (a list of messages that will be sent to the og caller) and broadcast (a list of
+        messages that will be sent to everybody)
         """
         request = incoming_msg.split(":")
         response = []
@@ -146,7 +146,7 @@ class Server:
             response.append(f"{map_in_string}".encode(FORMAT))
 
         elif request[0] == "END_TURN":
-            response.append(f"{request[1]}: YOU HAVE FINISHED YOUR TURN".encode(FORMAT))
+            response.append(incoming_msg.encode(FORMAT))
             self.current_player += 1
             self.current_player %= len(self.players)
             broadcast = [f"TURN:{self.players[self.current_player].player_name}".encode(FORMAT)]
@@ -260,7 +260,6 @@ class Server:
                 print(f"RECEIVED NEW MESSAGE: {incoming_message} from {addr}")
                 if incoming_message == DISCONNECT_MESSAGE or self.finish:
                     connected = False
-                    self.connections.pop(conn)
                            
                 response, broadcast = self.parse_request(incoming_message, conn)
                 if len(response) != 0:

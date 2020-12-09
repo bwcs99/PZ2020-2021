@@ -114,7 +114,9 @@ class Client:
 
     # Widely used method by every client to inform about ending your turn
     def end_turn(self):
-        self.send_msg("END_TURN:::")
+        msg = f"END_TURN:{self.nick}::"
+        self.only_send(msg)
+        return self.unexpected_messages(msg)
 
     # This method is called when new player connects to server.
     # Difference between this method and get_current_players_from_server is
@@ -169,8 +171,7 @@ class Client:
         """ Moves the unit located on the tile (x0, y0) to the tile (x1, y1) at a specified cost."""
         msg = f"MOVE_UNIT:({x0},{y0}):({x1},{y1}):{cost}"
         self.only_send(msg)
-        if self.rec_msg() != msg:
-            print("ERROR: move_unit")
+        return self.unexpected_messages(msg)
 
     def add_unit(self, x, y, unit_type):
         """
@@ -179,8 +180,7 @@ class Client:
         """
         msg = f"ADD_UNIT:{self.nick}:({x},{y}):{unit_type}"
         self.only_send(msg)
-        if self.rec_msg() != msg:
-            print("ERROR: add_unit")
+        return self.unexpected_messages(msg)
 
     """ Miasta od gracza 1 idą do gracza 2 (użyteczne przy bitwach)"""
     def give_cities(self, player_name1, player_name2, cities):
@@ -196,13 +196,16 @@ class Client:
         """ Adds a city with the specified name on tile (x, y). It's owner is the player sending the message. """
         msg = f"ADD_CITY:{self.nick}:({x},{y}):{city_name}"
         self.only_send(msg)
-        if self.rec_msg() != msg:
-            print("ERROR: add_city")
+        return self.unexpected_messages(msg)
 
-    def receiver(self, mes):
+    def unexpected_messages(self, msg):
+        """
+        A generator of messages that were received between sending a request to the server and getting a confirmation.
+        :param msg: the message that was sent to the server, we're waiting to receive the same message as confirmation
+        """
         new_msg = None
-        while new_msg != mes:
+        while new_msg != msg:
             new_msg = self.rec_msg()
-            yield new_msg
+            yield new_msg.split(":")
 
 
