@@ -1,3 +1,4 @@
+import os
 import random
 
 import arcade
@@ -17,6 +18,7 @@ class City(arcade.sprite.Sprite):
         self.owner = unit.owner
         self.center_x = self.tile.center_x
         self.center_y = self.tile.center_y
+        self.path_to_visualization = self.get_random_city_visualization_path()
 
         self.area = area
         self.goods = self.calculate_goods()  # this will/is used for displaying stats of the city
@@ -86,3 +88,7 @@ class City(arcade.sprite.Sprite):
                       "Cehson", "Glebert", "Qark", "Pila", "Aklery", "Arkginia", "Illeby", "Ubrukdiff", "Claason",
                       "Agutin", "Yihmery", "Mehull", "Oshares", "Izhont", "Ylin", "Oniover", "Urgstin"]
         return random.choice(names_list)
+
+    def get_random_city_visualization_path(self):
+        chosen = random.choice(os.listdir("resources/images/" + f"{self.owner.short_civ}"))
+        return "resources/images/" + f"{self.owner.short_civ}/" + chosen

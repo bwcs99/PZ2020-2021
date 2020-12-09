@@ -81,7 +81,7 @@ class LobbyWindow(QMainWindow):
 
         self.map_label = QLabel(self)
         self.map_label.setGeometry(QRect(480, 30, 570, 570))
-        pixmap = QPixmap('/resources/images/example_map_2.png')  # not sure if it's needed.
+        pixmap = QPixmap('/resources/images/example_map.png')  # not sure if it's needed.
         self.map_label.setPixmap(pixmap)
         self.map_label.setScaledContents(True)
 

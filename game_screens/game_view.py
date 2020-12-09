@@ -3,8 +3,9 @@ import threading
 import arcade
 import arcade.gui
 
-from .game_logic import GameLogic
+from .city_view import CityView
 from .popups import TopBar, UnitPopup, FONT_COLOR
+from .game_logic import GameLogic
 from .tiles import Tile
 
 TOP_BAR_SIZE = 0.0625  # expressed as the percentage of the current screen height
@@ -94,9 +95,12 @@ class GameView(arcade.View):
         return self.tile_sprites[y * self.TILE_COLS + x]
 
     def on_show(self):
-        arcade.set_background_color(arcade.csscolor.BLACK)
+        arcade.set_background_color(arcade.color.BLACK)
         self.top_bar.adjust()
         self.unit_popup.adjust()
+
+    def on_hide_view(self):
+        print("im hidden")
 
     def on_update(self, delta_time: float):
         self.game_logic.update()
@@ -202,7 +206,7 @@ class GameView(arcade.View):
                         cost = self.game_logic.can_unit_move(unit, tile_col, tile_row)
                         if self.my_turn and cost:
                             # if it's my turn and my unit and i clicked within its range, move it
-                            self.client.move_unit(*unit.tile.cords, tile_col, tile_row, cost)
+                            self.client.move_unit(*unit.tile.coords, tile_col, tile_row, cost)
                             self.game_logic.move_unit(unit, tile_col, tile_row, cost)
                             self.unit_popup.update()
                         else:
@@ -210,8 +214,11 @@ class GameView(arcade.View):
                             self.unit_popup.hide()
                             self.game_logic.hide_unit_range()
                     elif self.my_turn:
-                        self.game_logic.add_unit(tile_col, tile_row, self.client.nick, settler=True)
-                        self.client.add_unit(tile_col, tile_row, "settler")
+                        if tile.city:
+                            self.window.show_view(CityView(tile.city, self.top_bar))  # TODO Gabi to tutaj
+                        else:
+                            self.game_logic.add_unit(tile_col, tile_row, self.client.nick, settler=True)
+                            self.client.add_unit(tile_col, tile_row, "settler")
 
     def on_key_press(self, symbol, modifiers):
         if self.my_turn:
@@ -226,7 +233,7 @@ class GameView(arcade.View):
             elif symbol == ord("n") and self.unit_popup.can_build_city():
                 unit = self.unit_popup.unit
                 if self.game_logic.is_unit_mine(unit):
-                    self.client.add_city(*unit.tile.cords, "PLACEHOLDER_NAME")
+                    self.client.add_city(*unit.tile.coords, "PLACEHOLDER_NAME")
                     self.game_logic.build_city(self.unit_popup.unit)
                     self.unit_popup.hide()
                     self.game_logic.hide_unit_range()

@@ -21,7 +21,6 @@ class Game(arcade.Window):
         super().__init__(width, height, "Age of Divisiveness")
         self.client = client
         self.game_view = GameView(width, height, tiles, client)
-        self.zoom = 0
         self.back_to_game()
 
     def back_to_game(self):
