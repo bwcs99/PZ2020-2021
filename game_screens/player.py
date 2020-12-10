@@ -1,5 +1,6 @@
 import arcade
-from granary import Granary
+
+from .granary import Granary
 
 
 class Player:

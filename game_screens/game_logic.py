@@ -1,8 +1,8 @@
 import arcade
 
+from .player import Player
 from .tiles import Tile, BlinkingTile
 from .units import Unit, Settler
-from .player import Player
 
 
 class GameLogic:

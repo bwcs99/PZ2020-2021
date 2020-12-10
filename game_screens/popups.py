@@ -1,9 +1,10 @@
 from copy import copy
 
 import arcade
-
 from city import City
 from game_screens.units import Settler
+import arcade.gui
+
 
 BACKGROUND_COLOR = arcade.color.ST_PATRICK_BLUE
 FONT_COLOR = arcade.color.WHITE
@@ -239,3 +240,93 @@ class GranaryPopup(PopUp):
     def hide(self):
         """ Detaches the unit and hides the pop-up. """
         self.purge_ui_elements()
+
+class CityCreationPopup(PopUp):
+    """
+    A bottom left corner pop-up that appears after clicking on a unit and contains its stats.
+    """
+    MAX_NAME_LEN = 20
+
+    def __init__(self, size_x: float, size_y: float, background_color=BACKGROUND_COLOR, font_color=FONT_COLOR):
+        """
+        :param size_x: The popup's width expressed as a percentage of current screen width, between 0 and 1.
+        :param size_y: The popup's height expressed as a percentage of current screen height, between 0 and 1.
+        """
+        super().__init__(0.5 * (1 - size_x), 0.5 * (1 - size_y), size_x, size_y, background_color)
+
+        self.top_label = arcade.gui.UILabel("New city", 0, 0)
+        self.name_input = arcade.gui.UILabel("Name", 0, 0)
+        self.name_input.focused = True
+        self.gold_label = arcade.gui.UILabel("Gold: +", 0, 0)
+        self.food_label = arcade.gui.UILabel("Food: +", 0, 0)
+        self.wood_label = arcade.gui.UILabel("Wood: +", 0, 0)
+        self.stone_label = arcade.gui.UILabel("Stone: +", 0, 0)
+        self.cancel_label = arcade.gui.UILabel("ENTER: accept, ESC: cancel", 0, 0)
+        self.all_elements = [self.top_label, self.name_input, self.gold_label, self.food_label, self.wood_label,
+                             self.stone_label, self.cancel_label]
+        for element in self.all_elements:
+            element.color = font_color
+        self.tile = None
+        self.adjust()
+
+    def display(self, unit):
+        """ Attaches a unit to the pop-up and makes it visible. """
+        self.hide()
+        self.tile = unit.tile
+        for element in self.all_elements:
+            self.add_ui_element(element)
+        self.update()
+
+    def update(self):
+        """ Updates the labels with the current state of the attached unit. """
+        if self.visible():
+            # TODO with Gabi
+            self.gold_label.text = f"Gold: {'+1'.rjust(10, ' ')}"
+            self.food_label.text = f"Food: {'+2'.rjust(10, ' ')}"
+            self.wood_label.text = f"Wood: {'+3'.rjust(10, ' ')}"
+            self.stone_label.text = f"Stone: {'+4'.rjust(9, ' ')}"
+            self.adjust()
+
+    def hide(self):
+        """ Detaches the unit and hides the pop-up. """
+        self.purge_ui_elements()
+        self.tile = None
+        return self.name_input.text
+
+    def visible(self):
+        """ Determines if the pop-up is visible. Used in hit box, drawing, and changing the city name. """
+        return self.tile is not None
+
+    def adjust(self):
+        """
+        Adjusts the coords of the pop-up and its elements to the current screen borders.
+        """
+        self.adjust_coords()
+        left, right, top, bottom = self.coords_lrtb
+        base_height = self.height / 12
+        for element in self.all_elements:
+            element.center_x = left + 0.5 * self.width
+            element.width = 0.8 * self.width
+            element.height = base_height
+
+        self.top_label.width = 0.6 * self.width
+        self.name_input.width = len(self.name_input.text) * 0.8 * self.width / self.MAX_NAME_LEN
+        self.top_label.center_y = top - self.height / 12
+        self.name_input.center_y = top - 3.5 * self.height / 12
+        self.gold_label.center_y = top - 6 * self.height / 12
+        self.food_label.center_y = top - 7 * self.height / 12
+        self.wood_label.center_y = top - 8 * self.height / 12
+        self.stone_label.center_y = top - 9 * self.height / 12
+        self.cancel_label.center_y = top - 11 * self.height / 12
+
+    def on_key_press(self, symbol: int, modifiers: int):
+        if self.visible() and symbol != arcade.key.ENTER and symbol != arcade.key.ESCAPE:
+            if symbol == arcade.key.BACKSPACE:
+                self.name_input.text = self.name_input.text[:-1]
+            else:
+                letter = chr(symbol)
+                if len(self.name_input.text) < self.MAX_NAME_LEN and (letter.isalpha() or letter == ' '):
+                    self.name_input.text += letter.upper() if modifiers & arcade.key.MOD_SHIFT else letter
+            self.adjust()
+
+
