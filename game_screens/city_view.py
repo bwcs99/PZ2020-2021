@@ -7,8 +7,11 @@ from arcade.gui import UIManager
 from build_unit_window import BuildUnitWindow
 from city import City
 from popups import GranaryPopup
-from welcome_window import WelcomeWindow
 
+
+# TODO: Add information after hitting build button which tells when player doesn't have enough materials
+# TODO: Display info about currently building object in the city. Think about units AND city upgrades.
+# TODO: Add displaying city name
 
 class CityView(arcade.View):
     def __init__(self, city: City, top_bar):
@@ -20,8 +23,6 @@ class CityView(arcade.View):
         self.granary_bar = GranaryPopup(1, 0.15, city)
         self.backup = None
         self.ui_manager = UIManager()
-
-        self.app = None
 
     def on_show(self):
         self.ui_manager.purge_ui_elements()
@@ -49,12 +50,15 @@ class CityView(arcade.View):
 
     def on_key_press(self, symbol: int, modifiers: int):
         print(symbol)
-        if symbol == 65307:  # escape button for me TODO check for everyone
+        if symbol == 65307:  # escape button for me TODO check if everyone has escape with this value??
             self.window.back_to_game()
         else:
             pass
 
     def transport_unit_building_costs(self, total_costs):
+        """
+        This method is called by BuildUnitWindow. This name should NOT be changed.
+        """
         self.building_unit_costs = total_costs
         print(self.building_unit_costs)
         self.on_show()
@@ -62,7 +66,7 @@ class CityView(arcade.View):
 
 class BuildUnitFlatButton(arcade.gui.UIFlatButton):
     def __init__(self, parent, center_x, center_y):
-        super().__init__('Build Unit', center_x=center_x // 2 - 230, center_y=center_y // 3, width=250, )
+        super().__init__('Build Unit', center_x=center_x // 2 - 300, center_y=center_y // 4, width=250, )
         self.parent = parent
         self.app = None
 
@@ -71,8 +75,7 @@ class BuildUnitFlatButton(arcade.gui.UIFlatButton):
         win = BuildUnitWindow(self, self.parent)
         win.show()
         self.app.exec_()
-        print("exit")
+        print("exited build_unit_window.")
 
     def kill_app(self):
         self.app.exit()
-

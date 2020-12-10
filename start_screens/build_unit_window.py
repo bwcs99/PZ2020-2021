@@ -2,13 +2,22 @@ from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget
 
 
+# TODO: Add information after hitting build button which tells when you don't have enough materials
+
 class BuildUnitWindow(QMainWindow):
+    """
+    Going back to PyQt inside the game. Sadly that's the way it's gonna be.
+    It was generated inside Qt Designer, so don't be surprised by the retranslateUi method.
+    The main thing that this window does is calculating cost of building unit. You can mess with number of soldiers
+    inside one group. Also, so far you are available to chose between Settler and 3 war units.
+    """
+
     def __init__(self, parent, grandparent):
         super(BuildUnitWindow, self).__init__()
-        self.unit_cost_holder = dict()
-        self.total_cost_holder = {"gold": 0, "wood": 0, "stone": 0, "food": 0, "time": 0}
-        self.parent = parent
-        self.grandparent = grandparent
+        self.unit_cost_holder = {"gold": 0, "wood": 0, "stone": 0, "food": 0, "time": 0}  # for one person unit
+        self.total_cost_holder = {"gold": 0, "wood": 0, "stone": 0, "food": 0, "time": 0}  # for all unit
+        self.parent = parent  # for calling method inside parent object (BuildUnitFlatButton)
+        self.grandparent = grandparent  # for calling method inside parent's parent object (CityView)
 
         self.resize(453, 415)
         self.centralwidget = QtWidgets.QWidget()
@@ -18,10 +27,15 @@ class BuildUnitWindow(QMainWindow):
         self.how_many_slider.setOrientation(QtCore.Qt.Horizontal)
         self.how_many_slider.setMinimum(0)
         self.how_many_slider.setMaximum(100)
-        self.how_many_slider.setTickInterval(10)
+        self.how_many_slider.setTickInterval(10)  # works when you click next to slider
         self.how_many_slider.setSingleStep(10)
 
         self.how_many_slider.valueChanged.connect(self.recalculate_how_many)
+
+        self.how_many_line_edit = QtWidgets.QLineEdit(self.centralwidget)
+        self.how_many_line_edit.setGeometry(QtCore.QRect(360, 210, 81, 21))
+        self.how_many_line_edit.setText("0")
+        self.how_many_line_edit.textChanged.connect(self.change_slider_from_line_edit)  # both way changing value
 
         self.radioButton = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton.setGeometry(QtCore.QRect(40, 70, 151, 21))
@@ -48,11 +62,6 @@ class BuildUnitWindow(QMainWindow):
 
         self.cost_label = QtWidgets.QLabel(self.centralwidget)
         self.cost_label.setGeometry(QtCore.QRect(200, 250, 41, 21))
-
-        self.how_many_line_edit = QtWidgets.QLineEdit(self.centralwidget)
-        self.how_many_line_edit.setGeometry(QtCore.QRect(360, 210, 81, 21))
-        self.how_many_line_edit.setText("0")
-        self.how_many_line_edit.textChanged.connect(self.change_slider_from_line_edit)
 
         self.gold_line_edit = QtWidgets.QLineEdit(self.centralwidget)
         self.gold_line_edit.setGeometry(QtCore.QRect(60, 280, 41, 21))
@@ -94,8 +103,11 @@ class BuildUnitWindow(QMainWindow):
         self.__center()
 
     def retranslateUi(self, MainWindow):
+        """
+        If someone would want to change units' names, it should be done here, and in chose_unit.
+        """
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Build Unit"))
         self.radioButton.setText(_translate("MainWindow", "Biedne Piechota"))
         self.radioButton.unit = "Biedne Piechota"
         self.radioButton_2.setText(_translate("MainWindow", "Settler"))
@@ -114,6 +126,9 @@ class BuildUnitWindow(QMainWindow):
         self.build_button.setText(_translate("MainWindow", "Build"))
 
     def chose_unit(self):
+        """
+        Here values should be optimized and units' names changed.
+        """
         radio_button = self.sender()
         if radio_button.isChecked():
             if radio_button.unit == "Settler":
@@ -140,11 +155,14 @@ class BuildUnitWindow(QMainWindow):
         self.how_many_line_edit.setText(str(self.how_many_slider.value()))
 
     def recalculate_costs(self):
+        """
+        Calculates and sets value of total unit cost in total_cost_holder.
+        """
         how_many = int(self.how_many_line_edit.text())
         for key in self.unit_cost_holder:
             self.total_cost_holder[key] = int(self.unit_cost_holder[key] * how_many)
         if self.total_cost_holder["time"] == 0:
-            self.total_cost_holder["time"] = 1
+            self.total_cost_holder["time"] = 1  # making a unit always costs at least a day
 
         self.gold_line_edit.setText(str(self.total_cost_holder["gold"]))
         self.wood_line_edit.setText(str(self.total_cost_holder["wood"]))
@@ -161,13 +179,17 @@ class BuildUnitWindow(QMainWindow):
             elif number > 100:
                 number = 100
                 self.how_many_line_edit.setText(str(number))
-        except:
+        except:  # catches all strange input
             number = 0
             self.how_many_line_edit.setText(str(number))
         self.how_many_slider.setValue(number)
         self.recalculate_costs()
 
     def build(self):
+        """
+        This method exits this window by calling kill_app in BuildUnitFlatButton object.
+        Also saves calculated total value inside CityView object.
+        """
         self.grandparent.transport_unit_building_costs(self.total_cost_holder)
         self.parent.kill_app()
 
@@ -181,7 +203,6 @@ class BuildUnitWindow(QMainWindow):
 # for testing
 if __name__ == "__main__":
     import sys
-
     app = QtWidgets.QApplication(sys.argv)
     win = BuildUnitWindow(None, None)
     win.show()
