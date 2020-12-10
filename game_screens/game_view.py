@@ -5,6 +5,7 @@ import arcade.gui
 
 from .city_view import CityView
 from .popups import TopBar, UnitPopup, FONT_COLOR
+from .popups import TopBar, UnitPopup, CityCreationPopup, FONT_COLOR
 from .game_logic import GameLogic
 from .tiles import Tile
 
@@ -39,6 +40,11 @@ class GameView(arcade.View):
             font_color=FONT_COLOR,
             font_size=64
         )
+        arcade.gui.elements.UIStyle.set_class_attrs(
+            arcade.gui.elements.UIStyle.default_style(),
+            "inputbox",
+            font_name="resources/fonts/november"
+        )
 
         self.client = client
         self.my_turn = False
@@ -55,6 +61,7 @@ class GameView(arcade.View):
         self.top_bar = TopBar(TOP_BAR_SIZE)
         self.unit_popup = UnitPopup(4 * TOP_BAR_SIZE, 3 * TOP_BAR_SIZE)
         self.update_popup = False  # used to only update pop-up once per opponent's move, otherwise game is laggy
+        self.city_popup = CityCreationPopup(4 * TOP_BAR_SIZE, 5 * TOP_BAR_SIZE)
         self.tiles = tiles
 
         self.tile_sprites = arcade.SpriteList()
@@ -117,8 +124,11 @@ class GameView(arcade.View):
         self.top_bar.draw_background()
         # unit popup
         self.unit_popup.draw_background()
+        self.city_popup.draw_background()
 
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
+        if self.city_popup.visible():
+            return
         if 0 <= self.zoom + scroll_y < MAX_ZOOM:
             self.zoom += scroll_y
             current = arcade.get_viewport()
@@ -156,6 +166,8 @@ class GameView(arcade.View):
             self.unit_popup.adjust()
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
+        if self.city_popup.visible():
+            return
         if buttons == 4:
             current = arcade.get_viewport()
             # slow the movement down a lil bit
@@ -175,6 +187,8 @@ class GameView(arcade.View):
             self.unit_popup.adjust()
 
     def on_mouse_press(self, x, y, button, modifiers):
+        if self.city_popup.visible():
+            return
         if button == 1:
             # don't let the player click through the unit pop-up or the top bar
             if self.unit_popup.is_hit(x, y) or self.top_bar.is_hit(x, y):
@@ -222,21 +236,30 @@ class GameView(arcade.View):
 
     def on_key_press(self, symbol, modifiers):
         if self.my_turn:
-            # END TURN
-            if symbol == ord(" "):
-                self.my_turn = False
-                self.client.end_turn()
-                self.unit_popup.hide()
-                self.game_logic.end_turn()
-                threading.Thread(target=self.wait_for_my_turn, daemon=True).start()
-            # BUILD A CITY
-            elif symbol == ord("n") and self.unit_popup.can_build_city():
-                unit = self.unit_popup.unit
-                if self.game_logic.is_unit_mine(unit):
-                    self.client.add_city(*unit.tile.coords, "PLACEHOLDER_NAME")
+            if self.city_popup.visible():
+                if symbol == arcade.key.ESCAPE:
+                    self.city_popup.hide()
+                elif symbol == arcade.key.ENTER:
+                    city_name = self.city_popup.hide()
+                    unit = self.unit_popup.unit
+                    self.client.add_city(*unit.tile.coords, city_name)
                     self.game_logic.build_city(self.unit_popup.unit)
                     self.unit_popup.hide()
                     self.game_logic.hide_unit_range()
+            else:
+                # END TURN
+                if symbol == arcade.key.SPACE:
+                    self.my_turn = False
+                    self.client.end_turn()
+                    self.unit_popup.hide()
+                    self.game_logic.end_turn()
+                    threading.Thread(target=self.wait_for_my_turn, daemon=True).start()
+                # BUILD A CITY
+                elif symbol == arcade.key.N and self.unit_popup.can_build_city():
+                    unit = self.unit_popup.unit
+                    if self.game_logic.is_unit_mine(unit):
+                        self.city_popup.display(unit)
+                        return
 
     def wait_for_my_turn(self):
         """
