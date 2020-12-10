@@ -1,5 +1,6 @@
 import arcade
-from city import City
+
+from .city import City
 
 
 class CityView(arcade.View):
