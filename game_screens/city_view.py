@@ -4,9 +4,9 @@ import arcade
 from PyQt5.QtWidgets import QApplication
 from arcade.gui import UIManager
 
-from build_unit_window import BuildUnitWindow
-from city import City
-from popups import GranaryPopup
+from game_screens.city import City
+from game_screens.popups import GranaryPopup
+from start_screens.build_unit_window import BuildUnitWindow
 
 
 # TODO: Add information after hitting build button which tells when player doesn't have enough materials
