@@ -29,6 +29,7 @@ class LobbyWindow(QMainWindow):
         self.launch_button = None
         self.init_ui(are_you_host)
         self.game_map = None
+        self.server_thread = None
 
         self.lock = False  # this should be think over. Deeply.
 
@@ -65,7 +66,7 @@ class LobbyWindow(QMainWindow):
         Crucial thread. 
         As long as host doesn't click LAUNCH, everyone is waiting in lobby and updating theirs player's table
         """
-        waiting_for_new_players = threading.Thread(target=self.wait_for_new_players, args=(are_you_host,))
+        waiting_for_new_players = threading.Thread(target=self.wait_for_new_players, args=(are_you_host,), daemon=True)
         waiting_for_new_players.start()
 
     def init_ui(self, are_you_host: bool):
@@ -110,6 +111,12 @@ class LobbyWindow(QMainWindow):
         self.client.exit_lobby()
         # self.lock = False
 
+    def closeEvent(self, QCloseEvent):
+        if self.server_thread and not self.client.started:
+            self.client.end_game_by_host()
+            self.server_thread.join()
+        QCloseEvent.accept()
+
     def center(self):
         qr = self.frameGeometry()
         cp = QDesktopWidget().availableGeometry().center()
@@ -126,6 +133,7 @@ class LobbyWindow(QMainWindow):
             if not self.lock:
                 new_player_info = self.client.get_new_player()
                 if new_player_info[0] == "FINISH":
+                    self.client.started = True
                     break
                 else:
                     self.add_player_to_table(new_player_info[1:])

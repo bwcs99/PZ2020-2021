@@ -1,8 +1,9 @@
 import socket
 import threading
+import sys
 from random import randint
 
-from .player import Player
+from server_utils.player import Player
 
 # Dane potrzebne do wystartowania serwera.
 PORT = 65001
@@ -252,7 +253,6 @@ class Server:
         :param conn: socket object used to send and receive data to the client
         :param addr: client's address
         """
-        print(f"NEW CONNECTION FROM {addr} ")
         connected = True
         while connected and not self.finish:
             try:
@@ -262,7 +262,7 @@ class Server:
             if msg_len:
                 msg_len = int(msg_len)
                 incoming_message = conn.recv(msg_len).decode(FORMAT)
-                print(f"RECEIVED NEW MESSAGE: {incoming_message} from {addr}")
+                print(f"RECEIVED NEW MESSAGE: {incoming_message} from {addr}", file=sys.stderr)
                 if incoming_message == DISCONNECT_MESSAGE:
                     connected = False
                            
@@ -284,25 +284,26 @@ class Server:
         """
         try:
             server_socket.listen()
-            print(f"IM HERE: {HOST} {PORT}")
-            while not self.started:
+            print(f"IM HERE: {HOST} {PORT}", file=sys.stderr)
+            while not self.started and not self.finish:
                 try:
                     conn, addr = server_socket.accept()
                 except socket.timeout:
                     continue
                 self.connections[conn] = None
                 conn.settimeout(1)
+                print(f"NEW CONNECTION FROM {addr} ", file=sys.stderr)
                 new_thread = threading.Thread(target=self.connection_handler, args=(conn, addr))
                 self.threads.append(new_thread)
                 new_thread.start()
-                print(f"N_O ACTIVE CONNECTIONS: {threading.activeCount() - 1}")
+                print(f"N_O ACTIVE CONNECTIONS: {threading.activeCount() - 2}", file=sys.stderr)
             for thread in self.threads:
                 thread.join()
 
         except KeyboardInterrupt:
             for thread in self.threads:
                 thread.join()
-            print("SERVER PROCESS TERMINATED")
+            print("SERVER PROCESS TERMINATED", file=sys.stderr)
 
 
 # for testing

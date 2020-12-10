@@ -23,6 +23,7 @@ class Client:
         self.current_players_on_server = None
         self.nick = None
         self.players = []
+        self.started = False
 
 
     # This method listens for messages from server.
@@ -46,7 +47,8 @@ class Client:
         response = self.rec_msg()
         if response:
             # print("TU")
-            print(response)
+            # print(response)
+            pass
         return response
 
     # This method sends request and DOES NOT expect response.

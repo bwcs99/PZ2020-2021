@@ -107,7 +107,7 @@ class MapGeneratorWindow(QMainWindow):
         self.chosen_civ = chosen_civ
         self.chosen_nick = chosen_nick
 
-        print(self.chosen_civ, self.chosen_nick)
+        # print(self.chosen_civ, self.chosen_nick)
         self.start_server()
 
     def create_server_thread(self):
@@ -131,6 +131,7 @@ class MapGeneratorWindow(QMainWindow):
     def __init_lobby_window(self):
         sleep(0.5)  # time for server to setup
         self.lobby_window = LobbyWindow(True, self.chosen_nick, self.chosen_civ)  # True because this is host.
+        self.lobby_window.server_thread = self.server_thread
         self.lobby_window.show()
         self.hide()
 

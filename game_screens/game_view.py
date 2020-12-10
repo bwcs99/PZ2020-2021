@@ -263,6 +263,10 @@ class GameView(arcade.View):
                     if self.game_logic.is_unit_mine(unit):
                         self.city_popup.display(unit)
                         return
+                # TODO DELETE THIS
+                elif symbol == arcade.key.P:
+                    messages = self.client.end_game_by_host()
+                    self.handle_additional_messages(messages)
 
     def handle_additional_messages(self, messages):
         """
@@ -289,6 +293,7 @@ class GameView(arcade.View):
         """
         while True:
             message = self.client.get_opponents_move()
+            print(message)
             if message[0] == "TURN":
                 if message[1] == self.client.nick:
                     self.my_turn = True
@@ -322,6 +327,3 @@ class GameView(arcade.View):
 
             elif message[0] == "END_GAME":
                 return
-
-            else:
-                print(message)
