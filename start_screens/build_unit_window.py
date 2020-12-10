@@ -108,14 +108,14 @@ class BuildUnitWindow(QMainWindow):
         """
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Build Unit"))
-        self.radioButton.setText(_translate("MainWindow", "Biedne Piechota"))
-        self.radioButton.unit = "Biedne Piechota"
-        self.radioButton_2.setText(_translate("MainWindow", "Settler"))
+        self.radioButton.unit = "Poor Infantry"
+        self.radioButton.setText(_translate("MainWindow", self.radioButton.unit))
         self.radioButton_2.unit = "Settler"
-        self.radioButton_3.setText(_translate("MainWindow", "Łucznicy"))
-        self.radioButton_3.unit = "Łucznicy"
-        self.radioButton_4.setText(_translate("MainWindow", "Ciężka Kawaleria"))
-        self.radioButton_4.unit = "Ciężka Kawaleria"
+        self.radioButton_2.setText(_translate("MainWindow", self.radioButton_2.unit))
+        self.radioButton_3.unit = "Archers"
+        self.radioButton_3.setText(_translate("MainWindow", self.radioButton_3.unit))
+        self.radioButton_4.unit = "Cavalry"
+        self.radioButton_4.setText(_translate("MainWindow", self.radioButton_4.unit))
         self.how_many_label.setText(_translate("MainWindow", "How many"))
         self.cost_label.setText(_translate("MainWindow", "Cost:"))
         self.gold_label.setText(_translate("MainWindow", "gold"))
@@ -131,7 +131,7 @@ class BuildUnitWindow(QMainWindow):
         """
         radio_button = self.sender()
         if radio_button.isChecked():
-            if radio_button.unit == "Settler":
+            if radio_button.unit == self.radioButton_2.unit:
                 self.unit_cost_holder = {"gold": 20, "wood": 10, "stone": 0, "food": 100, "time": 1.0}
                 self.how_many_line_edit.setText("1")
                 self.how_many_line_edit.setDisabled(True)
@@ -140,13 +140,13 @@ class BuildUnitWindow(QMainWindow):
                 self.how_many_line_edit.setDisabled(False)
                 self.how_many_slider.setDisabled(False)
 
-            if radio_button.unit == "Biedne Piechota":
+            if radio_button.unit == self.radioButton.unit:  # Infantry
                 self.unit_cost_holder = {"gold": 3, "wood": 1, "stone": 0, "food": 10, "time": 0.05}
 
-            if radio_button.unit == "Łucznicy":
+            if radio_button.unit == self.radioButton_3.unit:  # Archers
                 self.unit_cost_holder = {"gold": 4, "wood": 3, "stone": 0, "food": 5, "time": 0.1}
 
-            if radio_button.unit == "Ciężka Kawaleria":
+            if radio_button.unit == self.radioButton_4.unit:  # Cavalry
                 self.unit_cost_holder = {"gold": 7, "wood": 3, "stone": 2, "food": 20, "time": 0.3}
 
             self.recalculate_costs()
@@ -203,6 +203,7 @@ class BuildUnitWindow(QMainWindow):
 # for testing
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     win = BuildUnitWindow(None, None)
     win.show()
