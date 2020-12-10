@@ -122,7 +122,7 @@ class GameLogic:
         :param unit: a settler unit establishing the city
         """
         surroundings = []
-        x, y = unit.tile.cords
+        x, y = unit.tile.coords
         for x1 in range(x - 1, x + 2):
             for y1 in range(y - 1, y + 2):
                 tile = self.get_tile(x1, y1)
@@ -146,7 +146,7 @@ class GameLogic:
         :param unit: a unit to be moved
         :return: a dictionary with elements of (x,y):cost
         """
-        x, y = unit.tile.cords
+        x, y = unit.tile.coords
         visited = {(x, y): 0}
         queue = [(x, y)]
         while queue:
