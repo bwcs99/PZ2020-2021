@@ -34,6 +34,7 @@ class Server:
         self.colours = ['pink', 'red', 'purple', 'yellow', 'green', 'brown', 'blue', 'orange', 'gray']
         self.civilizations = ["The Great Northern", "Kaediredameria", "Mixtec", "Kintsugi"]
         self.current_player = 0  # index in self.players that indicates who is active
+        self.started = False
         self.finish = False
         self.server_sock = self.create_socket(ADDR)
         self.start_connection(self.server_sock)
@@ -50,6 +51,7 @@ class Server:
         """
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.settimeout(1)
         sock.bind(address)
         return sock
 
@@ -152,6 +154,7 @@ class Server:
             broadcast = [f"TURN:{self.players[self.current_player].player_name}".encode(FORMAT)]
 
         elif request[0] == "START_GAME":
+            self.started = True
             response.append(f"{request[1]}: YOU HAVE STARTED THE GAME".encode(FORMAT))
             broadcast = [f"TURN:{self.players[0].player_name}".encode(FORMAT)]
 
@@ -198,9 +201,10 @@ class Server:
 
         elif request[0] == "END_GAME":
             ranking = self.compute_rank(self.players)
-         #   print(ranking)
-            broadcast = [str(self.compute_rank(self.players)).encode(FORMAT)]
-         #   print(broadcast)
+            broadcast.append("GAME_ENDED".encode(FORMAT))
+            broadcast.extend(str(f"RANK:{nick}:{rank}").encode(FORMAT) for nick, rank in ranking)
+            broadcast.append(incoming_msg.encode(FORMAT))
+            self.finish = True
 
         elif request[0] == "CHANGE_MAP":
          #   print('W change map')
@@ -211,11 +215,9 @@ class Server:
             broadcast = [incoming_msg.encode(FORMAT)]
         
         elif request[0] == "ADD_CITY":
-          #  print('W add_city')
             wanted = next((player for player in self.players if player.player_name == request[1]), None)
             wanted.city_list.append(request[3])
             broadcast = [incoming_msg.encode(FORMAT)]
-          #  print('Lista: ', wanted.city_list)
 
         elif request[0] == "GIVE_CITIES":
           #  print('W give_cities')
@@ -252,13 +254,16 @@ class Server:
         """
         print(f"NEW CONNECTION FROM {addr} ")
         connected = True
-        while connected:
-            msg_len = conn.recv(HEADER).decode(FORMAT)
+        while connected and not self.finish:
+            try:
+                msg_len = conn.recv(HEADER).decode(FORMAT)
+            except socket.timeout:
+                continue
             if msg_len:
                 msg_len = int(msg_len)
                 incoming_message = conn.recv(msg_len).decode(FORMAT)
                 print(f"RECEIVED NEW MESSAGE: {incoming_message} from {addr}")
-                if incoming_message == DISCONNECT_MESSAGE or self.finish:
+                if incoming_message == DISCONNECT_MESSAGE:
                     connected = False
                            
                 response, broadcast = self.parse_request(incoming_message, conn)
@@ -280,13 +285,20 @@ class Server:
         try:
             server_socket.listen()
             print(f"IM HERE: {HOST} {PORT}")
-            while True:
-                conn, addr = server_socket.accept()
+            while not self.started:
+                try:
+                    conn, addr = server_socket.accept()
+                except socket.timeout:
+                    continue
                 self.connections[conn] = None
-                new_thread = threading.Thread(target=self.connection_handler, args=(conn, addr), daemon=True)
+                conn.settimeout(1)
+                new_thread = threading.Thread(target=self.connection_handler, args=(conn, addr))
                 self.threads.append(new_thread)
                 new_thread.start()
                 print(f"N_O ACTIVE CONNECTIONS: {threading.activeCount() - 1}")
+            for thread in self.threads:
+                thread.join()
+
         except KeyboardInterrupt:
             for thread in self.threads:
                 thread.join()

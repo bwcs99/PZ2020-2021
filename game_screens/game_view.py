@@ -278,6 +278,9 @@ class GameView(arcade.View):
             if mes[0] == "DISCONNECT":
                 nick = mes[1]
                 self.game_logic.players.pop(nick)
+            elif mes[0] == "END_GAME":
+                self.my_turn = False
+                # TODO show ranking
 
     def wait_for_my_turn(self):
         """
@@ -315,4 +318,10 @@ class GameView(arcade.View):
 
             elif message[0] == "DISCONNECT":
                 nick = message[1]
-                self.game_logic.players.pop(nick)
+                self.game_logic.disconnected_players.append(nick)
+
+            elif message[0] == "END_GAME":
+                return
+
+            else:
+                print(message)

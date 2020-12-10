@@ -137,7 +137,8 @@ class Client:
 
     """ Funkcja służąca do kończenia gry przez hosta """
     def end_game_by_host(self):
-        self.only_send("END_GAME:::")
+        self.only_send("END_GAME")
+        return self.unexpected_messages("END_GAME")
 
     """ Funkcja służąca do kończenia gry przez danego gracza """
     def quit_game(self, player_nick):
