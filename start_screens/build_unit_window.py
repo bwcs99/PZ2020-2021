@@ -1,12 +1,14 @@
 from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QMainWindow, QDesktopWidget
 
 
 class BuildUnitWindow(QMainWindow):
-    def __init__(self, parent):
+    def __init__(self, parent, grandparent):
         super(BuildUnitWindow, self).__init__()
         self.unit_cost_holder = dict()
+        self.total_cost_holder = {"gold": 0, "wood": 0, "stone": 0, "food": 0, "time": 0}
         self.parent = parent
+        self.grandparent = grandparent
 
         self.resize(453, 415)
         self.centralwidget = QtWidgets.QWidget()
@@ -19,7 +21,7 @@ class BuildUnitWindow(QMainWindow):
         self.how_many_slider.setTickInterval(10)
         self.how_many_slider.setSingleStep(10)
 
-        self.how_many_slider.valueChanged.connect(self.recalculate_costs)
+        self.how_many_slider.valueChanged.connect(self.recalculate_how_many)
 
         self.radioButton = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton.setGeometry(QtCore.QRect(40, 70, 151, 21))
@@ -39,50 +41,57 @@ class BuildUnitWindow(QMainWindow):
 
         self.build_button = QtWidgets.QPushButton(self.centralwidget)
         self.build_button.setGeometry(QtCore.QRect(148, 344, 141, 61))
+        self.build_button.clicked.connect(self.build)
 
-        self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(180, 180, 71, 21))
+        self.how_many_label = QtWidgets.QLabel(self.centralwidget)
+        self.how_many_label.setGeometry(QtCore.QRect(180, 180, 71, 21))
 
-        self.label_2 = QtWidgets.QLabel(self.centralwidget)
-        self.label_2.setGeometry(QtCore.QRect(200, 250, 41, 21))
+        self.cost_label = QtWidgets.QLabel(self.centralwidget)
+        self.cost_label.setGeometry(QtCore.QRect(200, 250, 41, 21))
 
         self.how_many_line_edit = QtWidgets.QLineEdit(self.centralwidget)
         self.how_many_line_edit.setGeometry(QtCore.QRect(360, 210, 81, 21))
         self.how_many_line_edit.setText("0")
         self.how_many_line_edit.textChanged.connect(self.change_slider_from_line_edit)
 
-        self.label_3 = QtWidgets.QLabel(self.centralwidget)
-        self.label_3.setGeometry(QtCore.QRect(20, 280, 41, 21))
+        self.gold_line_edit = QtWidgets.QLineEdit(self.centralwidget)
+        self.gold_line_edit.setGeometry(QtCore.QRect(60, 280, 41, 21))
+        # self.gold_line_edit.setDisabled(True)
 
-        self.lineEdit_2 = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit_2.setGeometry(QtCore.QRect(60, 280, 41, 21))
+        self.gold_label = QtWidgets.QLabel(self.centralwidget)
+        self.gold_label.setGeometry(QtCore.QRect(20, 280, 41, 21))
 
-        self.lineEdit_3 = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit_3.setGeometry(QtCore.QRect(170, 280, 41, 21))
+        self.wood_line_edit = QtWidgets.QLineEdit(self.centralwidget)
+        self.wood_line_edit.setGeometry(QtCore.QRect(170, 280, 41, 21))
+        # self.wood_line_edit.setDisabled(True)
 
-        self.label_4 = QtWidgets.QLabel(self.centralwidget)
-        self.label_4.setGeometry(QtCore.QRect(120, 280, 41, 21))
+        self.wood_label = QtWidgets.QLabel(self.centralwidget)
+        self.wood_label.setGeometry(QtCore.QRect(120, 280, 41, 21))
 
-        self.lineEdit_4 = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit_4.setGeometry(QtCore.QRect(270, 280, 41, 21))
+        self.stone_line_edit = QtWidgets.QLineEdit(self.centralwidget)
+        self.stone_line_edit.setGeometry(QtCore.QRect(270, 280, 41, 21))
+        # self.stone_line_edit.setDisabled(True)
 
-        self.label_5 = QtWidgets.QLabel(self.centralwidget)
-        self.label_5.setGeometry(QtCore.QRect(220, 280, 41, 21))
+        self.stone_label = QtWidgets.QLabel(self.centralwidget)
+        self.stone_label.setGeometry(QtCore.QRect(220, 280, 41, 21))
 
-        self.lineEdit_5 = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit_5.setGeometry(QtCore.QRect(360, 280, 41, 21))
+        self.food_line_edit = QtWidgets.QLineEdit(self.centralwidget)
+        self.food_line_edit.setGeometry(QtCore.QRect(360, 280, 41, 21))
+        # self.food_line_edit.setDisabled(True)
 
-        self.label_6 = QtWidgets.QLabel(self.centralwidget)
-        self.label_6.setGeometry(QtCore.QRect(320, 280, 41, 21))
+        self.food_label = QtWidgets.QLabel(self.centralwidget)
+        self.food_label.setGeometry(QtCore.QRect(320, 280, 41, 21))
 
-        self.lineEdit_6 = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit_6.setGeometry(QtCore.QRect(210, 310, 41, 21))
+        self.time_line_edit = QtWidgets.QLineEdit(self.centralwidget)
+        self.time_line_edit.setGeometry(QtCore.QRect(210, 310, 41, 21))
+        # self.time_line_edit.setDisabled(True)
 
-        self.label_7 = QtWidgets.QLabel(self.centralwidget)
-        self.label_7.setGeometry(QtCore.QRect(170, 310, 41, 21))
+        self.time_label = QtWidgets.QLabel(self.centralwidget)
+        self.time_label.setGeometry(QtCore.QRect(170, 310, 41, 21))
 
         self.setCentralWidget(self.centralwidget)
         self.retranslateUi(self)
+        self.__center()
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -93,15 +102,15 @@ class BuildUnitWindow(QMainWindow):
         self.radioButton_2.unit = "Settler"
         self.radioButton_3.setText(_translate("MainWindow", "Łucznicy"))
         self.radioButton_3.unit = "Łucznicy"
-        self.radioButton_4.setText(_translate("MainWindow", "Cięzka Kawaleria"))
-        self.radioButton_4.unit = "Cięzka Kawaleria"
-        self.label.setText(_translate("MainWindow", "How many"))
-        self.label_2.setText(_translate("MainWindow", "Cost:"))
-        self.label_3.setText(_translate("MainWindow", "gold"))
-        self.label_4.setText(_translate("MainWindow", "wood"))
-        self.label_5.setText(_translate("MainWindow", "stone"))
-        self.label_6.setText(_translate("MainWindow", "food"))
-        self.label_7.setText(_translate("MainWindow", "time"))
+        self.radioButton_4.setText(_translate("MainWindow", "Ciężka Kawaleria"))
+        self.radioButton_4.unit = "Ciężka Kawaleria"
+        self.how_many_label.setText(_translate("MainWindow", "How many"))
+        self.cost_label.setText(_translate("MainWindow", "Cost:"))
+        self.gold_label.setText(_translate("MainWindow", "gold"))
+        self.wood_label.setText(_translate("MainWindow", "wood"))
+        self.stone_label.setText(_translate("MainWindow", "stone"))
+        self.food_label.setText(_translate("MainWindow", "food"))
+        self.time_label.setText(_translate("MainWindow", "time"))
         self.build_button.setText(_translate("MainWindow", "Build"))
 
     def chose_unit(self):
@@ -109,9 +118,39 @@ class BuildUnitWindow(QMainWindow):
         if radio_button.isChecked():
             if radio_button.unit == "Settler":
                 self.unit_cost_holder = {"gold": 20, "wood": 10, "stone": 0, "food": 100, "time": 1.0}
+                self.how_many_line_edit.setText("1")
+                self.how_many_line_edit.setDisabled(True)
+                self.how_many_slider.setDisabled(True)
+            else:
+                self.how_many_line_edit.setDisabled(False)
+                self.how_many_slider.setDisabled(False)
+
+            if radio_button.unit == "Biedne Piechota":
+                self.unit_cost_holder = {"gold": 3, "wood": 1, "stone": 0, "food": 10, "time": 0.05}
+
+            if radio_button.unit == "Łucznicy":
+                self.unit_cost_holder = {"gold": 4, "wood": 3, "stone": 0, "food": 5, "time": 0.1}
+
+            if radio_button.unit == "Ciężka Kawaleria":
+                self.unit_cost_holder = {"gold": 7, "wood": 3, "stone": 2, "food": 20, "time": 0.3}
+
+            self.recalculate_costs()
+
+    def recalculate_how_many(self):
+        self.how_many_line_edit.setText(str(self.how_many_slider.value()))
 
     def recalculate_costs(self):
-        self.how_many_line_edit.setText(str(self.how_many_slider.value()))
+        how_many = int(self.how_many_line_edit.text())
+        for key in self.unit_cost_holder:
+            self.total_cost_holder[key] = int(self.unit_cost_holder[key] * how_many)
+        if self.total_cost_holder["time"] == 0:
+            self.total_cost_holder["time"] = 1
+
+        self.gold_line_edit.setText(str(self.total_cost_holder["gold"]))
+        self.wood_line_edit.setText(str(self.total_cost_holder["wood"]))
+        self.stone_line_edit.setText(str(self.total_cost_holder["stone"]))
+        self.food_line_edit.setText(str(self.total_cost_holder["food"]))
+        self.time_line_edit.setText(str(self.total_cost_holder["time"]))
 
     def change_slider_from_line_edit(self):
         try:
@@ -126,12 +165,24 @@ class BuildUnitWindow(QMainWindow):
             number = 0
             self.how_many_line_edit.setText(str(number))
         self.how_many_slider.setValue(number)
+        self.recalculate_costs()
+
+    def build(self):
+        self.grandparent.transport_unit_building_costs(self.total_cost_holder)
+        self.parent.kill_app()
+
+    def __center(self):
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
 
 
+# for testing
 if __name__ == "__main__":
     import sys
 
     app = QtWidgets.QApplication(sys.argv)
-    win = BuildUnitWindow(None)
+    win = BuildUnitWindow(None, None)
     win.show()
     sys.exit(app.exec_())

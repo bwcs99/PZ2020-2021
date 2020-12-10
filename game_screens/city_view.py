@@ -14,11 +14,14 @@ class CityView(arcade.View):
     def __init__(self, city: City, top_bar):
         super().__init__()
         self.city = city
+        self.building_unit_costs = None
+
         self.top_bar = top_bar
         self.granary_bar = GranaryPopup(1, 0.15, city)
         self.backup = None
-
         self.ui_manager = UIManager()
+
+        self.app = None
 
     def on_show(self):
         self.ui_manager.purge_ui_elements()
@@ -51,18 +54,25 @@ class CityView(arcade.View):
         else:
             pass
 
-    def print_some_mess(self):
-        print("IT'S ALIVE")
+    def transport_unit_building_costs(self, total_costs):
+        self.building_unit_costs = total_costs
+        print(self.building_unit_costs)
+        self.on_show()
 
 
-class BuildUnitFlatButton(arcade.gui.UIGhostFlatButton):
+class BuildUnitFlatButton(arcade.gui.UIFlatButton):
     def __init__(self, parent, center_x, center_y):
-        super().__init__('Build Unit', center_x=center_x // 2, center_y=center_y // 3, width=250, )
+        super().__init__('Build Unit', center_x=center_x // 2 - 230, center_y=center_y // 3, width=250, )
         self.parent = parent
+        self.app = None
 
     def on_click(self):
-        app = QApplication(sys.argv)
-        win = BuildUnitWindow(self.parent)
+        self.app = QApplication(sys.argv)
+        win = BuildUnitWindow(self, self.parent)
         win.show()
-        app.exec_()
+        self.app.exec_()
         print("exit")
+
+    def kill_app(self):
+        self.app.exit()
+
