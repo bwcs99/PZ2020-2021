@@ -49,8 +49,7 @@ class CityView(arcade.View):
         self.backup = None
 
     def on_key_press(self, symbol: int, modifiers: int):
-        print(symbol)
-        if symbol == 65307:  # escape button for me TODO check if everyone has escape with this value??
+        if symbol == arcade.key.ESCAPE:
             self.window.back_to_game()
         else:
             pass
