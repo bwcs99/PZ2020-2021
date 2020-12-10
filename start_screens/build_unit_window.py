@@ -19,7 +19,7 @@ class BuildUnitWindow(QMainWindow):
         self.parent = parent  # for calling method inside parent object (BuildUnitFlatButton)
         self.grandparent = grandparent  # for calling method inside parent's parent object (CityView)
 
-        self.resize(453, 415)
+        self.resize(453, 480)
         self.centralwidget = QtWidgets.QWidget()
 
         self.how_many_slider = QtWidgets.QSlider(self.centralwidget)
@@ -54,8 +54,14 @@ class BuildUnitWindow(QMainWindow):
         self.radioButton_4.toggled.connect(self.chose_unit)
 
         self.build_button = QtWidgets.QPushButton(self.centralwidget)
-        self.build_button.setGeometry(QtCore.QRect(148, 344, 141, 61))
+        self.build_button.setGeometry(QtCore.QRect(148, 394, 141, 61))
         self.build_button.clicked.connect(self.build)
+
+        self.not_enough_label = QtWidgets.QLabel(self.centralwidget)
+        self.not_enough_label.setGeometry(QtCore.QRect(110, 360, 300, 21))
+        self.not_enough_label.setText("You don't have enough resources.")
+        self.not_enough_label.setStyleSheet("color: rgb(255, 77, 77);")
+        self.not_enough_label.setVisible(False)
 
         self.how_many_label = QtWidgets.QLabel(self.centralwidget)
         self.how_many_label.setGeometry(QtCore.QRect(180, 180, 71, 21))
@@ -170,6 +176,8 @@ class BuildUnitWindow(QMainWindow):
         self.food_line_edit.setText(str(self.total_cost_holder["food"]))
         self.time_line_edit.setText(str(self.total_cost_holder["time"]))
 
+        self.not_enough_label.setVisible(False)
+
     def change_slider_from_line_edit(self):
         try:
             number = int(self.how_many_line_edit.text())
@@ -187,11 +195,16 @@ class BuildUnitWindow(QMainWindow):
 
     def build(self):
         """
+        If player has enough materials building unit starts else player gets prompt.
         This method exits this window by calling kill_app in BuildUnitFlatButton object.
         Also saves calculated total value inside CityView object.
         """
-        self.grandparent.transport_unit_building_costs(self.total_cost_holder)
-        self.parent.kill_app()
+        if self.grandparent.city.owner.granary.is_enough(self.total_cost_holder):
+            self.grandparent.transport_unit_building_costs(
+                self.total_cost_holder)  # TODO wait for Krzysztof's commit and add actually creating unit.
+            self.parent.kill_app()
+        else:
+            self.not_enough_label.setVisible(True)
 
     def __center(self):
         qr = self.frameGeometry()
