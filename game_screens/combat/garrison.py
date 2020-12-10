@@ -8,6 +8,7 @@ SOLDIER_PROPS = [
     {'type': 'Cavalry', 'health': 10, 'damage': 10, 'probability': 0.6},
     {'type': 'DUCK', 'health': 1, 'damage': 1, 'probability': 0.15},
     {'type': 'PANZERKAMPFWAGEN VI TIGER', 'health': 500, 'damage': 500, 'probability': 0.5},
+
 ]
 
 
@@ -21,4 +22,5 @@ class Garrison(Unit):
         self.health = soldier_stats['health'] * count
         self.probability = soldier_stats['probability']
         self.count = count
-        # super().__init__(tile, owner)  # TODO uncomment when done testing
+        self.max_movement = self.movement = soldier_stats['max_movement']
+        super().__init__(tile, owner)  # TODO uncomment when done testing
