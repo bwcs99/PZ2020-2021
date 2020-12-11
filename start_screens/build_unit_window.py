@@ -3,6 +3,8 @@ from PyQt5.QtWidgets import QMainWindow, QDesktopWidget
 
 
 # TODO: Add information after hitting build button which tells when you don't have enough materials
+from PyQt5.uic.properties import QtGui
+
 
 class BuildUnitWindow(QMainWindow):
     """
@@ -202,9 +204,13 @@ class BuildUnitWindow(QMainWindow):
         if self.grandparent.city.owner.granary.is_enough(self.total_cost_holder):
             self.grandparent.transport_unit_building_costs(
                 self.total_cost_holder)  # TODO wait for Krzysztof's commit and add actually creating unit.
+            self.hide()
             self.parent.kill_app()
         else:
             self.not_enough_label.setVisible(True)
+
+    def closeEvent(self, event) -> None:
+        self.parent.kill_app()
 
     def __center(self):
         qr = self.frameGeometry()
