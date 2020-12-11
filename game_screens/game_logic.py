@@ -2,6 +2,7 @@ import arcade
 
 from game_screens.tiles import Tile, BlinkingTile, BorderTile
 from game_screens.units import Unit, Settler
+from game_screens.city import City
 from game_screens.player import Player
 
 
@@ -122,6 +123,17 @@ class GameLogic:
         target = self.get_tile(x1, y1)
         unit.move_to(target, cost)
 
+    def get_potential_city_stats(self, unit: Settler):
+        surroundings = []
+        x, y = unit.tile.coords
+        for x1 in range(x - 1, x + 2):
+            for y1 in range(y - 1, y + 2):
+                tile = self.get_tile(x1, y1)
+                if tile and not tile.owner:
+                    surroundings.append(tile)
+        potential_city = City(Unit(unit.tile, unit.owner), surroundings)
+        return potential_city.goods
+
     def build_city(self, unit: Settler):
         """
         Turns a settler unit into a city.
@@ -164,7 +176,6 @@ class GameLogic:
                         corners[i] = True
                 if any(neighbours) or any(corners):
                     player.borders.append(BorderTile(tile, neighbours, corners))
-
 
     def get_unit_range(self, unit: Unit) -> dict:
         """

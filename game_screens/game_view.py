@@ -268,7 +268,8 @@ class GameView(arcade.View):
                 elif symbol == arcade.key.N and self.unit_popup.can_build_city():
                     unit = self.unit_popup.unit
                     if self.game_logic.is_unit_mine(unit):
-                        self.city_popup.display(unit)
+                        stats = self.game_logic.get_potential_city_stats(unit)
+                        self.city_popup.display(unit, stats)
                         return
                 # TODO DELETE THIS
                 elif symbol == arcade.key.P:

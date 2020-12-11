@@ -277,10 +277,11 @@ class CityCreationPopup(PopUp):
         self.tile = None
         self.adjust()
 
-    def display(self, unit):
+    def display(self, unit, stats):
         """ Attaches a unit to the pop-up and makes it visible. """
         self.hide()
         self.tile = unit.tile
+        self.stats = stats
         for element in self.all_elements:
             self.add_ui_element(element)
         self.update()
@@ -289,10 +290,10 @@ class CityCreationPopup(PopUp):
         """ Updates the labels with the current state of the attached unit. """
         if self.visible():
             # TODO with Gabi
-            self.gold_label.text = f"Gold: {'+1'.rjust(10, ' ')}"
-            self.food_label.text = f"Food: {'+2'.rjust(10, ' ')}"
-            self.wood_label.text = f"Wood: {'+3'.rjust(10, ' ')}"
-            self.stone_label.text = f"Stone: {'+4'.rjust(9, ' ')}"
+            self.gold_label.text = "Gold: " + f"+{self.stats['gold']}".rjust(10, ' ')
+            self.food_label.text = "Food: " + f"+{self.stats['food']}".rjust(10, ' ')
+            self.wood_label.text = "Wood: " + f"+{self.stats['wood']}".rjust(10, ' ')
+            self.stone_label.text = "Stone: " + f"+{self.stats['stone']}".rjust(9, ' ')
             self.adjust()
 
     def hide(self):
