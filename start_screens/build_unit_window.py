@@ -1,11 +1,10 @@
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget
 
-
-# TODO: Add information after hitting build button which tells when you don't have enough materials
-from PyQt5.uic.properties import QtGui
+from game_screens.combat.garrison import Garrison
 
 
+# TODO add some info about unit being build back to CityView
 class BuildUnitWindow(QMainWindow):
     """
     Going back to PyQt inside the game. Sadly that's the way it's gonna be.
@@ -18,6 +17,7 @@ class BuildUnitWindow(QMainWindow):
         super(BuildUnitWindow, self).__init__()
         self.unit_cost_holder = {"gold": 0, "wood": 0, "stone": 0, "food": 0, "time": 0}  # for one person unit
         self.total_cost_holder = {"gold": 0, "wood": 0, "stone": 0, "food": 0, "time": 0}  # for all unit
+        self.unit_type_holder = None
         self.parent = parent  # for calling method inside parent object (BuildUnitFlatButton)
         self.grandparent = grandparent  # for calling method inside parent's parent object (CityView)
 
@@ -64,6 +64,12 @@ class BuildUnitWindow(QMainWindow):
         self.not_enough_label.setText("You don't have enough resources.")
         self.not_enough_label.setStyleSheet("color: rgb(255, 77, 77);")
         self.not_enough_label.setVisible(False)
+
+        self.no_unit_type_label = QtWidgets.QLabel(self.centralwidget)
+        self.no_unit_type_label.setGeometry(QtCore.QRect(70, 360, 310, 21))
+        self.no_unit_type_label.setText("Would you like to build some air? Chosse unit.")
+        self.no_unit_type_label.setStyleSheet("color: rgb(32,178,170);")
+        self.no_unit_type_label.setVisible(False)
 
         self.how_many_label = QtWidgets.QLabel(self.centralwidget)
         self.how_many_label.setGeometry(QtCore.QRect(180, 180, 71, 21))
@@ -157,6 +163,7 @@ class BuildUnitWindow(QMainWindow):
             if radio_button.unit == self.radioButton_4.unit:  # Cavalry
                 self.unit_cost_holder = {"gold": 7, "wood": 3, "stone": 2, "food": 20, "time": 0.3}
 
+            self.unit_type_holder = radio_button.unit
             self.recalculate_costs()
 
     def recalculate_how_many(self):
@@ -179,6 +186,7 @@ class BuildUnitWindow(QMainWindow):
         self.time_line_edit.setText(str(self.total_cost_holder["time"]))
 
         self.not_enough_label.setVisible(False)
+        self.no_unit_type_label.setVisible(False)
 
     def change_slider_from_line_edit(self):
         try:
@@ -201,13 +209,23 @@ class BuildUnitWindow(QMainWindow):
         This method exits this window by calling kill_app in BuildUnitFlatButton object.
         Also saves calculated total value inside CityView object.
         """
-        if self.grandparent.city.owner.granary.is_enough(self.total_cost_holder):
-            self.grandparent.transport_unit_building_costs(
-                self.total_cost_holder)  # TODO wait for Krzysztof's commit and add actually creating unit.
+        if not self.grandparent.city.owner.granary.is_enough(self.total_cost_holder):
+            self.no_unit_type_label.setVisible(False)
+            self.not_enough_label.setVisible(True)
+        elif self.unit_type_holder is None:
+            self.not_enough_label.setVisible(False)
+            self.no_unit_type_label.setVisible(True)
+        else:
+            self.grandparent.transport_unit_building_costs(self.total_cost_holder)
+            # TODO fix following part after Krzysiu's update
+            self.grandparent.city.unit_currently_being_build = Garrison(None, self.grandparent.city.owner,
+                                                                        self.unit_type_holder,
+                                                                        self.how_many_slider.value())
+            self.grandparent.city.days_left_to_building_completion = self.total_cost_holder["time"]
+
+            # self.grandparent.city.show_whats_building()
             self.hide()
             self.parent.kill_app()
-        else:
-            self.not_enough_label.setVisible(True)
 
     def closeEvent(self, event) -> None:
         self.parent.kill_app()

@@ -25,13 +25,19 @@ class City(arcade.sprite.Sprite):
         self.granary = Granary()
 
         self.unit_currently_being_build = None  # if no unit is being build this should be None
-        self.cost_of_unit_currently_being_build = None
+        self.days_left_to_building_completion = None
 
     def __str__(self):
         return f"City_name: {self.name}, Owner: {self.owner.nick}, Civ: {self.owner.civilisation}, Coordinates: {self.tile.coords}, Goods: {self.goods}."
 
     def get_city_goods_income(self):
         return self.goods
+
+    def show_whats_building(self):
+        # TODO make it reasonable
+        # print(self.unit_currently_being_build)
+        # print(self.days_left_to_building_completion)
+        pass
 
     def gather_materials(self):
         """
