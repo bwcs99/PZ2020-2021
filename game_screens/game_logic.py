@@ -25,7 +25,8 @@ class GameLogic:
         self.unit_range.draw()
         for player in self.players.values():
             player.cities.draw()
-            player.borders.draw()
+            for tile in player.borders:
+                tile.draw()
             player.units.draw()
 
     def end_turn(self):
@@ -143,13 +144,23 @@ class GameLogic:
         self.build_city(unit)
 
     def update_players_borders(self, player):
-        player.borders = arcade.SpriteList()
+        player.borders = []
         for city in player.cities:
             for tile in city.area:
                 x, y = tile.coords
-                for (x1, y1), angle in zip([(x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y)], [0, 90, 180, 270]):
-                    if self.get_tile(x1, y1).owner != player:
-                        player.borders.append(BorderTile(tile, angle))
+                neighbours = [False for _ in range(4)]
+                corners = neighbours.copy()
+                for i, (x1, y1) in enumerate([(x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y)]):
+                    new_tile = self.get_tile(x1, y1)
+                    if not new_tile or new_tile.owner != player:
+                        neighbours[i] = True
+                for i, (x1, y1) in enumerate([(x + 1, y - 1), (x + 1, y + 1), (x - 1, y + 1), (x - 1, y - 1)]):
+                    new_tile = self.get_tile(x1, y1)
+                    if not new_tile or new_tile.owner != player:
+                        corners[i] = True
+                if any(neighbours) or any(corners):
+                    player.borders.append(BorderTile(tile, neighbours, corners))
+
 
     def get_unit_range(self, unit: Unit) -> dict:
         """

@@ -1,7 +1,6 @@
 import arcade
 from granary import Granary
 
-
 class Player:
     def __init__(self, nickname, civ, color):
         self.nick = nickname
@@ -10,7 +9,7 @@ class Player:
 
         self.units = arcade.SpriteList()
         self.cities = arcade.SpriteList()
-        self.borders = arcade.SpriteList()
+        self.borders = []
 
         self.granary = Granary()
 

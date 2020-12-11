@@ -50,12 +50,28 @@ class BlinkingTile(arcade.SpriteSolidColor):
         self.alpha += self.alpha_change
 
 
-class BorderTile(arcade.Sprite):
-    def __init__(self, tile, angle):
-        super().__init__("resources/sprites/border.png")
-        self.width = tile.width
-        self.height = tile.height
-        self.center_x = tile.center_x
-        self.center_y = tile.center_y
-        self.angle = angle
-        self.color = tile.owner.color
+class BorderTile(arcade.SpriteList):
+    def __init__(self, tile, neighbors, corners):
+        super().__init__()
+        for i, neighbor in enumerate(neighbors):
+            if neighbor:
+                element = arcade.Sprite("resources/sprites/border_side.png")
+                element.width = tile.width
+                element.height = tile.height
+                element.center_x = tile.center_x
+                element.center_y = tile.center_y
+                element.color = tile.owner.color
+                element.angle = i * 90
+                self.append(element)
+
+        for i, corner in enumerate(corners):
+            if corner:
+                element = arcade.Sprite("resources/sprites/border_corner.png")
+                element.width = tile.width
+                element.height = tile.height
+                element.center_x = tile.center_x
+                element.center_y = tile.center_y
+                element.color = tile.owner.color
+                element.angle = i * 90
+                self.append(element)
+
