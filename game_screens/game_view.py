@@ -3,10 +3,10 @@ import threading
 import arcade
 import arcade.gui
 
-from city_view import CityView
-from .popups import TopBar, UnitPopup, CityCreationPopup, FONT_COLOR
-from .game_logic import GameLogic
-from .tiles import Tile
+from game_screens.city_view import CityView
+from game_screens.popups import TopBar, UnitPopup, CityCreationPopup, FONT_COLOR, EndingPopup
+from game_screens.game_logic import GameLogic
+from game_screens.tiles import Tile
 
 TOP_BAR_SIZE = 0.0625  # expressed as the percentage of the current screen height
 UNIT_POPUP_SIZE = 3 * TOP_BAR_SIZE
@@ -61,6 +61,8 @@ class GameView(arcade.View):
         self.unit_popup = UnitPopup(4 * TOP_BAR_SIZE, 3 * TOP_BAR_SIZE)
         self.update_popup = False  # used to only update pop-up once per opponent's move, otherwise game is laggy
         self.city_popup = CityCreationPopup(4 * TOP_BAR_SIZE, 5 * TOP_BAR_SIZE)
+        self.end_popup = EndingPopup(6 * TOP_BAR_SIZE, 6 * TOP_BAR_SIZE)
+        self.ranking = None
         self.tiles = tiles
 
         self.tile_sprites = arcade.SpriteList()
@@ -113,6 +115,10 @@ class GameView(arcade.View):
         if self.update_popup:
             self.unit_popup.update()
             self.update_popup = False
+        if self.ranking:
+            self.top_bar.game_ended()
+            self.end_popup.display(self.ranking)
+            self.ranking = None
 
     def on_draw(self):
         self.top_bar.turn_change(self.cur_enemy)
@@ -124,9 +130,10 @@ class GameView(arcade.View):
         # unit popup
         self.unit_popup.draw_background()
         self.city_popup.draw_background()
+        self.end_popup.draw_background()
 
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
-        if self.city_popup.visible():
+        if self.city_popup.visible() or self.end_popup.visible():
             return
         if 0 <= self.zoom + scroll_y < MAX_ZOOM:
             self.zoom += scroll_y
@@ -165,7 +172,7 @@ class GameView(arcade.View):
             self.unit_popup.adjust()
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
-        if self.city_popup.visible():
+        if self.city_popup.visible() or self.end_popup.visible():
             return
         if buttons == 4:
             current = arcade.get_viewport()
@@ -186,7 +193,7 @@ class GameView(arcade.View):
             self.unit_popup.adjust()
 
     def on_mouse_press(self, x, y, button, modifiers):
-        if self.city_popup.visible():
+        if self.city_popup.visible() or self.end_popup.visible():
             return
         if button == 1:
             # don't let the player click through the unit pop-up or the top bar
@@ -283,21 +290,24 @@ class GameView(arcade.View):
         This method will remove the disconnected player and then allow the game to go back to normal.
         :param messages: a generator of unexpected messages (see Client.unexpected_messages)
         """
+        ranking = []
         for mes in messages:
             print(mes)
             if mes[0] == "DISCONNECT" or mes[0] == "DEFEAT":
                 nick = mes[1]
                 self.game_logic.players.pop(nick)
+            elif mes[0] == "RANK":
+                ranking.append((mes[1], int(mes[2])))
             elif mes[0] == "END_GAME":
                 self.my_turn = False
-                self.top_bar.game_ended()
-                # TODO show ranking
+                self.ranking = ranking
 
     def wait_for_my_turn(self):
         """
         A prototype function for handling server messages about other players' actions. Will probably be renamed and
         maybe split later on.
         """
+        ranking = []
         while True:
             message = self.client.get_opponents_move()
             print(message)
@@ -332,6 +342,12 @@ class GameView(arcade.View):
                 nick = message[1]
                 self.game_logic.disconnected_players.append(nick)
 
+            elif message[0] == "RANK":
+                ranking.append((message[1], int(message[2])))
+
             elif message[0] == "END_GAME":
-                self.top_bar.game_ended()
+                self.ranking = ranking
+                return
+
+            elif message[0] == "DISCONNECTED":
                 return

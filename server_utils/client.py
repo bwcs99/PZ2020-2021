@@ -67,7 +67,7 @@ class Client:
     # Standard disconnection method
     def disconnect(self):
         self.only_send(f"DISCONNECT:{self.nick}")
-        self.sock.close()
+        self.sock.shutdown(socket.SHUT_RDWR)
 
     def die(self):
         msg = f"DEFEAT:{self.nick}"
@@ -144,8 +144,13 @@ class Client:
         for instance ("TURN", name of the player whose turn begins) or ("MOVE", x0, y0, x1, y1) when a unit is moved
         from (x0, y0) to (x1, y1).
         """
-        mes = self.rec_msg()
-        return mes.split(':')
+        try:
+            mes = self.rec_msg()
+            if not mes:
+                return ["DISCONNECTED"]
+            return mes.split(':')
+        except OSError:
+            return ["DISCONNECTED"]
 
     """ Funkcja służąca do kończenia gry przez hosta """
     def end_game_by_host(self):

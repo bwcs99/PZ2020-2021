@@ -299,3 +299,75 @@ class CityCreationPopup(PopUp):
             self.adjust()
 
 
+class EndingPopup(PopUp):
+    """
+    A bottom left corner pop-up that appears after clicking on a unit and contains its stats.
+    """
+    MAX_USERNAME_LENGTH = 17
+    def __init__(self, size_x: float, size_y: float, background_color=BACKGROUND_COLOR, font_color=FONT_COLOR):
+        """
+        :param size_x: The popup's width expressed as a percentage of current screen width, between 0 and 1.
+        :param size_y: The popup's height expressed as a percentage of current screen height, between 0 and 1.
+        """
+        super().__init__(0.5 * (1 - size_x), 0.5 * (1 - size_y), size_x, size_y, background_color)
+
+        self.top_label = arcade.gui.UILabel("Final ranking", 0, 0)
+        self.top_label.color = font_color
+        self.players = [arcade.gui.UILabel("", 0, 0) for _ in range(4)]
+        self.ranking = None
+        for player in self.players:
+            player.color = font_color
+        self.bottom_label = arcade.gui.UILabel("Press ESC to view the map", 0, 0)
+        self.adjust()
+
+    def display(self, ranking):
+        """ Attaches a unit to the pop-up and makes it visible. """
+        self.hide()
+        self.ranking = sorted(ranking, key=lambda x: x[1])
+        self.add_ui_element(self.top_label)
+        self.add_ui_element(self.bottom_label)
+        for player in self.players:
+            self.add_ui_element(player)
+        self.update()
+
+    def update(self):
+        if self.visible():
+            for i, (player, rank) in enumerate(self.ranking):
+                if len(player) > self.MAX_USERNAME_LENGTH:
+                    player = player[:self.MAX_USERNAME_LENGTH - 3]
+                    player += "..."
+                self.players[i].text = f"{rank}. {player}"
+            self.adjust()
+
+    def hide(self):
+        """ Detaches the unit and hides the pop-up. """
+        self.ranking = None
+        self.purge_ui_elements()
+
+    def visible(self):
+        """ Determines if the pop-up is visible. Used in hit box, drawing, and changing the city name. """
+        return self.ranking is not None
+
+    def adjust(self):
+        """
+        Adjusts the coords of the pop-up and its elements to the current screen borders.
+        """
+        self.adjust_coords()
+        left, right, top, bottom = self.coords_lrtb
+        base_height = self.height / 9
+        self.top_label.width = self.bottom_label.width = 0.8 * self.width
+        self.top_label.height = self.bottom_label.height = base_height
+        self.top_label.center_x = self.bottom_label.center_x = left + 0.5 * self.width
+        self.top_label.center_y = top - base_height
+        self.bottom_label.center_y = bottom + base_height
+        for i, player in enumerate(self.players):
+            player.width = len(player.text) * 0.8 * self.width / (self.MAX_USERNAME_LENGTH + 3)
+            player.center_x = left + 0.1 * self.width + 0.5 * player.width
+            player.height = 0.8 * base_height
+            player.center_y = top - (i+3) * base_height
+
+    def on_key_press(self, symbol: int, modifiers: int):
+        if self.visible() and symbol == arcade.key.ESCAPE:
+            self.hide()
+
+
