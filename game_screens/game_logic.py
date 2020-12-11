@@ -1,6 +1,6 @@
 import arcade
 
-from game_screens.tiles import Tile, BlinkingTile
+from game_screens.tiles import Tile, BlinkingTile, BorderTile
 from game_screens.units import Unit, Settler
 from game_screens.player import Player
 
