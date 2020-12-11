@@ -23,18 +23,21 @@ class CityView(arcade.View):
         self.granary_bar = GranaryPopup(1, 0.15, city)
         self.backup = None
         self.ui_manager = UIManager()
+        self.button = None
+        arcade.start_render()
 
     def on_show(self):
         self.ui_manager.purge_ui_elements()
-        arcade.start_render()
         self.backup = arcade.get_viewport()
         arcade.set_viewport(0, self.window.width, 0, self.window.height)
 
         self.top_bar.adjust()
         self.granary_bar.adjust()
 
-        button = BuildUnitFlatButton(self, center_x=self.window.width, center_y=self.window.height)
-        self.ui_manager.add_ui_element(button)
+        # del self.button
+
+        self.button = BuildUnitFlatButton(self, center_x=self.window.width, center_y=self.window.height)
+        self.ui_manager.add_ui_element(self.button)
 
     def on_draw(self):
         img = arcade.load_texture(f"{self.city.path_to_visualization}")
@@ -75,6 +78,8 @@ class BuildUnitFlatButton(arcade.gui.UIFlatButton):
         win.show()
         self.app.exec_()
         print("exited build_unit_window.")
+        # self.parent.on_show()
 
     def kill_app(self):
         self.app.exit()
+        self.app = None
