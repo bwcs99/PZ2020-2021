@@ -2,7 +2,6 @@ import arcade
 
 from .granary import Granary
 
-
 class Player:
     def __init__(self, nickname, civ, color):
         self.nick = nickname
@@ -15,6 +14,7 @@ class Player:
 
         self.units = arcade.SpriteList()
         self.cities = arcade.SpriteList()
+        self.borders = []
 
         self.granary = Granary()
 
@@ -27,3 +27,4 @@ class Player:
             city.gather_materials()  # may show some warning, don't worry brother
             city.collect_from_city()  # it's ok
             print(self.granary)
+

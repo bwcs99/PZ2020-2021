@@ -1,8 +1,8 @@
 import arcade
 
-from .player import Player
-from .tiles import Tile, BlinkingTile
-from .units import Unit, Settler
+from game_screens.tiles import Tile, BlinkingTile
+from game_screens.units import Unit, Settler
+from game_screens.player import Player
 
 
 class GameLogic:
@@ -29,6 +29,8 @@ class GameLogic:
             self.players.pop(player)
         for player in self.players.values():
             player.cities.draw()
+            for tile in player.borders:
+                tile.draw()
             player.units.draw()
 
     def end_turn(self):
@@ -130,18 +132,39 @@ class GameLogic:
         for x1 in range(x - 1, x + 2):
             for y1 in range(y - 1, y + 2):
                 tile = self.get_tile(x1, y1)
-                if tile:
+                if tile and not tile.owner:
                     surroundings.append(tile)
+                    tile.set_owner(unit.owner)
 
         city = unit.build_city(surroundings)
         unit.owner.units.remove(unit)
         unit.owner.cities.append(city)
+        self.update_players_borders(unit.owner)
         print("Created city area:", city.area)
 
     def build_opponents_city(self, x: int, y: int):
         """ Turns a settler unit located on tile (x, y) into a city. """
         unit = self.get_tile(x, y).occupant
         self.build_city(unit)
+
+    def update_players_borders(self, player):
+        player.borders = []
+        for city in player.cities:
+            for tile in city.area:
+                x, y = tile.coords
+                neighbours = [False for _ in range(4)]
+                corners = neighbours.copy()
+                for i, (x1, y1) in enumerate([(x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y)]):
+                    new_tile = self.get_tile(x1, y1)
+                    if not new_tile or new_tile.owner != player:
+                        neighbours[i] = True
+                for i, (x1, y1) in enumerate([(x + 1, y - 1), (x + 1, y + 1), (x - 1, y + 1), (x - 1, y - 1)]):
+                    new_tile = self.get_tile(x1, y1)
+                    if not new_tile or new_tile.owner != player:
+                        corners[i] = True
+                if any(neighbours) or any(corners):
+                    player.borders.append(BorderTile(tile, neighbours, corners))
+
 
     def get_unit_range(self, unit: Unit) -> dict:
         """
