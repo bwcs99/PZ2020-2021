@@ -217,19 +217,23 @@ class GameView(arcade.View):
                             old_tile = unit.tile
                             participants = self.game_logic.move_unit(unit, tile_col, tile_row, cost)
                             if len(participants) > 1:
+                                # if there was some combat, update healths
                                 for participant, (x, y) in participants:
                                     messages = self.client.update_health(x, y, participant.health)
                                     self.handle_additional_messages(messages)
                             if unit.health > 0:
+                                # if my unit survived, move it
                                 messages = self.client.move_unit(*old_tile.coords, tile_col, tile_row, cost)
                                 self.handle_additional_messages(messages)
                                 self.unit_popup.update()
                                 city = unit.tile.city
                                 if city and city.owner != self.game_logic.me:
+                                    # if i moved to a city that's wasn't mine, it's mine now uwu
                                     self.game_logic.give_city(city, self.game_logic.me)
                                     messages = self.client.get_city(city)
                                     self.handle_additional_messages(messages)
                             else:
+                                # i died :(
                                 self.game_logic.hide_unit_range()
                                 self.unit_popup.hide()
                         else:
@@ -252,11 +256,14 @@ class GameView(arcade.View):
                     elif self.my_turn:
                         if tile.city:
                             self.window.show_view(CityView(tile.city, self.top_bar))  # TODO Gabi to tutaj
+                        # some cheats, TODO get rid of them maybe
                         else:
                             if modifiers & arcade.key.MOD_SHIFT:
+                                # shift + click creates a settler on the tile
                                 self.game_logic.add_unit(tile_col, tile_row, self.client.nick, settler=True)
                                 messages = self.client.add_unit(tile_col, tile_row, "settler")
                             else:
+                                # regular click creates some garrison (see GameLogic.add_unit)
                                 self.game_logic.add_unit(tile_col, tile_row, self.client.nick)
                                 messages = self.client.add_unit(tile_col, tile_row, "not settler")
                             self.handle_additional_messages(messages)
@@ -264,6 +271,7 @@ class GameView(arcade.View):
     def on_key_press(self, symbol, modifiers):
         if self.my_turn:
             if self.city_popup.visible():
+                # ACCEPTING OR DECLINING TO BUILD A CITY
                 if symbol == arcade.key.ESCAPE:
                     self.city_popup.hide()
                 elif symbol == arcade.key.ENTER:
@@ -289,16 +297,17 @@ class GameView(arcade.View):
                     if self.game_logic.is_unit_mine(unit):
                         self.city_popup.display(unit)
                         return
-                # TODO DELETE THIS
+                # some cheat codes i guess, TODO delete this at some point
                 elif symbol == arcade.key.P:
+                    # pressing P ends the game
                     messages = self.client.end_game_by_host()
                     self.handle_additional_messages(messages)
                 elif symbol == arcade.key.D and self.unit_popup.visible():
+                    # pressing D while an opponent's unit is selected defeats that opponent
                     player_to_kill = self.unit_popup.unit.owner
                     if player_to_kill != self.game_logic.me:
                         messages = self.client.kill(player_to_kill.nick)
                         self.handle_additional_messages(messages)
-                    #threading.Thread(target=self.wait_for_my_turn, daemon=True).start()
 
     def handle_additional_messages(self, messages):
         """

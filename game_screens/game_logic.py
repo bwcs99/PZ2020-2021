@@ -116,18 +116,24 @@ class GameLogic:
         target = tile.occupant
         participants = [(unit, unit.tile.coords)]
         if target:
+            # there's some combat!
             participants.append((target, (x, y)))
             unit.movement = 0
+            # if it's a settler, kill it
             if type(target) == Settler:
                 winner = self.me
                 target.health = 0
+            # if it's not, there's real combat
             else:
                 winner = unit.attack(target)
 
             if winner == unit:
+                # if we won, we'll take the place of that unit
                 unit.move_to(tile, 0)
             else:
+                # if we died, our unit will be deleted
                 if not winner:
+                    # and if they died, theirs too
                     self.kill_unit(target)
                 self.kill_unit(unit)
         else:
@@ -144,16 +150,19 @@ class GameLogic:
         target = self.get_tile(x1, y1)
         unit.move_to(target, cost)
 
-    def kill_unit(self, unit):
+    def kill_unit(self, unit: Unit):
+        """ Removes the specified unit from the game. """
         unit.tile.occupant = None
         unit.owner.units.remove(unit)
 
-    def kill_opponents_unit(self, x, y):
+    def kill_opponents_unit(self, x: int, y: int):
+        """ Removes the unit at (x, y) from the game. """
         tile = self.get_tile(x, y)
         if tile and tile.occupant:
             self.kill_unit(tile.occupant)
 
-    def reset_movement(self, owner):
+    def reset_movement(self, owner: str):
+        """ Resets the movement of all units of the player with the specified nick. """
         for unit in self.players[owner].units:
             unit.reset_movement()
 
@@ -183,6 +192,7 @@ class GameLogic:
         self.build_city(unit)
 
     def give_city(self, city: City, new_owner: Player):
+        """ Makes the specified player the new owner of the city. """
         old_owner = city.owner
         city.owner = new_owner
         old_owner.cities.remove(city)
@@ -194,12 +204,17 @@ class GameLogic:
         self.update_players_borders(new_owner)
 
     def give_opponents_city(self, x: int, y: int, new_owner: str):
+        """ Makes the specified player the owner of the city at (x, y), """
         tile = self.get_tile(x, y)
         if tile and tile.city:
             new_owner = self.players[new_owner]
             self.give_city(tile.city, new_owner)
 
-    def update_players_borders(self, player):
+    def update_players_borders(self, player: Player):
+        """
+        Determines what tiles should be considered borders, and what kind of borders should they be. The new borders
+        are then shown on the screen.
+        """
         player.borders = []
         for city in player.cities:
             for tile in city.area:
@@ -209,6 +224,7 @@ class GameLogic:
                 for i, (x1, y1) in enumerate([(x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y)]):
                     new_tile = self.get_tile(x1, y1)
                     if not new_tile or new_tile.owner != player:
+                        # if the tile isn't mine or doesn't exist, draw a border
                         neighbours[i] = True
                 for i, (x1, y1) in enumerate([(x + 1, y - 1), (x + 1, y + 1), (x - 1, y + 1), (x - 1, y - 1)]):
                     new_tile = self.get_tile(x1, y1)
@@ -239,6 +255,8 @@ class GameLogic:
                             queue.append((col, row))
                             visited[col, row] = alt_cost
                     elif type(unit) != Settler and tile.occupant.owner != self.me:
+                        # i'm not a settler and there's a unit i can fight
+                        # it's gonna cost all my movement so that i can't jump over the enemy
                         if alt_cost <= unit.movement and ((col, row) not in visited or alt_cost < visited[col, row]):
                             queue.append((col, row))
                             visited[col, row] = unit.movement
