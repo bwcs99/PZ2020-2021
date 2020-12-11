@@ -127,8 +127,11 @@ class Client:
     # Widely used method by every client to inform about ending your turn
     def end_turn(self):
         msg = f"END_TURN:{self.nick}::"
-        self.only_send(msg)
-        return self.unexpected_messages(msg)
+        try:
+            self.only_send(msg)
+            return self.unexpected_messages(msg)
+        except OSError:
+            return self.unexpected_messages("END_GAME")
 
     # This method is called when new player connects to server.
     # Difference between this method and get_current_players_from_server is
@@ -188,8 +191,11 @@ class Client:
     def move_unit(self, x0, y0, x1, y1, cost):
         """ Moves the unit located on the tile (x0, y0) to the tile (x1, y1) at a specified cost."""
         msg = f"MOVE_UNIT:({x0},{y0}):({x1},{y1}):{cost}"
-        self.only_send(msg)
-        return self.unexpected_messages(msg)
+        try:
+            self.only_send(msg)
+            return self.unexpected_messages(msg)
+        except OSError:
+            return self.unexpected_messages("END_GAME")
 
     def add_unit(self, x, y, unit_type):
         """
@@ -197,8 +203,11 @@ class Client:
         they can create a unit for themself.
         """
         msg = f"ADD_UNIT:{self.nick}:({x},{y}):{unit_type}"
-        self.only_send(msg)
-        return self.unexpected_messages(msg)
+        try:
+            self.only_send(msg)
+            return self.unexpected_messages(msg)
+        except OSError:
+            return self.unexpected_messages("END_GAME")
 
     """ Miasta od gracza 1 idą do gracza 2 (użyteczne przy bitwach)"""
     def give_cities(self, player_name1, player_name2, cities):
@@ -213,8 +222,11 @@ class Client:
     def add_city(self, x, y, city_name):
         """ Adds a city with the specified name on tile (x, y). It's owner is the player sending the message. """
         msg = f"ADD_CITY:{self.nick}:({x},{y}):{city_name}"
-        self.only_send(msg)
-        return self.unexpected_messages(msg)
+        try:
+            self.only_send(msg)
+            return self.unexpected_messages(msg)
+        except OSError:
+            return self.unexpected_messages("END_GAME")
 
     def unexpected_messages(self, msg):
         """
@@ -225,5 +237,3 @@ class Client:
         while new_msg != msg:
             new_msg = self.rec_msg()
             yield new_msg.split(":")
-
-
