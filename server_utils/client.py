@@ -23,6 +23,7 @@ class Client:
         self.current_players_on_server = None
         self.nick = None
         self.players = []
+        self.started = False
 
 
     # This method listens for messages from server.
@@ -46,7 +47,8 @@ class Client:
         response = self.rec_msg()
         if response:
             # print("TU")
-            print(response)
+            # print(response)
+            pass
         return response
 
     # This method sends request and DOES NOT expect response.
@@ -64,8 +66,18 @@ class Client:
 
     # Standard disconnection method
     def disconnect(self):
-        self.send_msg(DISCONNECT_MESSAGE)
-        self.sock.close()
+        self.only_send(f"DISCONNECT:{self.nick}")
+        self.sock.shutdown(socket.SHUT_RDWR)
+
+    def die(self):
+        msg = f"DEFEAT:{self.nick}"
+        self.only_send(msg)
+        return self.unexpected_messages(msg)
+
+    def kill(self, player):
+        msg = f"DEFEAT:{player}"
+        self.only_send(msg)
+        return self.unexpected_messages(msg)
 
     # Method allowing to send basic info to server
     def introduce_yourself(self, chosen_nick, chosen_civ):
@@ -114,7 +126,9 @@ class Client:
 
     # Widely used method by every client to inform about ending your turn
     def end_turn(self):
-        self.send_msg("END_TURN:::")
+        msg = f"END_TURN:{self.nick}::"
+        self.only_send(msg)
+        return self.unexpected_messages(msg)
 
     # This method is called when new player connects to server.
     # Difference between this method and get_current_players_from_server is
@@ -130,12 +144,18 @@ class Client:
         for instance ("TURN", name of the player whose turn begins) or ("MOVE", x0, y0, x1, y1) when a unit is moved
         from (x0, y0) to (x1, y1).
         """
-        mes = self.rec_msg()
-        return mes.split(':')
+        try:
+            mes = self.rec_msg()
+            if not mes:
+                return ["DISCONNECTED"]
+            return mes.split(':')
+        except OSError:
+            return ["DISCONNECTED"]
 
     """ Funkcja służąca do kończenia gry przez hosta """
     def end_game_by_host(self):
-        self.only_send("END_GAME:::")
+        self.only_send("END_GAME")
+        return self.unexpected_messages("END_GAME")
 
     """ Funkcja służąca do kończenia gry przez danego gracza """
     def quit_game(self, player_nick):
@@ -169,8 +189,7 @@ class Client:
         """ Moves the unit located on the tile (x0, y0) to the tile (x1, y1) at a specified cost."""
         msg = f"MOVE_UNIT:({x0},{y0}):({x1},{y1}):{cost}"
         self.only_send(msg)
-        if self.rec_msg() != msg:
-            print("ERROR: move_unit")
+        return self.unexpected_messages(msg)
 
     def add_unit(self, x, y, unit_type):
         """
@@ -179,8 +198,7 @@ class Client:
         """
         msg = f"ADD_UNIT:{self.nick}:({x},{y}):{unit_type}"
         self.only_send(msg)
-        if self.rec_msg() != msg:
-            print("ERROR: add_unit")
+        return self.unexpected_messages(msg)
 
     """ Miasta od gracza 1 idą do gracza 2 (użyteczne przy bitwach)"""
     def give_cities(self, player_name1, player_name2, cities):
@@ -196,7 +214,16 @@ class Client:
         """ Adds a city with the specified name on tile (x, y). It's owner is the player sending the message. """
         msg = f"ADD_CITY:{self.nick}:({x},{y}):{city_name}"
         self.only_send(msg)
-        if self.rec_msg() != msg:
-            print("ERROR: add_city")
+        return self.unexpected_messages(msg)
+
+    def unexpected_messages(self, msg):
+        """
+        A generator of messages that were received between sending a request to the server and getting a confirmation.
+        :param msg: the message that was sent to the server, we're waiting to receive the same message as confirmation
+        """
+        new_msg = None
+        while new_msg != msg:
+            new_msg = self.rec_msg()
+            yield new_msg.split(":")
 
 

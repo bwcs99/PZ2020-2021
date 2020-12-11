@@ -3,11 +3,10 @@ import threading
 import arcade
 import arcade.gui
 
-from .city_view import CityView
-from .popups import TopBar, UnitPopup, FONT_COLOR
-from .popups import TopBar, UnitPopup, CityCreationPopup, FONT_COLOR
-from .game_logic import GameLogic
-from .tiles import Tile
+from game_screens.city_view import CityView
+from game_screens.popups import TopBar, UnitPopup, CityCreationPopup, EndingPopup, FONT_COLOR
+from game_screens.game_logic import GameLogic
+from game_screens.tiles import Tile
 
 TOP_BAR_SIZE = 0.0625  # expressed as the percentage of the current screen height
 UNIT_POPUP_SIZE = 3 * TOP_BAR_SIZE
@@ -62,6 +61,8 @@ class GameView(arcade.View):
         self.unit_popup = UnitPopup(4 * TOP_BAR_SIZE, 3 * TOP_BAR_SIZE)
         self.update_popup = False  # used to only update pop-up once per opponent's move, otherwise game is laggy
         self.city_popup = CityCreationPopup(4 * TOP_BAR_SIZE, 5 * TOP_BAR_SIZE)
+        self.end_popup = EndingPopup(6 * TOP_BAR_SIZE, 6 * TOP_BAR_SIZE)
+        self.ranking = None
         self.tiles = tiles
 
         self.tile_sprites = arcade.SpriteList()
@@ -114,6 +115,10 @@ class GameView(arcade.View):
         if self.update_popup:
             self.unit_popup.update()
             self.update_popup = False
+        if self.ranking:
+            self.top_bar.game_ended()
+            self.end_popup.display(self.ranking)
+            self.ranking = None
 
     def on_draw(self):
         self.top_bar.turn_change(self.cur_enemy)
@@ -125,9 +130,10 @@ class GameView(arcade.View):
         # unit popup
         self.unit_popup.draw_background()
         self.city_popup.draw_background()
+        self.end_popup.draw_background()
 
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
-        if self.city_popup.visible():
+        if self.city_popup.visible() or self.end_popup.visible():
             return
         if 0 <= self.zoom + scroll_y < MAX_ZOOM:
             self.zoom += scroll_y
@@ -166,7 +172,7 @@ class GameView(arcade.View):
             self.unit_popup.adjust()
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
-        if self.city_popup.visible():
+        if self.city_popup.visible() or self.end_popup.visible():
             return
         if buttons == 4:
             current = arcade.get_viewport()
@@ -187,7 +193,7 @@ class GameView(arcade.View):
             self.unit_popup.adjust()
 
     def on_mouse_press(self, x, y, button, modifiers):
-        if self.city_popup.visible():
+        if self.city_popup.visible() or self.end_popup.visible():
             return
         if button == 1:
             # don't let the player click through the unit pop-up or the top bar
@@ -220,7 +226,8 @@ class GameView(arcade.View):
                         cost = self.game_logic.can_unit_move(unit, tile_col, tile_row)
                         if self.my_turn and cost:
                             # if it's my turn and my unit and i clicked within its range, move it
-                            self.client.move_unit(*unit.tile.coords, tile_col, tile_row, cost)
+                            messages = self.client.move_unit(*unit.tile.coords, tile_col, tile_row, cost)
+                            self.handle_additional_messages(messages)
                             self.game_logic.move_unit(unit, tile_col, tile_row, cost)
                             self.unit_popup.update()
                         else:
@@ -232,7 +239,8 @@ class GameView(arcade.View):
                             self.window.show_view(CityView(tile.city, self.top_bar))  # TODO Gabi to tutaj
                         else:
                             self.game_logic.add_unit(tile_col, tile_row, self.client.nick, settler=True)
-                            self.client.add_unit(tile_col, tile_row, "settler")
+                            messages = self.client.add_unit(tile_col, tile_row, "settler")
+                            self.handle_additional_messages(messages)
 
     def on_key_press(self, symbol, modifiers):
         if self.my_turn:
@@ -242,7 +250,8 @@ class GameView(arcade.View):
                 elif symbol == arcade.key.ENTER:
                     city_name = self.city_popup.hide()
                     unit = self.unit_popup.unit
-                    self.client.add_city(*unit.tile.coords, city_name)
+                    messages = self.client.add_city(*unit.tile.coords, city_name)
+                    self.handle_additional_messages(messages)
                     self.game_logic.build_city(self.unit_popup.unit)
                     self.unit_popup.hide()
                     self.game_logic.hide_unit_range()
@@ -250,7 +259,8 @@ class GameView(arcade.View):
                 # END TURN
                 if symbol == arcade.key.SPACE:
                     self.my_turn = False
-                    self.client.end_turn()
+                    messages = self.client.end_turn()
+                    self.handle_additional_messages(messages)
                     self.unit_popup.hide()
                     self.game_logic.end_turn()
                     threading.Thread(target=self.wait_for_my_turn, daemon=True).start()
@@ -260,14 +270,47 @@ class GameView(arcade.View):
                     if self.game_logic.is_unit_mine(unit):
                         self.city_popup.display(unit)
                         return
+                # TODO DELETE THIS
+                elif symbol == arcade.key.P:
+                    messages = self.client.end_game_by_host()
+                    self.handle_additional_messages(messages)
+                elif symbol == arcade.key.D and self.unit_popup.visible():
+                    player_to_kill = self.unit_popup.unit.owner
+                    if player_to_kill != self.game_logic.me:
+                        messages = self.client.kill(player_to_kill.nick)
+                        self.handle_additional_messages(messages)
+                    #threading.Thread(target=self.wait_for_my_turn, daemon=True).start()
+
+    def handle_additional_messages(self, messages):
+        """
+        A method that allows players to disconnect anytime, sort of a "panic mode". Has to be called everytime a request
+        is sent to the server! Reads and handles all messages that the client didn't expect at this particular moment
+        (for now just disconnecting). For instance, a client sends a request to add a unit to the map, and they expect
+        to receive that same message as confirmation. Before they sent their request, another player has disconnected.
+        This method will remove the disconnected player and then allow the game to go back to normal.
+        :param messages: a generator of unexpected messages (see Client.unexpected_messages)
+        """
+        ranking = []
+        for mes in messages:
+            print(mes)
+            if mes[0] == "DISCONNECT" or mes[0] == "DEFEAT":
+                nick = mes[1]
+                self.game_logic.players.pop(nick)
+            elif mes[0] == "RANK":
+                ranking.append((mes[1], int(mes[2])))
+            elif mes[0] == "END_GAME":
+                self.my_turn = False
+                self.ranking = ranking
 
     def wait_for_my_turn(self):
         """
         A prototype function for handling server messages about other players' actions. Will probably be renamed and
         maybe split later on.
         """
+        ranking = []
         while True:
             message = self.client.get_opponents_move()
+            print(message)
             if message[0] == "TURN":
                 if message[1] == self.client.nick:
                     self.my_turn = True
@@ -295,3 +338,16 @@ class GameView(arcade.View):
                 self.game_logic.build_opponents_city(x, y)
                 self.unit_popup.hide_if_on_tile(x, y)
 
+            elif message[0] == "DISCONNECT" or message[0] == "DEFEAT":
+                nick = message[1]
+                self.game_logic.disconnected_players.append(nick)
+
+            elif message[0] == "RANK":
+                ranking.append((message[1], int(message[2])))
+
+            elif message[0] == "END_GAME":
+                self.ranking = ranking
+                return
+
+            elif message[0] == "DISCONNECTED":
+                return

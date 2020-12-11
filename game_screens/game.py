@@ -11,7 +11,7 @@ class Game(arcade.Window):
     The window containing game screens.
     """
 
-    def __init__(self, width: int, height: int, tiles: list, client):
+    def __init__(self, width: int, height: int, tiles: list, client, server_thread=None):
         """
         :param width: Window width.
         :param height: Window height.
@@ -20,6 +20,7 @@ class Game(arcade.Window):
         """
         super().__init__(width, height, "Age of Divisiveness")
         self.client = client
+        self.server_thread = server_thread
         self.game_view = GameView(width, height, tiles, client)
         self.back_to_game()
 
@@ -31,4 +32,15 @@ class Game(arcade.Window):
 
     def run(self):
         arcade.run()
+
+    def on_close(self):
+        if self.server_thread:
+            self.client.end_game_by_host()
+            self.server_thread.join()
+        else:
+            try:
+                self.client.disconnect()
+            except BrokenPipeError:
+                pass
+        self.close()
 

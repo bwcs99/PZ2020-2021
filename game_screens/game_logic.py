@@ -16,6 +16,7 @@ class GameLogic:
         self.cities = arcade.SpriteList()
         self.players = {nick: Player(nick, civ, col) for nick, civ, col in players}
         self.me = self.players[my_nick]
+        self.disconnected_players = []
 
     def update(self):
         self.unit_range.update()
@@ -23,6 +24,9 @@ class GameLogic:
     def draw(self):
         self.tiles.draw()
         self.unit_range.draw()
+        while self.disconnected_players:
+            player = self.disconnected_players.pop(0)
+            self.players.pop(player)
         for player in self.players.values():
             player.cities.draw()
             player.units.draw()
