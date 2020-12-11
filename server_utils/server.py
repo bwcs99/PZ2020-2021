@@ -30,11 +30,13 @@ class Server:
         """
         self.map_to_send = terrain_map
         self.players = []
+        self.queue = []
         self.connections = dict()
         self.threads = []
         self.colours = ['pink', 'red', 'purple', 'yellow', 'green', 'brown', 'blue', 'orange', 'gray']
         self.civilizations = ["The Great Northern", "Kaediredameria", "Mixtec", "Kintsugi"]
         self.current_player = 0  # index in self.players that indicates who is active
+        self.rank = 0  # for now
         self.started = False
         self.finish = False
         self.server_sock = self.create_socket(ADDR)
@@ -120,14 +122,33 @@ class Server:
         elif request[0] == "DISCONNECT":
             broadcast = [incoming_msg.encode(FORMAT)]
             player = self.connections[conn]
-            ind = self.players.index(player)
-            self.players.remove(player)
+            player.rank = self.rank
+            self.rank -= 1
+            ind = self.queue.index(player)
+            self.queue.pop(ind)
             if ind == self.current_player:
-                ind = ind % len(self.players)
-                broadcast.append(f"TURN:{self.players[ind].player_name}".encode(FORMAT))
+                ind = ind % len(self.queue)
+                broadcast.append(f"TURN:{self.queue[ind].player_name}".encode(FORMAT))
             elif ind < self.current_player:
-                self.current_player = (self.current_player - 1) % len(self.players)
+                self.current_player = (self.current_player - 1) % len(self.queue)
             self.connections.pop(conn)
+
+        elif request[0] == "DEFEAT":
+            broadcast = [incoming_msg.encode(FORMAT)]
+            ind = None
+            for i, player in enumerate(self.queue):
+                if player.player_name == request[1]:
+                    player.rank = self.rank
+                    self.rank -= 1
+                    ind = i
+                    break
+            if ind is not None:
+                self.queue.pop(ind)
+                if ind == self.current_player:
+                    ind = ind % len(self.queue)
+                    broadcast.append(f"TURN:{self.queue[ind].player_name}".encode(FORMAT))
+                elif ind < self.current_player:
+                    self.current_player = (self.current_player - 1) % len(self.queue)
 
         elif request[0] == "LIST_PLAYERS":
             player_list = []
@@ -151,13 +172,15 @@ class Server:
         elif request[0] == "END_TURN":
             response.append(incoming_msg.encode(FORMAT))
             self.current_player += 1
-            self.current_player %= len(self.players)
-            broadcast = [f"TURN:{self.players[self.current_player].player_name}".encode(FORMAT)]
+            self.current_player %= len(self.queue)
+            broadcast = [f"TURN:{self.queue[self.current_player].player_name}".encode(FORMAT)]
 
         elif request[0] == "START_GAME":
             self.started = True
+            self.queue = self.players.copy()
+            self.rank = len(self.players)
             response.append(f"{request[1]}: YOU HAVE STARTED THE GAME".encode(FORMAT))
-            broadcast = [f"TURN:{self.players[0].player_name}".encode(FORMAT)]
+            broadcast = [f"TURN:{self.queue[0].player_name}".encode(FORMAT)]
 
         elif request[0] == "EXIT_LOBBY":
             # TODO rethink Client.only_send() being used here
@@ -201,9 +224,11 @@ class Server:
            # print('Punkty: ', wanted.scores)
 
         elif request[0] == "END_GAME":
-            ranking = self.compute_rank(self.players)
+            #ranking = self.compute_rank(self.players)
+            for player in self.players:
+                player.rank = player.rank - len(self.queue) + 1 if player.rank else 1
             broadcast.append("GAME_ENDED".encode(FORMAT))
-            broadcast.extend(str(f"RANK:{nick}:{rank}").encode(FORMAT) for nick, rank in ranking)
+            broadcast.extend(str(f"RANK:{player.player_name}:{player.rank}").encode(FORMAT) for player in self.players)
             broadcast.append(incoming_msg.encode(FORMAT))
             self.finish = True
 

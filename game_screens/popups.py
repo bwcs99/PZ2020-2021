@@ -95,6 +95,7 @@ class TopBar(PopUp):
         self.max_height = self.height
         self.add_ui_element(self.money_label)
         self.add_ui_element(self.time_label)
+        self.ended = False
 
     def adjust(self):
         """
@@ -114,10 +115,17 @@ class TopBar(PopUp):
         Changes the label to reflect the player whose turn is taking place. No nick should be provided if it's the
         turn of the player running the client.
         """
+        if self.ended:
+            return
         if nick:
             self.time_label.text = f"{nick}'s turn (5:00)"
         else:
             self.time_label.text = "Press SPACE to end turn (5:00)"
+        self.adjust()
+
+    def game_ended(self):
+        self.time_label.text = "The game is finished"
+        self.ended = True
         self.adjust()
 
 

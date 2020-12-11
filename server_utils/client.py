@@ -69,6 +69,16 @@ class Client:
         self.only_send(f"DISCONNECT:{self.nick}")
         self.sock.close()
 
+    def die(self):
+        msg = f"DEFEAT:{self.nick}"
+        self.only_send(msg)
+        return self.unexpected_messages(msg)
+
+    def kill(self, player):
+        msg = f"DEFEAT:{player}"
+        self.only_send(msg)
+        return self.unexpected_messages(msg)
+
     # Method allowing to send basic info to server
     def introduce_yourself(self, chosen_nick, chosen_civ):
         # TODO maybe only_send?

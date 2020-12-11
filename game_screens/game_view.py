@@ -267,6 +267,12 @@ class GameView(arcade.View):
                 elif symbol == arcade.key.P:
                     messages = self.client.end_game_by_host()
                     self.handle_additional_messages(messages)
+                elif symbol == arcade.key.D and self.unit_popup.visible():
+                    player_to_kill = self.unit_popup.unit.owner
+                    if player_to_kill != self.game_logic.me:
+                        messages = self.client.kill(player_to_kill.nick)
+                        self.handle_additional_messages(messages)
+                    #threading.Thread(target=self.wait_for_my_turn, daemon=True).start()
 
     def handle_additional_messages(self, messages):
         """
@@ -279,11 +285,12 @@ class GameView(arcade.View):
         """
         for mes in messages:
             print(mes)
-            if mes[0] == "DISCONNECT":
+            if mes[0] == "DISCONNECT" or mes[0] == "DEFEAT":
                 nick = mes[1]
                 self.game_logic.players.pop(nick)
             elif mes[0] == "END_GAME":
                 self.my_turn = False
+                self.top_bar.game_ended()
                 # TODO show ranking
 
     def wait_for_my_turn(self):
@@ -321,9 +328,10 @@ class GameView(arcade.View):
                 self.game_logic.build_opponents_city(x, y)
                 self.unit_popup.hide_if_on_tile(x, y)
 
-            elif message[0] == "DISCONNECT":
+            elif message[0] == "DISCONNECT" or message[0] == "DEFEAT":
                 nick = message[1]
                 self.game_logic.disconnected_players.append(nick)
 
             elif message[0] == "END_GAME":
+                self.top_bar.game_ended()
                 return
