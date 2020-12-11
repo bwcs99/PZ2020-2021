@@ -192,7 +192,7 @@ class UnitPopup(PopUp):
 
     def can_build_city(self):
         """ Determines whether to show the message that a settler can build a city. """
-        return self.is_unit_mine and type(self.unit) == Settler and self.visible()
+        return self.is_unit_mine and not self.unit.tile.owner and type(self.unit) == Settler and self.visible()
 
     def adjust(self):
         """
