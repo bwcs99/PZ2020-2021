@@ -1,6 +1,5 @@
 import socket
 import threading
-import sys
 from random import randint
 
 from server_utils.player import Player
@@ -20,6 +19,10 @@ default_game_time = 30
 #dummy2.civilisation_type = 'antysczepionkowcy'
 #dummy1.city_list = ['Fangorn', 'Moskwa', 'Berlin']
 #dummy2.city_list = ['Rumunia', 'Peja', 'Rychu', 'Bieda']
+
+
+def print_color(text):
+    print("\u001b[36m" + text + "\u001b[0m")
 
 
 class Server:
@@ -287,7 +290,7 @@ class Server:
             if msg_len:
                 msg_len = int(msg_len)
                 incoming_message = conn.recv(msg_len).decode(FORMAT)
-                print(f"RECEIVED NEW MESSAGE: {incoming_message} from {addr}", file=sys.stderr)
+                print_color(f"RECEIVED NEW MESSAGE: {incoming_message} from {addr}")
                 if incoming_message == DISCONNECT_MESSAGE:
                     connected = False
                            
@@ -309,7 +312,7 @@ class Server:
         """
         try:
             server_socket.listen()
-            print(f"IM HERE: {HOST} {PORT}", file=sys.stderr)
+            print_color(f"IM HERE: {HOST} {PORT}")
             while not self.started and not self.finish:
                 try:
                     conn, addr = server_socket.accept()
@@ -317,18 +320,18 @@ class Server:
                     continue
                 self.connections[conn] = None
                 conn.settimeout(1)
-                print(f"NEW CONNECTION FROM {addr} ", file=sys.stderr)
+                print_color(f"NEW CONNECTION FROM {addr} ")
                 new_thread = threading.Thread(target=self.connection_handler, args=(conn, addr))
                 self.threads.append(new_thread)
                 new_thread.start()
-                print(f"N_O ACTIVE CONNECTIONS: {threading.activeCount() - 2}", file=sys.stderr)
+                print_color(f"N_O ACTIVE CONNECTIONS: {threading.activeCount() - 2}")
             for thread in self.threads:
                 thread.join()
 
         except KeyboardInterrupt:
             for thread in self.threads:
                 thread.join()
-            print("SERVER PROCESS TERMINATED", file=sys.stderr)
+            print_color("SERVER PROCESS TERMINATED")
 
 
 # for testing
