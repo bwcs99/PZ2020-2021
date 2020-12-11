@@ -131,10 +131,10 @@ class GameLogic:
                 tile = self.get_tile(x1, y1)
                 if tile and not tile.owner:
                     surroundings.append(tile)
-        potential_city = City(Unit(unit.tile, unit.owner), surroundings)
+        potential_city = City(Unit(unit.tile, unit.owner), "test", surroundings)
         return potential_city.goods
 
-    def build_city(self, unit: Settler):
+    def build_city(self, unit: Settler, name):
         """
         Turns a settler unit into a city.
         :param unit: a settler unit establishing the city
@@ -148,7 +148,7 @@ class GameLogic:
                     surroundings.append(tile)
                     tile.set_owner(unit.owner)
 
-        city = unit.build_city(surroundings)
+        city = unit.build_city(name, surroundings)
         unit.owner.units.remove(unit)
         unit.owner.cities.append(city)
         self.update_players_borders(unit.owner)

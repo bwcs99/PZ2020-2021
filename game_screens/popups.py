@@ -1,4 +1,5 @@
 from copy import copy
+import random
 
 import arcade
 from city import City
@@ -107,10 +108,10 @@ class TopBar(PopUp):
         left, right, top, bottom = self.coords_lrtb
         self.money_label.center_y = self.time_label.center_y = top - self.height / 2
         self.money_label.height = self.time_label.height = 0.4 * self.height
-        self.money_label.center_x = left + 0.125 * self.width
-        self.time_label.center_x = left + 0.775 * self.width
         self.money_label.width = len(self.money_label.text) / 75 * self.width
         self.time_label.width = len(self.time_label.text) / 75 * self.width
+        self.money_label.center_x = left + 0.025 * self.width + 0.5 * self.money_label.width
+        self.time_label.center_x = right - 0.025 * self.width - 0.5 * self.time_label.width
 
     def turn_change(self, nick: str = None):
         """
@@ -124,6 +125,9 @@ class TopBar(PopUp):
         else:
             self.time_label.text = "Press SPACE to end turn (5:00)"
         self.adjust()
+
+    def update_money(self, total, change):
+        self.money_label.text = f"Treasury: {total} (+{change})"
 
     def game_ended(self):
         self.time_label.text = "The game is finished"
@@ -249,6 +253,7 @@ class GranaryPopup(PopUp):
         """ Detaches the unit and hides the pop-up. """
         self.purge_ui_elements()
 
+
 class CityCreationPopup(PopUp):
     """
     A bottom left corner pop-up that appears after clicking on a unit and contains its stats.
@@ -275,6 +280,8 @@ class CityCreationPopup(PopUp):
         for element in self.all_elements:
             element.color = font_color
         self.tile = None
+        self.stats = None
+        self.n_pressed = False  # to stop adding the initial N press to the name
         self.adjust()
 
     def display(self, unit, stats):
@@ -290,6 +297,7 @@ class CityCreationPopup(PopUp):
         """ Updates the labels with the current state of the attached unit. """
         if self.visible():
             # TODO with Gabi
+            self.name_input.text = self.get_random_city_name()
             self.gold_label.text = "Gold: " + f"+{self.stats['gold']}".rjust(10, ' ')
             self.food_label.text = "Food: " + f"+{self.stats['food']}".rjust(10, ' ')
             self.wood_label.text = "Wood: " + f"+{self.stats['wood']}".rjust(10, ' ')
@@ -300,6 +308,8 @@ class CityCreationPopup(PopUp):
         """ Detaches the unit and hides the pop-up. """
         self.purge_ui_elements()
         self.tile = None
+        self.stats = None
+        self.n_pressed = False
         return self.name_input.text
 
     def visible(self):
@@ -328,8 +338,29 @@ class CityCreationPopup(PopUp):
         self.stone_label.center_y = top - 9 * self.height / 12
         self.cancel_label.center_y = top - 11 * self.height / 12
 
+    def get_random_city_name(self):
+        """
+        It's like 80 or 90 city names. This method returns random from this list.
+        """
+
+        names_list = ["Stewart Manor", "Montour", "Ivalee", "Frost", "Guaynabo", "Oak Beach", "Elk Mountain",
+                      "Paragon Estates", "Malin", "Deatsville", "South El Monte", "San Rafael", "Warfield", "Gilboa",
+                      "Fuquay", "Lucedale", "Matherville", "Faunsdale", "Waller", "Islandton", "Big Lake", "Macon",
+                      "Speed", "Hawthorn Woods", "St. Hedwig", "Sidney", "Cliff", "Sunset", "Bolan", "Tobaccoville",
+                      "Kiryas Joel", "Kokomo", "Forest Lake", "Barboursville", "Shawneetown", "Meridian Station",
+                      "Maribel", "Millerville", "Wolf Lake", "Village Green", "Romeoville", "Whiteriver", "Palatka",
+                      "South Pittsburg", "La Grange Park", "Sekiu", "Tillmans Corner", "Tselakai Dezza",
+                      "Berlin Heights", "Twin Lakes", "Sruron", "Misall", "Efruiphia", "Klordon", "Huwell", "Granta",
+                      "Trury", "Zhose", "Ouverta", "Ouiswell", "Vlutfast", "Ureuycester", "Madford", "Vlagate",
+                      "Crerset", "Shosa", "Ploni", "Certon", "Agoscester", "Estervine", "Nekmouth", "Glawell", "Hason",
+                      "Cehson", "Glebert", "Qark", "Pila", "Aklery", "Arkginia", "Illeby", "Ubrukdiff", "Claason",
+                      "Agutin", "Yihmery", "Mehull", "Oshares", "Izhont", "Ylin", "Oniover", "Urgstin"]
+        return random.choice(names_list)
+
     def on_key_press(self, symbol: int, modifiers: int):
-        if self.visible() and symbol != arcade.key.ENTER and symbol != arcade.key.ESCAPE:
+        if not self.n_pressed:
+            self.n_pressed = True
+        elif self.visible() and symbol != arcade.key.ENTER and symbol != arcade.key.ESCAPE:
             if symbol == arcade.key.BACKSPACE:
                 self.name_input.text = self.name_input.text[:-1]
             else:

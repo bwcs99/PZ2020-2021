@@ -7,9 +7,9 @@ from game_screens.granary import Granary
 
 
 class City(arcade.sprite.Sprite):
-    def __init__(self, unit, area):
+    def __init__(self, unit, name, area):
         super().__init__(":resources:images/tiles/brickGrey.png")
-        self.name = self.get_random_city_name()
+        self.name = name
         self.color = unit.color
         self.tile = unit.tile
         self.tile.city = self
@@ -41,6 +41,7 @@ class City(arcade.sprite.Sprite):
         """
         for tile in self.area:
             if tile.type == 0:
+                self.granary.add_gold(1)
                 self.granary.add_food(8)
             if tile.type == 1:
                 self.granary.add_food(5)
@@ -61,6 +62,7 @@ class City(arcade.sprite.Sprite):
         goods = {'gold': 0, 'wood': 0, 'stone': 0, 'food': 0}
         for tile in self.area:
             if tile.type == 0:
+                goods['gold'] += 1
                 goods['food'] += 8
             if tile.type == 1:
                 goods['food'] += 5
@@ -75,25 +77,6 @@ class City(arcade.sprite.Sprite):
     def set_area(self, area: list):
         self.area = area
         self.goods = self.calculate_goods()
-
-    def get_random_city_name(self):
-        """
-        It's like 80 or 90 city names. This method returns random from this list.
-        """
-
-        names_list = ["Stewart Manor", "Montour", "Ivalee", "Frost", "Guaynabo", "Oak Beach", "Elk Mountain",
-                      "Paragon Estates", "Malin", "Deatsville", "South El Monte", "San Rafael", "Warfield", "Gilboa",
-                      "Fuquay", "Lucedale", "Matherville", "Faunsdale", "Waller", "Islandton", "Big Lake", "Macon",
-                      "Speed", "Hawthorn Woods", "St. Hedwig", "Sidney", "Cliff", "Sunset", "Bolan", "Tobaccoville",
-                      "Kiryas Joel", "Kokomo", "Forest Lake", "Barboursville", "Shawneetown", "Meridian Station",
-                      "Maribel", "Millerville", "Wolf Lake", "Village Green", "Romeoville", "Whiteriver", "Palatka",
-                      "South Pittsburg", "La Grange Park", "Sekiu", "Tillmans Corner", "Tselakai Dezza",
-                      "Berlin Heights", "Twin Lakes", "Sruron", "Misall", "Efruiphia", "Klordon", "Huwell", "Granta",
-                      "Trury", "Zhose", "Ouverta", "Ouiswell", "Vlutfast", "Ureuycester", "Madford", "Vlagate",
-                      "Crerset", "Shosa", "Ploni", "Certon", "Agoscester", "Estervine", "Nekmouth", "Glawell", "Hason",
-                      "Cehson", "Glebert", "Qark", "Pila", "Aklery", "Arkginia", "Illeby", "Ubrukdiff", "Claason",
-                      "Agutin", "Yihmery", "Mehull", "Oshares", "Izhont", "Ylin", "Oniover", "Urgstin"]
-        return random.choice(names_list)
 
     def get_random_city_visualization_path(self):
         chosen = random.choice(os.listdir("resources/images/" + f"{self.owner.short_civ}"))

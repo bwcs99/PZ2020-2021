@@ -252,7 +252,7 @@ class GameView(arcade.View):
                     unit = self.unit_popup.unit
                     messages = self.client.add_city(*unit.tile.coords, city_name)
                     self.handle_additional_messages(messages)
-                    self.game_logic.build_city(self.unit_popup.unit)
+                    self.game_logic.build_city(self.unit_popup.unit, city_name)
                     self.unit_popup.hide()
                     self.game_logic.hide_unit_range()
             else:
@@ -263,6 +263,7 @@ class GameView(arcade.View):
                     self.handle_additional_messages(messages)
                     self.unit_popup.hide()
                     self.game_logic.end_turn()
+                    self.top_bar.update_money(self.game_logic.me.granary.gold, 0)  # TODO Gabi gold per turn
                     threading.Thread(target=self.wait_for_my_turn, daemon=True).start()
                 # BUILD A CITY
                 elif symbol == arcade.key.N and self.unit_popup.can_build_city():
