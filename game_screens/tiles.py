@@ -32,7 +32,6 @@ class Tile(arcade.SpriteSolidColor):
 
     def set_owner(self, new_owner):
         self.owner = new_owner
-        #self.color = new_owner.color
 
 
 class BlinkingTile(arcade.SpriteSolidColor):
@@ -51,7 +50,14 @@ class BlinkingTile(arcade.SpriteSolidColor):
 
 
 class BorderTile(arcade.SpriteList):
-    def __init__(self, tile, neighbors, corners):
+    """ A list containing all border segments to be displayed on a single tile. """
+    def __init__(self, tile: Tile, neighbors: list, corners: list):
+        """
+        :param tile: a tile to draw the border on
+        :param neighbors: a 4-element boolean list of [bottom, right, top, left]. For instance, bottom = True means
+                        that there should be a border on the bottom side of the tile.
+        :param corners: the same as neighbors but [lower right, upper right, upper left, lower left]
+        """
         super().__init__()
         for i, neighbor in enumerate(neighbors):
             if neighbor:

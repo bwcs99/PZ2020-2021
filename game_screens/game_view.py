@@ -269,19 +269,21 @@ class GameView(arcade.View):
                 elif symbol == arcade.key.N and self.unit_popup.can_build_city():
                     unit = self.unit_popup.unit
                     if self.game_logic.is_unit_mine(unit):
+                        # TODO do this stat thing properly
                         stats = self.game_logic.get_potential_city_stats(unit)
                         self.city_popup.display(unit, stats)
                         return
                 # TODO DELETE THIS
+                # END GAME EXAMPLE
                 elif symbol == arcade.key.P:
                     messages = self.client.end_game_by_host()
                     self.handle_additional_messages(messages)
+                # DEFEAT PLAYER EXAMPLE
                 elif symbol == arcade.key.D and self.unit_popup.visible():
                     player_to_kill = self.unit_popup.unit.owner
                     if player_to_kill != self.game_logic.me:
                         messages = self.client.kill(player_to_kill.nick)
                         self.handle_additional_messages(messages)
-                    #threading.Thread(target=self.wait_for_my_turn, daemon=True).start()
 
     def handle_additional_messages(self, messages):
         """
@@ -295,11 +297,14 @@ class GameView(arcade.View):
         ranking = []
         for mes in messages:
             print(mes)
+
             if mes[0] == "DISCONNECT" or mes[0] == "DEFEAT":
                 nick = mes[1]
                 self.game_logic.players.pop(nick)
+
             elif mes[0] == "RANK":
                 ranking.append((mes[1], int(mes[2])))
+
             elif mes[0] == "END_GAME":
                 self.my_turn = False
                 self.ranking = ranking
@@ -337,7 +342,7 @@ class GameView(arcade.View):
                 nick = message[1]
                 x, y = eval(message[2])
                 city_name = message[3]
-                self.game_logic.build_opponents_city(x, y)
+                self.game_logic.build_opponents_city(x, y, city_name)
                 self.unit_popup.hide_if_on_tile(x, y)
 
             elif message[0] == "DISCONNECT" or message[0] == "DEFEAT":

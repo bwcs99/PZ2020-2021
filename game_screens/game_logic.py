@@ -124,6 +124,12 @@ class GameLogic:
         unit.move_to(target, cost)
 
     def get_potential_city_stats(self, unit: Settler):
+        """
+        Gets stats for the city that can be constructed by the unit.
+        :param unit: a settler unit
+        :return: a dict with keys 'gold', 'food', 'wood', 'stone'
+        """
+        # TODO this sucks
         surroundings = []
         x, y = unit.tile.coords
         for x1 in range(x - 1, x + 2):
@@ -134,9 +140,10 @@ class GameLogic:
         potential_city = City(Unit(unit.tile, unit.owner), "test", surroundings)
         return potential_city.goods
 
-    def build_city(self, unit: Settler, name):
+    def build_city(self, unit: Settler, name: str):
         """
         Turns a settler unit into a city.
+        :param name: the name of the new city
         :param unit: a settler unit establishing the city
         """
         surroundings = []
@@ -154,12 +161,13 @@ class GameLogic:
         self.update_players_borders(unit.owner)
         print("Created city area:", city.area)
 
-    def build_opponents_city(self, x: int, y: int):
+    def build_opponents_city(self, x: int, y: int, name: str):
         """ Turns a settler unit located on tile (x, y) into a city. """
         unit = self.get_tile(x, y).occupant
-        self.build_city(unit)
+        self.build_city(unit, name)
 
     def update_players_borders(self, player):
+        """ Iterates over tiles owned by the player and assigns some of them to be borders. """
         player.borders = []
         for city in player.cities:
             for tile in city.area:

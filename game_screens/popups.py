@@ -250,13 +250,12 @@ class GranaryPopup(PopUp):
         self.materials_label.width = 0.8 * self.width
 
     def hide(self):
-        """ Detaches the unit and hides the pop-up. """
         self.purge_ui_elements()
 
 
 class CityCreationPopup(PopUp):
     """
-    A bottom left corner pop-up that appears after clicking on a unit and contains its stats.
+    A pop-up shown on city creation. Allows to see potential city stats and change the city name.
     """
     MAX_NAME_LEN = 20
 
@@ -285,7 +284,7 @@ class CityCreationPopup(PopUp):
         self.adjust()
 
     def display(self, unit, stats):
-        """ Attaches a unit to the pop-up and makes it visible. """
+        """ Attaches a unit and potential stats to the pop-up and makes it visible. """
         self.hide()
         self.tile = unit.tile
         self.stats = stats
@@ -294,7 +293,7 @@ class CityCreationPopup(PopUp):
         self.update()
 
     def update(self):
-        """ Updates the labels with the current state of the attached unit. """
+        """ Updates the labels with potential stats of the new city. """
         if self.visible():
             # TODO with Gabi
             self.name_input.text = self.get_random_city_name()
@@ -305,7 +304,7 @@ class CityCreationPopup(PopUp):
             self.adjust()
 
     def hide(self):
-        """ Detaches the unit and hides the pop-up. """
+        """ Wipes the pop-up's data and hides it. """
         self.purge_ui_elements()
         self.tile = None
         self.stats = None
@@ -313,13 +312,9 @@ class CityCreationPopup(PopUp):
         return self.name_input.text
 
     def visible(self):
-        """ Determines if the pop-up is visible. Used in hit box, drawing, and changing the city name. """
         return self.tile is not None
 
     def adjust(self):
-        """
-        Adjusts the coords of the pop-up and its elements to the current screen borders.
-        """
         self.adjust_coords()
         left, right, top, bottom = self.coords_lrtb
         base_height = self.height / 12
@@ -372,9 +367,10 @@ class CityCreationPopup(PopUp):
 
 class EndingPopup(PopUp):
     """
-    A bottom left corner pop-up that appears after clicking on a unit and contains its stats.
+    A pop-up that shows up after the game has ended. It shows the final ranking.
     """
     MAX_USERNAME_LENGTH = 17
+
     def __init__(self, size_x: float, size_y: float, background_color=BACKGROUND_COLOR, font_color=FONT_COLOR):
         """
         :param size_x: The popup's width expressed as a percentage of current screen width, between 0 and 1.
@@ -392,7 +388,7 @@ class EndingPopup(PopUp):
         self.adjust()
 
     def display(self, ranking):
-        """ Attaches a unit to the pop-up and makes it visible. """
+        """ Attaches a ranking to the pop-up and makes it visible. """
         self.hide()
         self.ranking = sorted(ranking, key=lambda x: x[1])
         self.add_ui_element(self.top_label)
@@ -411,18 +407,14 @@ class EndingPopup(PopUp):
             self.adjust()
 
     def hide(self):
-        """ Detaches the unit and hides the pop-up. """
+        """ Hides the pop-up. """
         self.ranking = None
         self.purge_ui_elements()
 
     def visible(self):
-        """ Determines if the pop-up is visible. Used in hit box, drawing, and changing the city name. """
         return self.ranking is not None
 
     def adjust(self):
-        """
-        Adjusts the coords of the pop-up and its elements to the current screen borders.
-        """
         self.adjust_coords()
         left, right, top, bottom = self.coords_lrtb
         base_height = self.height / 9
