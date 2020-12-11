@@ -205,12 +205,33 @@ class GameView(arcade.View):
                 # aaand then turn them into grid coords
                 tile_col, tile_row = self.absolute_to_tiles(x, y)
 
-                # some fun stuff to do for testing, essentially a map editor tbh
                 if tile_col < self.TILE_COLS and tile_row < self.TILE_ROWS:
                     # sprite list is 1d so we need to turn coords into a single index
                     tile = self.tile_sprites[tile_row * self.TILE_COLS + tile_col]
 
-                    if tile.occupied():
+                    if self.unit_popup.visible():
+                        unit = self.unit_popup.unit
+                        cost = self.game_logic.can_unit_move(unit, tile_col, tile_row)
+                        if self.my_turn and cost:
+                            # if it's my turn and my unit and i clicked within its range, move it
+                            old_tile = unit.tile
+                            participants = self.game_logic.move_unit(unit, tile_col, tile_row, cost)
+                            if len(participants) > 1:
+                                for participant, (x, y) in participants:
+                                    messages = self.client.update_health(x, y, participant.health)
+                                    self.handle_additional_messages(messages)
+                            if unit.health > 0:
+                                messages = self.client.move_unit(*old_tile.coords, tile_col, tile_row, cost)
+                                self.handle_additional_messages(messages)
+                                self.unit_popup.update()
+                            else:
+                                self.unit_popup.hide()
+                        else:
+                            # otherwise it means that i "unclicked" the popup
+                            self.unit_popup.hide()
+                            self.game_logic.hide_unit_range()
+
+                    elif tile.occupied():
                         unit = tile.occupant
                         # hide the range cause we might have clicked another unit while it was displayed
                         self.game_logic.hide_unit_range()
@@ -221,25 +242,13 @@ class GameView(arcade.View):
                         else:
                             # just show the info
                             self.unit_popup.display(unit, mine=False)
-                    elif self.unit_popup.visible():
-                        unit = self.unit_popup.unit
-                        cost = self.game_logic.can_unit_move(unit, tile_col, tile_row)
-                        if self.my_turn and cost:
-                            # if it's my turn and my unit and i clicked within its range, move it
-                            messages = self.client.move_unit(*unit.tile.coords, tile_col, tile_row, cost)
-                            self.handle_additional_messages(messages)
-                            self.game_logic.move_unit(unit, tile_col, tile_row, cost)
-                            self.unit_popup.update()
-                        else:
-                            # otherwise it means that i "unclicked" the popup
-                            self.unit_popup.hide()
-                            self.game_logic.hide_unit_range()
+
                     elif self.my_turn:
                         if tile.city:
                             self.window.show_view(CityView(tile.city, self.top_bar))  # TODO Gabi to tutaj
                         else:
-                            self.game_logic.add_unit(tile_col, tile_row, self.client.nick, settler=True)
-                            messages = self.client.add_unit(tile_col, tile_row, "settler")
+                            self.game_logic.add_unit(tile_col, tile_row, self.client.nick)
+                            messages = self.client.add_unit(tile_col, tile_row, "not settler")
                             self.handle_additional_messages(messages)
 
     def on_key_press(self, symbol, modifiers):
@@ -330,6 +339,17 @@ class GameView(arcade.View):
                 cost = int(message[3])
                 self.game_logic.move_opponents_unit(x0, y0, x1, y1, cost)
                 self.update_popup = True
+
+            elif message[0] == "HEALTH":
+                x, y = eval(message[1])
+                health = int(message[2])
+                if health == 0:
+                    self.game_logic.kill_opponents_unit(x, y)
+                    self.unit_popup.hide_if_on_tile(x, y)
+                else:
+                    tile = self.game_logic.get_tile(x, y)
+                    if tile:
+                        tile.occupant.health = health
 
             elif message[0] == "ADD_CITY":
                 nick = message[1]

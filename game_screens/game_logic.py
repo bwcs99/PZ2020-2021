@@ -1,5 +1,6 @@
 import arcade
 
+from combat.garrison import Garrison
 from game_screens.tiles import Tile, BlinkingTile, BorderTile
 from game_screens.units import Unit, Settler
 from game_screens.player import Player
@@ -76,7 +77,7 @@ class GameLogic:
         if settler:
             unit = Settler(tile, owner)
         else:
-            unit = Unit(tile, owner)
+            unit = Garrison(tile, owner, "Archers", 20)
         tile.occupant = unit
         owner.units.append(unit)
 
@@ -91,7 +92,7 @@ class GameLogic:
         """
         if not self.move_costs:
             return None
-        if unit.owner == self.me and (x, y) in self.move_costs and not self.get_tile(x, y).occupied():
+        if unit.owner == self.me and (x, y) in self.move_costs:
             return self.move_costs[x, y]
         else:
             return None
@@ -108,11 +109,40 @@ class GameLogic:
         :param x: the x (column) coord of the tile to move the unit to
         :param y: the y (row) coord of the tile to move the unit to
         :param cost: cost of the move
+        :returns: a list of killed units
         """
         tile = self.get_tile(x, y)
-        unit.move_to(tile, cost)
+        target = tile.occupant
+        participants = [(unit, unit.tile.coords)]
+        if target:
+            participants.append((target, (x, y)))
+            unit.movement = 0
+            if type(target) == Settler:
+                winner = self.me
+                target.health = 0
+            else:
+                winner = unit.attack(target)
+
+            if winner == unit:
+                unit.move_to(tile, 0)
+            else:
+                if not winner:
+                    self.kill_unit(target)
+                self.kill_unit(unit)
+        else:
+            unit.move_to(tile, cost)
         self.hide_unit_range()
         self.display_unit_range(unit)
+        return participants
+
+    def kill_unit(self, unit):
+        unit.tile.occupant = None
+        unit.owner.units.remove(unit)
+
+    def kill_opponents_unit(self, x, y):
+        tile = self.get_tile(x, y)
+        if tile and tile.occupant:
+            self.kill_unit(tile.occupant)
 
     def move_opponents_unit(self, x0, y0, x1, y1, cost):
         """
@@ -165,7 +195,6 @@ class GameLogic:
                 if any(neighbours) or any(corners):
                     player.borders.append(BorderTile(tile, neighbours, corners))
 
-
     def get_unit_range(self, unit: Unit) -> dict:
         """
         Determines a unit's movement range.
@@ -181,9 +210,14 @@ class GameLogic:
             parent_cost = visited[(x, y)]
             for col, row in [(x, y + 1), (x + 1, y), (x, y - 1), (x - 1, y)]:
                 tile = self.get_tile(col, row)
-                if tile:  # TODO one unit per tile but i will do that after the battling system
+                if tile:
                     alt_cost = parent_cost + tile.cost
-                    if alt_cost <= unit.movement and ((col, row) not in visited or alt_cost < visited[col, row]):
-                        queue.append((col, row))
-                        visited[col, row] = alt_cost
+                    if not tile.occupant:
+                        if alt_cost <= unit.movement and ((col, row) not in visited or alt_cost < visited[col, row]):
+                            queue.append((col, row))
+                            visited[col, row] = alt_cost
+                    elif type(unit) != Settler and tile.occupant.owner != self.me:
+                        if alt_cost <= unit.movement and ((col, row) not in visited or alt_cost < visited[col, row]):
+                            queue.append((col, row))
+                            visited[col, row] = unit.movement
         return visited

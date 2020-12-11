@@ -209,6 +209,14 @@ class Client:
         except OSError:
             return self.unexpected_messages("END_GAME")
 
+    def update_health(self, x, y, new_health):
+        msg = f"HEALTH:{(x, y)}:{new_health}"
+        try:
+            self.only_send(msg)
+            return self.unexpected_messages(msg)
+        except OSError:
+            return self.unexpected_messages("END_GAME")
+
     """ Miasta od gracza 1 idą do gracza 2 (użyteczne przy bitwach)"""
     def give_cities(self, player_name1, player_name2, cities):
         cities_to_str = str(cities)

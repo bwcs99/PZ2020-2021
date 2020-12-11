@@ -5,9 +5,9 @@ from game_screens.units import Unit
 # a concept for test purposes, feel free to change or add more
 """ Dictionary of soldiers' properties. """
 SOLDIER_PROPS = {
-    'Poor Infantry': {'health': 15, 'damage': 5, 'probability': 0.8, 'max_movement': 1},
-    'Archers': {'health': 5, 'damage': 20, 'probability': 0.4, 'max_movement': 1},
-    'Cavalry': {'health': 10, 'damage': 10, 'probability': 0.6, 'max_movement': 3}
+    'Poor Infantry': {'health': 15, 'damage': 5, 'probability': 0.8, 'max_movement': 2},
+    'Archers': {'health': 5, 'damage': 20, 'probability': 0.4, 'max_movement': 3},
+    'Cavalry': {'health': 10, 'damage': 10, 'probability': 0.6, 'max_movement': 4}
 }
 
 
