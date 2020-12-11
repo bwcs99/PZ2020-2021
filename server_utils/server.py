@@ -244,12 +244,15 @@ class Server:
          #   print(request[2])
             broadcast = [request[2].encode(FORMAT)]
 
-        elif request[0] == "ADD_UNIT" or request[0] == "MOVE_UNIT":
+        elif request[0] == "ADD_UNIT" or request[0] == "MOVE_UNIT" or request[0] == "HEALTH":
             broadcast = [incoming_msg.encode(FORMAT)]
         
         elif request[0] == "ADD_CITY":
             wanted = next((player for player in self.players if player.player_name == request[1]), None)
             wanted.city_list.append(request[3])
+            broadcast = [incoming_msg.encode(FORMAT)]
+
+        elif request[0] == "GIVE_CITY":
             broadcast = [incoming_msg.encode(FORMAT)]
 
         elif request[0] == "GIVE_CITIES":
