@@ -33,8 +33,8 @@ class Garrison(Unit):
             random.seed(seed)
         else:
             random.seed()
-        print(f"\nA battle between {defender.count} {defender.type} "
-              f"and {attacker.count} {attacker.type} is about to start!")
+        print(f"\nA battle between {defender.owner}'s {defender.count} {defender.type} "
+              f"and {attacker.owner}'s {attacker.count} {attacker.type} is about to start!")
         while defender.health > 0 and attacker.health > 0:
             if random.uniform(0, 1) < attacker.probability:
                 defender.health -= attacker.damage
@@ -49,7 +49,7 @@ class Garrison(Unit):
             winner = None  # draw, both died :<
 
         if winner is not None:
-            print(f'The winner is {winner.type}!\nWith {winner.health} total health left.')
+            print(f'The winner is {winner.owner}!\nWith {winner.health} total health left.')
         else:
             print('Both sides have suffered extreme damage.')
         return winner

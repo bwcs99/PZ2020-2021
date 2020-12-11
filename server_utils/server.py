@@ -248,6 +248,9 @@ class Server:
             wanted.city_list.append(request[3])
             broadcast = [incoming_msg.encode(FORMAT)]
 
+        elif request[0] == "GIVE_CITY":
+            broadcast = [incoming_msg.encode(FORMAT)]
+
         elif request[0] == "GIVE_CITIES":
           #  print('W give_cities')
             wanted1 = next((player for player in self.players if player.player_name == request[1]), None)

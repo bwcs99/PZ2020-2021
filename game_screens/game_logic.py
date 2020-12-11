@@ -1,6 +1,7 @@
 import arcade
 
-from combat.garrison import Garrison
+from game_screens.city import City
+from game_screens.combat.garrison import Garrison
 from game_screens.tiles import Tile, BlinkingTile, BorderTile
 from game_screens.units import Unit, Settler
 from game_screens.player import Player
@@ -135,6 +136,14 @@ class GameLogic:
         self.display_unit_range(unit)
         return participants
 
+    def move_opponents_unit(self, x0, y0, x1, y1, cost):
+        """
+        Moves a unit located on the tile (x0, y0) to the tile (x1, y1) at a specified cost.
+        """
+        unit = self.get_tile(x0, y0).occupant
+        target = self.get_tile(x1, y1)
+        unit.move_to(target, cost)
+
     def kill_unit(self, unit):
         unit.tile.occupant = None
         unit.owner.units.remove(unit)
@@ -144,13 +153,9 @@ class GameLogic:
         if tile and tile.occupant:
             self.kill_unit(tile.occupant)
 
-    def move_opponents_unit(self, x0, y0, x1, y1, cost):
-        """
-        Moves a unit located on the tile (x0, y0) to the tile (x1, y1) at a specified cost.
-        """
-        unit = self.get_tile(x0, y0).occupant
-        target = self.get_tile(x1, y1)
-        unit.move_to(target, cost)
+    def reset_movement(self, owner):
+        for unit in self.players[owner].units:
+            unit.reset_movement()
 
     def build_city(self, unit: Settler):
         """
@@ -176,6 +181,23 @@ class GameLogic:
         """ Turns a settler unit located on tile (x, y) into a city. """
         unit = self.get_tile(x, y).occupant
         self.build_city(unit)
+
+    def give_city(self, city: City, new_owner: Player):
+        old_owner = city.owner
+        city.owner = new_owner
+        old_owner.cities.remove(city)
+        new_owner.cities.append(city)
+        for tile in city.area:
+            tile.owner = new_owner
+        city.color = new_owner.color
+        self.update_players_borders(old_owner)
+        self.update_players_borders(new_owner)
+
+    def give_opponents_city(self, x: int, y: int, new_owner: str):
+        tile = self.get_tile(x, y)
+        if tile and tile.city:
+            new_owner = self.players[new_owner]
+            self.give_city(tile.city, new_owner)
 
     def update_players_borders(self, player):
         player.borders = []

@@ -224,7 +224,13 @@ class GameView(arcade.View):
                                 messages = self.client.move_unit(*old_tile.coords, tile_col, tile_row, cost)
                                 self.handle_additional_messages(messages)
                                 self.unit_popup.update()
+                                city = unit.tile.city
+                                if city and city.owner != self.game_logic.me:
+                                    self.game_logic.give_city(city, self.game_logic.me)
+                                    messages = self.client.get_city(city)
+                                    self.handle_additional_messages(messages)
                             else:
+                                self.game_logic.hide_unit_range()
                                 self.unit_popup.hide()
                         else:
                             # otherwise it means that i "unclicked" the popup
@@ -247,8 +253,12 @@ class GameView(arcade.View):
                         if tile.city:
                             self.window.show_view(CityView(tile.city, self.top_bar))  # TODO Gabi to tutaj
                         else:
-                            self.game_logic.add_unit(tile_col, tile_row, self.client.nick)
-                            messages = self.client.add_unit(tile_col, tile_row, "not settler")
+                            if modifiers & arcade.key.MOD_SHIFT:
+                                self.game_logic.add_unit(tile_col, tile_row, self.client.nick, settler=True)
+                                messages = self.client.add_unit(tile_col, tile_row, "settler")
+                            else:
+                                self.game_logic.add_unit(tile_col, tile_row, self.client.nick)
+                                messages = self.client.add_unit(tile_col, tile_row, "not settler")
                             self.handle_additional_messages(messages)
 
     def on_key_press(self, symbol, modifiers):
@@ -327,6 +337,7 @@ class GameView(arcade.View):
                     return
                 else:
                     self.cur_enemy = message[1]
+                    self.game_logic.reset_movement(self.cur_enemy)
 
             elif message[0] == "ADD_UNIT":
                 nick = message[1]
@@ -357,6 +368,11 @@ class GameView(arcade.View):
                 city_name = message[3]
                 self.game_logic.build_opponents_city(x, y)
                 self.unit_popup.hide_if_on_tile(x, y)
+
+            elif message[0] == "GIVE_CITY":
+                x, y = eval(message[1])
+                recipient = message[2]
+                self.game_logic.give_opponents_city(x, y, recipient)
 
             elif message[0] == "DISCONNECT" or message[0] == "DEFEAT":
                 nick = message[1]
