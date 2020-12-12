@@ -59,6 +59,7 @@ class BorderTile(arcade.SpriteList):
         :param corners: the same as neighbors but [lower right, upper right, upper left, lower left]
         """
         super().__init__()
+        self.tile = tile
         for i, neighbor in enumerate(neighbors):
             if neighbor:
                 element = arcade.Sprite("resources/sprites/border_side.png")

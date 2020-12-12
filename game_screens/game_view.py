@@ -300,7 +300,9 @@ class GameView(arcade.View):
 
             if mes[0] == "DISCONNECT" or mes[0] == "DEFEAT":
                 nick = mes[1]
-                self.game_logic.players.pop(nick)
+                self.game_logic.disconnected_players.append(nick)
+                if self.unit_popup.visible() and self.unit_popup.unit.owner.nick == nick:
+                    self.unit_popup.hide()
 
             elif mes[0] == "RANK":
                 ranking.append((mes[1], int(mes[2])))
@@ -348,6 +350,8 @@ class GameView(arcade.View):
             elif message[0] == "DISCONNECT" or message[0] == "DEFEAT":
                 nick = message[1]
                 self.game_logic.disconnected_players.append(nick)
+                if self.unit_popup.visible() and self.unit_popup.unit.owner.nick == nick:
+                    self.unit_popup.hide()
 
             elif message[0] == "RANK":
                 ranking.append((message[1], int(message[2])))

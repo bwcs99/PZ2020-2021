@@ -27,7 +27,7 @@ class GameLogic:
         self.unit_range.draw()
         while self.disconnected_players:
             player = self.disconnected_players.pop(0)
-            self.players.pop(player)
+            self.kill_player(player)
         for player in self.players.values():
             player.cities.draw()
             for tile in player.borders:
@@ -45,6 +45,8 @@ class GameLogic:
         """
         :return: the tile in column x, row y if it exists, else None
         """
+        if x < 0 or y < 0:
+            return None
         try:
             return self.tiles[y * self.TILE_COLS + x]
         except IndexError:
@@ -165,6 +167,17 @@ class GameLogic:
         """ Turns a settler unit located on tile (x, y) into a city. """
         unit = self.get_tile(x, y).occupant
         self.build_city(unit, name)
+
+    def kill_player(self, nick: str):
+        """ Cleans up after a player that has been removed from the game. """
+        player = self.players[nick]
+        for city in player.cities:
+            for tile in city.area:
+                tile.owner = None
+                tile.city = None
+        for unit in player.units:
+            unit.tile.occupant = None
+        self.players.pop(nick)
 
     def update_players_borders(self, player):
         """ Iterates over tiles owned by the player and assigns some of them to be borders. """
