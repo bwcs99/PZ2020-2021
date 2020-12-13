@@ -4,6 +4,7 @@ import arcade
 from PyQt5.QtWidgets import QApplication
 from arcade.gui import UIManager
 
+from build_building_window import BuildBuildingWindow
 from game_screens.city import City
 from game_screens.popups import GranaryPopup
 from start_screens.build_unit_window import BuildUnitWindow
@@ -23,7 +24,7 @@ class CityView(arcade.View):
         self.granary_bar = GranaryPopup(1, 0.15, city)
         self.backup = None
         self.ui_manager = UIManager()
-        self.button = None
+        self.build_unit_button = None
         arcade.start_render()
 
     def on_show(self):
@@ -36,8 +37,11 @@ class CityView(arcade.View):
 
         # del self.button
 
-        self.button = BuildUnitFlatButton(self, center_x=self.window.width, center_y=self.window.height)
-        self.ui_manager.add_ui_element(self.button)
+        self.build_unit_button = BuildUnitFlatButton(self, center_x=self.window.width, center_y=self.window.height)
+        self.ui_manager.add_ui_element(self.build_unit_button)
+        self.build_building_window = BuildBuildingFlatButton(self, center_x=self.window.width,
+                                                             center_y=self.window.height)
+        self.ui_manager.add_ui_element(self.build_building_window)
 
     def on_draw(self):
         img = arcade.load_texture(f"{self.city.path_to_visualization}")
@@ -78,6 +82,25 @@ class BuildUnitFlatButton(arcade.gui.UIFlatButton):
         win.show()
         self.app.exec_()
         print("exited build_unit_window.")
+        # self.parent.on_show()
+
+    def kill_app(self):
+        self.app.exit()
+        self.app = None
+
+
+class BuildBuildingFlatButton(arcade.gui.UIFlatButton):
+    def __init__(self, parent, center_x, center_y):
+        super().__init__('Build Building', center_x=center_x // 2 + 300, center_y=center_y // 4, width=250, )
+        self.parent = parent
+        self.app = None
+
+    def on_click(self):
+        self.app = QApplication(sys.argv)
+        win = BuildBuildingWindow(self, self.parent)
+        win.show()
+        self.app.exec_()
+        print("exited build_building_window.")
         # self.parent.on_show()
 
     def kill_app(self):
