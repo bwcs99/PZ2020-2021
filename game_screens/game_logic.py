@@ -121,7 +121,7 @@ class GameLogic:
             unit.movement = 0
             # if it's a settler, kill it
             if type(target) == Settler:
-                winner = self.me
+                winner = unit
                 target.health = 0
             # if it's not, there's real combat
             else:
@@ -129,6 +129,7 @@ class GameLogic:
 
             if winner == unit:
                 # if we won, we'll take the place of that unit
+                self.kill_unit(target)
                 unit.move_to(tile, 0)
             else:
                 # if we died, our unit will be deleted
