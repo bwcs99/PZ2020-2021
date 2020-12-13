@@ -228,10 +228,21 @@ class GameView(arcade.View):
                                 self.unit_popup.update()
                                 city = unit.tile.city
                                 if city and city.owner != self.game_logic.me:
+                                    opponent = city.owner
                                     # if i moved to a city that's wasn't mine, it's mine now uwu
                                     self.game_logic.give_city(city, self.game_logic.me)
                                     messages = self.client.get_city(city)
                                     self.handle_additional_messages(messages)
+                                    # if the city was the user's last, they're defeated
+                                    if len(opponent.cities) == 0:
+                                        messages = self.client.kill(opponent.nick)
+                                        self.handle_additional_messages(messages)
+                                        # if that was the last opponent, the game is over
+                                        if len(self.game_logic.players) == 1:
+                                            self.game_logic.hide_unit_range()
+                                            self.unit_popup.hide()
+                                            messages = self.client.end_game_by_host()
+                                            self.handle_additional_messages(messages)
                             else:
                                 # i died :(
                                 self.game_logic.hide_unit_range()
