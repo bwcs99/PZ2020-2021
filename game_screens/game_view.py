@@ -267,7 +267,7 @@ class GameView(arcade.View):
 
                     elif self.my_turn:
                         if tile.city:
-                            self.window.show_view(CityView(tile.city, self.top_bar))  # TODO Gabi to tutaj
+                            self.window.show_view(CityView(tile.city, self.top_bar))
                         # some cheats, TODO get rid of them maybe
                         else:
                             if modifiers & arcade.key.MOD_SHIFT:
