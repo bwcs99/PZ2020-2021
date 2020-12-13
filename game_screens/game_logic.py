@@ -125,11 +125,11 @@ class GameLogic:
         target = self.get_tile(x1, y1)
         unit.move_to(target, cost)
 
-    def get_potential_city_stats(self, unit: Settler):
+    def get_city_area(self, unit: Settler):
         """
-        Gets stats for the city that can be constructed by the unit.
+        Gets area for the city that can be constructed by the unit.
         :param unit: a settler unit
-        :return: a dict with keys 'gold', 'food', 'wood', 'stone'
+        :return: a list of tiles
         """
         # TODO this sucks
         surroundings = []
@@ -139,8 +139,7 @@ class GameLogic:
                 tile = self.get_tile(x1, y1)
                 if tile and not tile.owner:
                     surroundings.append(tile)
-        potential_city = City(Unit(unit.tile, unit.owner), "test", surroundings)
-        return potential_city.goods
+        return surroundings
 
     def build_city(self, unit: Settler, name: str):
         """
@@ -148,14 +147,9 @@ class GameLogic:
         :param name: the name of the new city
         :param unit: a settler unit establishing the city
         """
-        surroundings = []
-        x, y = unit.tile.coords
-        for x1 in range(x - 1, x + 2):
-            for y1 in range(y - 1, y + 2):
-                tile = self.get_tile(x1, y1)
-                if tile and not tile.owner:
-                    surroundings.append(tile)
-                    tile.set_owner(unit.owner)
+        surroundings = self.get_city_area(unit)
+        for tile in surroundings:
+            tile.set_owner(unit.owner)
 
         city = unit.build_city(name, surroundings)
         unit.owner.units.remove(unit)

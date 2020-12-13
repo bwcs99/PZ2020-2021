@@ -7,6 +7,7 @@ from game_screens.city_view import CityView
 from game_screens.popups import TopBar, UnitPopup, CityCreationPopup, EndingPopup, FONT_COLOR
 from game_screens.game_logic import GameLogic
 from game_screens.tiles import Tile
+from game_screens.city import City
 
 TOP_BAR_SIZE = 0.0625  # expressed as the percentage of the current screen height
 UNIT_POPUP_SIZE = 3 * TOP_BAR_SIZE
@@ -269,10 +270,9 @@ class GameView(arcade.View):
                 elif symbol == arcade.key.N and self.unit_popup.can_build_city():
                     unit = self.unit_popup.unit
                     if self.game_logic.is_unit_mine(unit):
-                        # TODO do this stat thing properly
-                        stats = self.game_logic.get_potential_city_stats(unit)
+                        area = self.game_logic.get_city_area(unit)
+                        stats = City.calculate_goods_no_city(area)
                         self.city_popup.display(unit, stats)
-                        return
                 # TODO DELETE THIS
                 # END GAME EXAMPLE
                 elif symbol == arcade.key.P:
