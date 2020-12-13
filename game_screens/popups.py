@@ -1,4 +1,5 @@
 from copy import copy
+import random
 
 import arcade
 from city import City
@@ -108,10 +109,10 @@ class TopBar(PopUp):
         left, right, top, bottom = self.coords_lrtb
         self.money_label.center_y = self.time_label.center_y = top - self.height / 2
         self.money_label.height = self.time_label.height = 0.4 * self.height
-        self.money_label.center_x = left + 0.125 * self.width
-        self.time_label.center_x = left + 0.775 * self.width
         self.money_label.width = len(self.money_label.text) / 75 * self.width
         self.time_label.width = len(self.time_label.text) / 75 * self.width
+        self.money_label.center_x = left + 0.025 * self.width + 0.5 * self.money_label.width
+        self.time_label.center_x = right - 0.025 * self.width - 0.5 * self.time_label.width
 
     def turn_change(self, nick: str = None):
         """
@@ -125,6 +126,9 @@ class TopBar(PopUp):
         else:
             self.time_label.text = "Press SPACE to end turn (5:00)"
         self.adjust()
+
+    def update_money(self, total, change):
+        self.money_label.text = f"Treasury: {total} (+{change})"
 
     def game_ended(self):
         self.time_label.text = "The game is finished"
@@ -262,13 +266,12 @@ class GranaryPopup(PopUp):
         self.materials_label.width = 0.8 * self.width
 
     def hide(self):
-        """ Detaches the unit and hides the pop-up. """
         self.purge_ui_elements()
 
 
 class CityCreationPopup(PopUp):
     """
-    A bottom left corner pop-up that appears after clicking on a unit and contains its stats.
+    A pop-up shown on city creation. Allows to see potential city stats and change the city name.
     """
     MAX_NAME_LEN = 20
 
@@ -292,40 +295,42 @@ class CityCreationPopup(PopUp):
         for element in self.all_elements:
             element.color = font_color
         self.tile = None
+        self.stats = None
+        self.n_pressed = False  # to stop adding the initial N press to the name
         self.adjust()
 
-    def display(self, unit):
-        """ Attaches a unit to the pop-up and makes it visible. """
+    def display(self, unit, stats):
+        """ Attaches a unit and potential stats to the pop-up and makes it visible. """
         self.hide()
         self.tile = unit.tile
+        self.stats = stats
         for element in self.all_elements:
             self.add_ui_element(element)
         self.update()
 
     def update(self):
-        """ Updates the labels with the current state of the attached unit. """
+        """ Updates the labels with potential stats of the new city. """
         if self.visible():
             # TODO with Gabi
-            self.gold_label.text = f"Gold: {'+1'.rjust(10, ' ')}"
-            self.food_label.text = f"Food: {'+2'.rjust(10, ' ')}"
-            self.wood_label.text = f"Wood: {'+3'.rjust(10, ' ')}"
-            self.stone_label.text = f"Stone: {'+4'.rjust(9, ' ')}"
+            self.name_input.text = self.get_random_city_name()
+            self.gold_label.text = "Gold: " + f"+{self.stats['gold']}".rjust(10, ' ')
+            self.food_label.text = "Food: " + f"+{self.stats['food']}".rjust(10, ' ')
+            self.wood_label.text = "Wood: " + f"+{self.stats['wood']}".rjust(10, ' ')
+            self.stone_label.text = "Stone: " + f"+{self.stats['stone']}".rjust(9, ' ')
             self.adjust()
 
     def hide(self):
-        """ Detaches the unit and hides the pop-up. """
+        """ Wipes the pop-up's data and hides it. """
         self.purge_ui_elements()
         self.tile = None
+        self.stats = None
+        self.n_pressed = False
         return self.name_input.text
 
     def visible(self):
-        """ Determines if the pop-up is visible. Used in hit box, drawing, and changing the city name. """
         return self.tile is not None
 
     def adjust(self):
-        """
-        Adjusts the coords of the pop-up and its elements to the current screen borders.
-        """
         self.adjust_coords()
         left, right, top, bottom = self.coords_lrtb
         base_height = self.height / 12
@@ -344,8 +349,29 @@ class CityCreationPopup(PopUp):
         self.stone_label.center_y = top - 9 * self.height / 12
         self.cancel_label.center_y = top - 11 * self.height / 12
 
+    def get_random_city_name(self):
+        """
+        It's like 80 or 90 city names. This method returns random from this list.
+        """
+
+        names_list = ["Stewart Manor", "Montour", "Ivalee", "Frost", "Guaynabo", "Oak Beach", "Elk Mountain",
+                      "Paragon Estates", "Malin", "Deatsville", "South El Monte", "San Rafael", "Warfield", "Gilboa",
+                      "Fuquay", "Lucedale", "Matherville", "Faunsdale", "Waller", "Islandton", "Big Lake", "Macon",
+                      "Speed", "Hawthorn Woods", "St. Hedwig", "Sidney", "Cliff", "Sunset", "Bolan", "Tobaccoville",
+                      "Kiryas Joel", "Kokomo", "Forest Lake", "Barboursville", "Shawneetown", "Meridian Station",
+                      "Maribel", "Millerville", "Wolf Lake", "Village Green", "Romeoville", "Whiteriver", "Palatka",
+                      "South Pittsburg", "La Grange Park", "Sekiu", "Tillmans Corner", "Tselakai Dezza",
+                      "Berlin Heights", "Twin Lakes", "Sruron", "Misall", "Efruiphia", "Klordon", "Huwell", "Granta",
+                      "Trury", "Zhose", "Ouverta", "Ouiswell", "Vlutfast", "Ureuycester", "Madford", "Vlagate",
+                      "Crerset", "Shosa", "Ploni", "Certon", "Agoscester", "Estervine", "Nekmouth", "Glawell", "Hason",
+                      "Cehson", "Glebert", "Qark", "Pila", "Aklery", "Arkginia", "Illeby", "Ubrukdiff", "Claason",
+                      "Agutin", "Yihmery", "Mehull", "Oshares", "Izhont", "Ylin", "Oniover", "Urgstin"]
+        return random.choice(names_list)
+
     def on_key_press(self, symbol: int, modifiers: int):
-        if self.visible() and symbol != arcade.key.ENTER and symbol != arcade.key.ESCAPE:
+        if not self.n_pressed:
+            self.n_pressed = True
+        elif self.visible() and symbol != arcade.key.ENTER and symbol != arcade.key.ESCAPE:
             if symbol == arcade.key.BACKSPACE:
                 self.name_input.text = self.name_input.text[:-1]
             else:
@@ -357,7 +383,7 @@ class CityCreationPopup(PopUp):
 
 class EndingPopup(PopUp):
     """
-    A bottom left corner pop-up that appears after clicking on a unit and contains its stats.
+    A pop-up that shows up after the game has ended. It shows the final ranking.
     """
     MAX_USERNAME_LENGTH = 17
 
@@ -378,7 +404,7 @@ class EndingPopup(PopUp):
         self.adjust()
 
     def display(self, ranking):
-        """ Attaches a unit to the pop-up and makes it visible. """
+        """ Attaches a ranking to the pop-up and makes it visible. """
         self.hide()
         self.ranking = sorted(ranking, key=lambda x: x[1])
         self.add_ui_element(self.top_label)
@@ -397,18 +423,14 @@ class EndingPopup(PopUp):
             self.adjust()
 
     def hide(self):
-        """ Detaches the unit and hides the pop-up. """
+        """ Hides the pop-up. """
         self.ranking = None
         self.purge_ui_elements()
 
     def visible(self):
-        """ Determines if the pop-up is visible. Used in hit box, drawing, and changing the city name. """
         return self.ranking is not None
 
     def adjust(self):
-        """
-        Adjusts the coords of the pop-up and its elements to the current screen borders.
-        """
         self.adjust_coords()
         left, right, top, bottom = self.coords_lrtb
         base_height = self.height / 9

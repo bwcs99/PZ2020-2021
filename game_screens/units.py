@@ -44,7 +44,8 @@ class Settler(Unit):
     def __str__(self):
         return f"{self.owner.short_civ.capitalize()} Settlers"
 
-    def build_city(self, surroundings: list):
+    def build_city(self, name, surroundings: list):
+        # TODO not on the same tile as another city!! Not on another player's territory too
         self.tile.occupant = None
-        city = City(self, surroundings)
+        city = City(self, name, surroundings)
         return city
