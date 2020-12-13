@@ -17,7 +17,7 @@ class Unit(arcade.sprite.Sprite):
         self.move_to(tile, 0)
 
     def __str__(self):
-        return f"{self.owner.short_civ.capitalize()}'s {type(self).__name__}"
+        return f"{self.owner.short_civ.capitalize()} Unit"
 
     def move_to(self, tile: Tile, cost: int):
         """
@@ -41,8 +41,10 @@ class Settler(Unit):
         super().__init__(tile, owner)
         self.angle = 90
 
-    def build_city(self, surrondings: list):
-        # TODO not on the same tile as another city!! Not on another player's territory too
+    def __str__(self):
+        return f"{self.owner.short_civ.capitalize()} Settlers"
+
+    def build_city(self, surroundings: list):
         self.tile.occupant = None
-        city = City(self, surrondings)
+        city = City(self, surroundings)
         return city

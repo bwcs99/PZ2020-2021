@@ -3,6 +3,7 @@ from copy import copy
 import arcade
 from city import City
 from game_screens.units import Settler
+from game_screens.combat.garrison import Garrison
 import arcade.gui
 
 
@@ -144,11 +145,17 @@ class UnitPopup(PopUp):
         super().__init__(0, 0, size_x, size_y, background_color)
 
         self.owner_label = arcade.gui.UILabel("", 0, 0)
+        self.owner_label.color = font_color
+
         self.action_label = arcade.gui.UILabel("", 0, 0)
-        self.health_label = arcade.gui.UILabel("", 0, 0)
-        self.health_label.color = font_color
+        self.action_label.color = font_color
+
         self.move_label = arcade.gui.UILabel("", 0, 0)
         self.move_label.color = font_color
+
+        self.health_label = arcade.gui.UILabel("", 0, 0)
+        self.health_label.color = font_color
+
         self.unit = None
         self.is_unit_mine = False
         self.adjust()
@@ -159,8 +166,8 @@ class UnitPopup(PopUp):
         self.unit = unit
         self.add_ui_element(self.owner_label)
         self.add_ui_element(self.action_label)
-        self.add_ui_element(self.health_label)
         self.add_ui_element(self.move_label)
+        self.add_ui_element(self.health_label)
         self.is_unit_mine = mine
         self.update()
 
@@ -168,9 +175,15 @@ class UnitPopup(PopUp):
         """ Updates the labels with the current state of the attached unit. """
         if self.visible():
             self.owner_label.text = str(self.unit)
-            self.action_label.text = "(Press N to build a city)" if self.can_build_city() else ""
-            self.health_label.text = f"Health: {f'{self.unit.health}%'.rjust(10, ' ')}"
+            if type(self.unit) == Garrison:
+                self.action_label.text = f"Strength: {f'{self.unit.damage}'.rjust(7, ' ')}"
+            elif self.can_build_city():
+                self.action_label.text = "(Press N to build a city)"
+            else:
+                self.action_label.text = ""
+
             self.move_label.text = f"Movement: {f'{self.unit.movement}/{self.unit.max_movement}'.rjust(7, ' ')}"
+            self.health_label.text = f"Health: {f'{self.unit.health}%'.rjust(10, ' ')}"
             self.adjust()
 
     def hide(self):
@@ -200,17 +213,20 @@ class UnitPopup(PopUp):
         """
         self.adjust_coords()
         left, right, top, bottom = self.coords_lrtb
-        self.health_label.center_y = bottom + self.height / 5
-        self.move_label.center_y = bottom + 2 * self.height / 5
-        self.health_label.height = self.move_label.height = self.action_label.height = 0.1 * self.height
-        self.owner_label.height = 0.2 * self.height
-        self.health_label.center_x = self.move_label.center_x = self.owner_label.center_x = self.action_label.center_x = left + 0.5 * self.width
-        self.health_label.width = self.move_label.width = self.owner_label.width = self.action_label.width = 0.8 * self.width
-        if self.action_label.text:
-            self.owner_label.center_y = top - self.height / 5
-            self.action_label.center_y = top - 1.75 * self.height / 5
-        else:
-            self.owner_label.center_y = top - 1.5 * self.height / 5
+        base_height = self.height / 6
+        self.owner_label.center_y = top - 1.25 * base_height
+        self.action_label.center_y = bottom + base_height
+        self.health_label.center_y = bottom + 2 * base_height
+        self.move_label.center_y = bottom + 3 * base_height
+
+        self.owner_label.height = 0.15 * self.height
+        self.move_label.height = self.health_label.height = self.action_label.height = 0.1 * self.height
+
+        self.owner_label.center_x = left + 0.5 * self.width
+        self.move_label.center_x = self.health_label.center_x = self.action_label.center_x = self.owner_label.center_x
+
+        self.owner_label.width = 0.8 * self.width
+        self.move_label.width = self.health_label.width = self.action_label.width = self.owner_label.width
 
 
 class GranaryPopup(PopUp):
@@ -248,6 +264,7 @@ class GranaryPopup(PopUp):
     def hide(self):
         """ Detaches the unit and hides the pop-up. """
         self.purge_ui_elements()
+
 
 class CityCreationPopup(PopUp):
     """
@@ -343,6 +360,7 @@ class EndingPopup(PopUp):
     A bottom left corner pop-up that appears after clicking on a unit and contains its stats.
     """
     MAX_USERNAME_LENGTH = 17
+
     def __init__(self, size_x: float, size_y: float, background_color=BACKGROUND_COLOR, font_color=FONT_COLOR):
         """
         :param size_x: The popup's width expressed as a percentage of current screen width, between 0 and 1.

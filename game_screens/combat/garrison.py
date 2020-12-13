@@ -25,6 +25,9 @@ class Garrison(Unit):
         self.count = count
         self.max_movement = self.movement = soldier_stats['max_movement']
 
+    def __str__(self):
+        return f"{self.owner.short_civ.capitalize()} {self.type}"
+
     def attack(self, defender, seed=None):
         """" Commands the garrison to attack another unit.
             Returns the winner or None if the clash ended in a draw."""
