@@ -59,8 +59,12 @@ class City(arcade.sprite.Sprite):
         self.owner.granary.insert_from(self.granary)
 
     def calculate_goods(self):
+        return self.calculate_goods_no_city(self.area)
+
+    @staticmethod
+    def calculate_goods_no_city(area):
         goods = {'gold': 0, 'wood': 0, 'stone': 0, 'food': 0}
-        for tile in self.area:
+        for tile in area:
             if tile.type == 0:
                 goods['gold'] += 1
                 goods['food'] += 8
