@@ -1,5 +1,6 @@
 import unittest
 
+from city import City
 from game_screens.game_logic import GameLogic
 from game_screens.tiles import Tile
 
@@ -22,6 +23,14 @@ class MovementTests(unittest.TestCase):
                                     my_nick="one")
         self.game_logic.add_unit(2, 2, "one", settler=True)
         self.settler = self.game_logic.get_tile(2, 2).occupant
+
+        self.area = []
+        self.area.append(Tile(0, 1, 1, 0))
+        self.area.append(Tile(1, 1, 1, 0))
+        self.area.append(Tile(2, 1, 1, 1))
+        self.area.append(Tile(2, 2, 1, 2))
+        self.area.append(Tile(0, 0, 1, 2))
+        self.area.append(Tile(1, 2, 1, 3))
 
     def test_city_building(self):
         # a city is created
@@ -102,10 +111,19 @@ class MovementTests(unittest.TestCase):
         real_border = {border.tile.coords for border in player.borders}
         assert expected_border == real_border
 
-    # TODO Gabi: resource tests
-
     def test_calculating_goods_no_city(self):
-        print(self.tiles)
+        # just check based on known output
+        self.assertEqual({'gold': 2, 'wood': 25, 'stone': 5, 'food': 27}, City.calculate_goods_no_city(self.area))
+
+    def test_calculating_goods_based_on_city(self):
+        # building city and calculating based on his area.
+        self.game_logic.build_city(self.settler, "test_name")
+        city = self.settler.tile.city
+        assert city is not None
+        city.set_area(self.area)
+        self.assertEqual({'gold': 2, 'wood': 25, 'stone': 5, 'food': 27}, city.calculate_goods())
+
+
     # TODO Krzysiu: city taking tests
 
 
