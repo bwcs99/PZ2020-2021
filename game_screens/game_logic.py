@@ -1,10 +1,10 @@
 import arcade
 
-from game_screens.city import City
 from game_screens.combat.garrison import Garrison
-from game_screens.player import Player
 from game_screens.tiles import Tile, BlinkingTile, BorderTile
 from game_screens.units import Unit, Settler
+from game_screens.city import City
+from game_screens.player import Player
 
 
 class GameLogic:
@@ -28,7 +28,7 @@ class GameLogic:
         self.unit_range.draw()
         while self.disconnected_players:
             player = self.disconnected_players.pop(0)
-            self.players.pop(player)
+            self.kill_player(player)
         for player in self.players.values():
             player.cities.draw()
             for tile in player.borders:
@@ -49,6 +49,8 @@ class GameLogic:
         """
         :return: the tile in column x, row y if it exists, else None
         """
+        if not (0 <= x < self.TILE_COLS and 0 <= y < self.TILE_COLS):
+            return None
         try:
             return self.tiles[y * self.TILE_COLS + x]
         except IndexError:
@@ -114,7 +116,6 @@ class GameLogic:
         :param x: the x (column) coord of the tile to move the unit to
         :param y: the y (row) coord of the tile to move the unit to
         :param cost: cost of the move
-        :returns: a list of killed units
         """
         tile = self.get_tile(x, y)
         target = tile.occupant
@@ -171,10 +172,11 @@ class GameLogic:
         for unit in self.players[owner].units:
             unit.reset_movement()
 
-    def build_city(self, unit: Settler):
+    def get_city_area(self, unit: Settler):
         """
-        Turns a settler unit into a city.
-        :param unit: a settler unit establishing the city
+        Gets area for the city that can be constructed by the unit.
+        :param unit: a settler unit
+        :return: a list of tiles
         """
         surroundings = []
         x, y = unit.tile.coords
@@ -183,18 +185,39 @@ class GameLogic:
                 tile = self.get_tile(x1, y1)
                 if tile and not tile.owner:
                     surroundings.append(tile)
-                    tile.set_owner(unit.owner)
+        return surroundings
 
-        city = unit.build_city(surroundings)
+    def build_city(self, unit: Settler, name: str):
+        """
+        Turns a settler unit into a city.
+        :param name: the name of the new city
+        :param unit: a settler unit establishing the city
+        """
+        surroundings = self.get_city_area(unit)
+        for tile in surroundings:
+            tile.set_owner(unit.owner)
+
+        city = unit.build_city(name, surroundings)
         unit.owner.units.remove(unit)
         unit.owner.cities.append(city)
         self.update_players_borders(unit.owner)
         print("Created city area:", city.area)
 
-    def build_opponents_city(self, x: int, y: int):
+    def build_opponents_city(self, x: int, y: int, name: str):
         """ Turns a settler unit located on tile (x, y) into a city. """
         unit = self.get_tile(x, y).occupant
-        self.build_city(unit)
+        self.build_city(unit, name)
+
+    def kill_player(self, nick: str):
+        """ Cleans up after a player that has been removed from the game. """
+        player = self.players[nick]
+        for city in player.cities:
+            for tile in city.area:
+                tile.owner = None
+                tile.city = None
+        for unit in player.units:
+            unit.tile.occupant = None
+        self.players.pop(nick)
 
     def give_city(self, city: City, new_owner: Player):
         """ Makes the specified player the new owner of the city. """

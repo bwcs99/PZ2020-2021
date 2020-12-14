@@ -15,20 +15,24 @@ from start_screens.build_unit_window import BuildUnitWindow
 # TODO: Add displaying city name
 
 class CityView(arcade.View):
-    def __init__(self, city: City, top_bar):
+    def __init__(self, top_bar):
         super().__init__()
-        self.city = city
+        self.city = None
         self.building_unit_costs = None
-
+        self.app = QApplication([])
         self.top_bar = top_bar
-        self.granary_bar = GranaryPopup(1, 0.15, city)
+        self.granary_bar = None
         self.backup = None
         self.ui_manager = UIManager()
         self.build_unit_button = None
-        arcade.start_render()
+
+    def set_city(self, city: City):
+        self.city = city
+        self.granary_bar = GranaryPopup(1, 0.15, city)
 
     def on_show(self):
-        self.ui_manager.purge_ui_elements()
+        arcade.start_render()
+
         self.backup = arcade.get_viewport()
         arcade.set_viewport(0, self.window.width, 0, self.window.height)
 
@@ -52,7 +56,7 @@ class CityView(arcade.View):
     def on_hide_view(self):
         arcade.set_viewport(*self.backup)
         self.granary_bar.hide()
-        self.ui_manager.unregister_handlers()
+        self.ui_manager.purge_ui_elements()
         self.backup = None
 
     def on_key_press(self, symbol: int, modifiers: int):
@@ -74,10 +78,10 @@ class BuildUnitFlatButton(arcade.gui.UIFlatButton):
     def __init__(self, parent, center_x, center_y):
         super().__init__('Build Unit', center_x=center_x // 2 - 300, center_y=center_y // 4, width=250, )
         self.parent = parent
-        self.app = None
+        self.app = self.parent.app
 
     def on_click(self):
-        self.app = QApplication(sys.argv)
+        #self.app = QApplication(sys.argv)
         win = BuildUnitWindow(self, self.parent)
         win.show()
         self.app.exec_()
@@ -86,17 +90,17 @@ class BuildUnitFlatButton(arcade.gui.UIFlatButton):
 
     def kill_app(self):
         self.app.exit()
-        # self.app = None
+
 
 
 class BuildBuildingFlatButton(arcade.gui.UIFlatButton):
     def __init__(self, parent, center_x, center_y):
         super().__init__('Build Building', center_x=center_x // 2 + 300, center_y=center_y // 4, width=250, )
         self.parent = parent
-        self.app = None
+        self.app = self.parent.app
 
     def on_click(self):
-        self.app = QApplication(sys.argv)
+        #self.app = QApplication(sys.argv)
         win = BuildBuildingWindow(self, self.parent)
         win.show()
         self.app.exec_()

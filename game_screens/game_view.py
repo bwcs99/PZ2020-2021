@@ -2,11 +2,13 @@ import threading
 
 import arcade
 import arcade.gui
+from PyQt5.QtWidgets import QApplication
 
 from game_screens.city_view import CityView
-from game_screens.game_logic import GameLogic
 from game_screens.popups import TopBar, UnitPopup, CityCreationPopup, EndingPopup, FONT_COLOR
+from game_screens.game_logic import GameLogic
 from game_screens.tiles import Tile
+from game_screens.city import City
 
 TOP_BAR_SIZE = 0.0625  # expressed as the percentage of the current screen height
 UNIT_POPUP_SIZE = 3 * TOP_BAR_SIZE
@@ -80,6 +82,7 @@ class GameView(arcade.View):
                 self.tile_sprites.append(tile)
 
         self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS, self.client.players, self.client.nick)
+        self.city_view = CityView(self.top_bar)
 
         threading.Thread(target=self.wait_for_my_turn).start()
 
@@ -266,7 +269,9 @@ class GameView(arcade.View):
 
                     elif self.my_turn:
                         if tile.city:
-                            self.window.show_view(CityView(tile.city, self.top_bar))  # TODO Gabi to tutaj
+                            #self.window.show_view(CityView(tile.city, self.top_bar, self.app))  # TODO Gabi to tutaj
+                            self.city_view.set_city(tile.city)
+                            self.window.show_view(self.city_view)
                         # some cheats, TODO get rid of them maybe
                         else:
                             if modifiers & arcade.key.MOD_SHIFT:
@@ -290,7 +295,7 @@ class GameView(arcade.View):
                     unit = self.unit_popup.unit
                     messages = self.client.add_city(*unit.tile.coords, city_name)
                     self.handle_additional_messages(messages)
-                    self.game_logic.build_city(self.unit_popup.unit)
+                    self.game_logic.build_city(self.unit_popup.unit, city_name)
                     self.unit_popup.hide()
                     self.game_logic.hide_unit_range()
             else:
@@ -301,6 +306,7 @@ class GameView(arcade.View):
                     self.handle_additional_messages(messages)
                     self.unit_popup.hide()
                     self.game_logic.end_turn()
+                    self.top_bar.update_money(self.game_logic.me.granary.gold, 0)  # TODO Gabi gold per turn
                     units = self.game_logic.get_deployed_units()
                     for u in units:
                         x, y = u.tile.coords
@@ -311,15 +317,16 @@ class GameView(arcade.View):
                 elif symbol == arcade.key.N and self.unit_popup.can_build_city():
                     unit = self.unit_popup.unit
                     if self.game_logic.is_unit_mine(unit):
-                        self.city_popup.display(unit)
-                        return
-                # some cheat codes i guess, TODO delete this at some point
+                        area = self.game_logic.get_city_area(unit)
+                        stats = City.calculate_goods_no_city(area)
+                        self.city_popup.display(unit, stats)
+                # TODO DELETE THIS
+                # END GAME EXAMPLE
                 elif symbol == arcade.key.P:
-                    # pressing P ends the game
                     messages = self.client.end_game_by_host()
                     self.handle_additional_messages(messages)
+                # DEFEAT PLAYER EXAMPLE
                 elif symbol == arcade.key.D and self.unit_popup.visible():
-                    # pressing D while an opponent's unit is selected defeats that opponent
                     player_to_kill = self.unit_popup.unit.owner
                     if player_to_kill != self.game_logic.me:
                         messages = self.client.kill(player_to_kill.nick)
@@ -337,11 +344,16 @@ class GameView(arcade.View):
         ranking = []
         for mes in messages:
             print(mes)
+
             if mes[0] == "DISCONNECT" or mes[0] == "DEFEAT":
                 nick = mes[1]
-                self.game_logic.players.pop(nick)
+                self.game_logic.disconnected_players.append(nick)
+                if self.unit_popup.visible() and self.unit_popup.unit.owner.nick == nick:
+                    self.unit_popup.hide()
+
             elif mes[0] == "RANK":
                 ranking.append((mes[1], int(mes[2])))
+
             elif mes[0] == "END_GAME":
                 self.my_turn = False
                 self.ranking = ranking
@@ -393,7 +405,7 @@ class GameView(arcade.View):
                 nick = message[1]
                 x, y = eval(message[2])
                 city_name = message[3]
-                self.game_logic.build_opponents_city(x, y)
+                self.game_logic.build_opponents_city(x, y, city_name)
                 self.unit_popup.hide_if_on_tile(x, y)
 
             elif message[0] == "GIVE_CITY":
@@ -404,6 +416,8 @@ class GameView(arcade.View):
             elif message[0] == "DISCONNECT" or message[0] == "DEFEAT":
                 nick = message[1]
                 self.game_logic.disconnected_players.append(nick)
+                if self.unit_popup.visible() and self.unit_popup.unit.owner.nick == nick:
+                    self.unit_popup.hide()
 
             elif message[0] == "RANK":
                 ranking.append((message[1], int(message[2])))
