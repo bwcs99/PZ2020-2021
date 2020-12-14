@@ -226,7 +226,9 @@ class GameLogic:
             tile.owner = new_owner
         city.color = new_owner.color
         self.update_players_borders(old_owner)
+        old_owner.calculate_daily_income()
         self.update_players_borders(new_owner)
+        new_owner.calculate_daily_income()
 
     def give_opponents_city(self, x: int, y: int, new_owner: str):
         """ Makes the specified player the owner of the city at (x, y), """

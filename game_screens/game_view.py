@@ -83,6 +83,8 @@ class GameView(arcade.View):
         self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS, self.client.players,
                                     self.client.nick)
 
+        self.top_bar.update_treasury(self.game_logic.me.granary, self.game_logic.me.daily_income)
+
         threading.Thread(target=self.wait_for_my_turn).start()
 
     def relative_to_absolute(self, x: float, y: float):
@@ -293,6 +295,7 @@ class GameView(arcade.View):
                     messages = self.client.add_city(*unit.tile.coords, city_name)
                     self.handle_additional_messages(messages)
                     self.game_logic.build_city(self.unit_popup.unit, city_name)
+                    self.top_bar.update_treasury(self.game_logic.me.granary, self.game_logic.me.daily_income)
                     self.unit_popup.hide()
                     self.game_logic.hide_unit_range()
             else:
@@ -304,7 +307,7 @@ class GameView(arcade.View):
                     self.unit_popup.hide()
                     self.game_logic.end_turn()
                     self.top_bar.update_treasury(self.game_logic.me.granary,
-                                                 self.game_logic.me.daily_income)  # TODO Gabi gold per turn
+                                                 self.game_logic.me.daily_income)
                     threading.Thread(target=self.wait_for_my_turn, daemon=True).start()
                 # BUILD A CITY
                 elif symbol == arcade.key.N and self.unit_popup.can_build_city():
@@ -403,6 +406,8 @@ class GameView(arcade.View):
                 x, y = eval(message[1])
                 recipient = message[2]
                 self.game_logic.give_opponents_city(x, y, recipient)
+                """ "Niech tak będzie" ~ PM """
+                # self.top_bar.update_treasury(self.game_logic.me.granary, self.game_logic.me.daily_income)
 
             elif message[0] == "DISCONNECT" or message[0] == "DEFEAT":
                 nick = message[1]

@@ -110,8 +110,8 @@ class TopBar(PopUp):
         left, right, top, bottom = self.coords_lrtb
         self.treasury_label.center_y = self.time_label.center_y = top - self.height / 2
         self.treasury_label.height = self.time_label.height = 0.4 * self.height
-        self.treasury_label.width = len(self.treasury_label.text) / 75 * self.width
-        self.time_label.width = len(self.time_label.text) / 75 * self.width
+        self.treasury_label.width = len(self.treasury_label.text) / 100 * self.width
+        self.time_label.width = len(self.time_label.text) / 100 * self.width
         self.treasury_label.center_x = left + 0.025 * self.width + 0.5 * self.treasury_label.width
         self.time_label.center_x = right - 0.025 * self.width - 0.5 * self.time_label.width
 
@@ -129,14 +129,14 @@ class TopBar(PopUp):
         self.adjust()
 
     def update_treasury(self, total: Granary, change: dict):
-        self.treasury_label.text = "Treasury: G:{} (+{}), W:{} (+{}), S:{} (+{}), F:{} (+{}),".format(total.gold,
-                                                                                                      change["gold"],
-                                                                                                      total.wood,
-                                                                                                      change["wood"],
-                                                                                                      total.stone,
-                                                                                                      change["stone"],
-                                                                                                      total.food,
-                                                                                                      change["food"])
+        self.treasury_label.text = "G:{} (+{}), W:{} (+{}), S:{} (+{}), F:{} (+{})".format(total.gold,
+                                                                                            change["gold"],
+                                                                                            total.wood,
+                                                                                            change["wood"],
+                                                                                            total.stone,
+                                                                                            change["stone"],
+                                                                                            total.food,
+                                                                                            change["food"])
 
     def game_ended(self):
         self.time_label.text = "The game is finished"
