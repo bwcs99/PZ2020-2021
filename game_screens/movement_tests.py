@@ -22,7 +22,7 @@ class MovementTests(unittest.TestCase):
             self.tiles.append(Tile(4, y, 1, 3))
         self.game_logic = GameLogic(self.tiles, 5, 5, players=[("one", CIV_ONE, "gray"), ("two", CIV_TWO, "red")],
                                     my_nick="one")
-        self.game_logic.add_unit(2, 2, "one")
+        self.game_logic.add_unit(2, 2, "one", 'Poor Infantry', 1)
         self.unit = self.game_logic.get_tile(2, 2).occupant
         self.unit.max_movement = 2
         self.unit.reset_movement()
@@ -33,19 +33,19 @@ class MovementTests(unittest.TestCase):
         # plains cost 1 and hills cost 2 to move to them
         # let's check if these costs have been correctly assigned
         for y in range(5):
-            assert self.game_logic.get_tile(0, y).cost == inf
-            assert self.game_logic.get_tile(1, y).cost == 1
-            assert self.game_logic.get_tile(2, y).cost == 2
-            assert self.game_logic.get_tile(3, y).cost == 1
-            assert self.game_logic.get_tile(4, y).cost == inf
+            self.assertEqual(self.game_logic.get_tile(0, y).cost, inf)
+            self.assertEqual(self.game_logic.get_tile(1, y).cost, 1)
+            self.assertEqual(self.game_logic.get_tile(2, y).cost, 2)
+            self.assertEqual(self.game_logic.get_tile(3, y).cost, 1)
+            self.assertEqual(self.game_logic.get_tile(4, y).cost, inf)
 
     def test_unit_placement(self):
         # a unit has been placed on tile (2, 2) in the setup
         # let's check if it is set as the occupant
         tile = self.game_logic.get_tile(2, 2)
-        assert tile.occupant == self.unit
+        self.assertEqual(tile.occupant, self.unit)
         # and it has the correct tile assigned
-        assert self.unit.tile == tile
+        self.assertEqual(self.unit.tile, tile)
 
     def test_movement_range(self):
         # the unit is standing on the central tile
@@ -65,21 +65,21 @@ class MovementTests(unittest.TestCase):
         expected_range[1, 2] = expected_range[3, 2] = 1
 
         unit_range = self.game_logic.get_unit_range(self.unit)
-        assert unit_range == expected_range
+        self.assertEqual(unit_range, expected_range)
 
     def test_simple_move(self):
         # we move one up
         unit_range = self.game_logic.get_unit_range(self.unit)
         self.game_logic.move_unit(self.unit, 2, 3, unit_range[2, 3])
         # the unit should have the cost subtracted from its movement points
-        assert self.unit.movement == self.unit.max_movement - unit_range[2, 3]
+        self.assertEqual(self.unit.movement, self.unit.max_movement - unit_range[2, 3])
         # the previous tile should be unoccupied
-        assert not self.game_logic.get_tile(2, 2).occupied()
+        self.assertFalse(self.game_logic.get_tile(2, 2).occupied())
         # and the occupant of the new tile should be out unit
         # and the unit should have this tile assigned
         new_tile = self.game_logic.get_tile(2, 3)
-        assert new_tile.occupant == self.unit
-        assert self.unit.tile == new_tile
+        self.assertEqual(new_tile.occupant, self.unit)
+        self.assertEqual(self.unit.tile, new_tile)
 
     def test_sequential_move(self):
         # let's assume we move one tile left
@@ -87,16 +87,16 @@ class MovementTests(unittest.TestCase):
         unit_range = self.game_logic.get_unit_range(self.unit)
         self.game_logic.move_unit(self.unit, 1, 2, unit_range[1, 2])
         new_range = self.game_logic.get_unit_range(self.unit)
-        assert len(new_range) == 3  # up, down, or stay in place
-        assert self.unit.movement == 1
+        self.assertEqual(len(new_range), 3)  # up, down, or stay in place
+        self.assertEqual(self.unit.movement, 1)
         # let's move one down now
-        assert (1, 1) in new_range
-        assert new_range[1, 1] == 1
+        self.assertIn((1, 1), new_range)
+        self.assertEqual(new_range[1, 1], 1)
         self.game_logic.move_unit(self.unit, 1, 1, new_range[1, 1])
-        assert self.unit.movement == 0
+        self.assertEqual(self.unit.movement, 0)
         new_tile = self.game_logic.get_tile(1, 1)
-        assert new_tile.occupant == self.unit
-        assert self.unit.tile == new_tile
+        self.assertEqual(new_tile.occupant, self.unit)
+        self.assertEqual(self.unit.tile, new_tile)
 
 
 if __name__ == '__main__':

@@ -2,13 +2,12 @@ import threading
 
 import arcade
 import arcade.gui
-from PyQt5.QtWidgets import QApplication
 
-from game_screens.city_view import CityView
-from game_screens.popups import TopBar, UnitPopup, CityCreationPopup, EndingPopup, FONT_COLOR
-from game_screens.game_logic import GameLogic
-from game_screens.tiles import Tile
 from game_screens.city import City
+from game_screens.city_view import CityView
+from game_screens.game_logic import GameLogic
+from game_screens.popups import TopBar, UnitPopup, CityCreationPopup, EndingPopup, FONT_COLOR
+from game_screens.tiles import Tile
 
 TOP_BAR_SIZE = 0.0625  # expressed as the percentage of the current screen height
 UNIT_POPUP_SIZE = 3 * TOP_BAR_SIZE
@@ -273,7 +272,7 @@ class GameView(arcade.View):
                         if tile.city:
                             self.city_view.set_city(tile.city)
                             self.window.show_view(self.city_view)
-                        # some cheats, TODO get rid of them maybe
+                        # some cheats, TODO make them activate by typing 'AEZAKMI'
                         else:
                             if modifiers & arcade.key.MOD_SHIFT:
                                 # shift + click creates a settler on the tile

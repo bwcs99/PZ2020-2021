@@ -215,11 +215,8 @@ class BuildUnitWindow(QMainWindow):
             self.no_unit_type_label.setVisible(True)
         else:
             self.grandparent.transport_unit_building_costs(self.total_cost_holder)
-            # TODO fix following part after Krzysiu's update
             count = self.how_many_slider.value()
-            # if self.unit_type_holder == "Settler":
-            # self.grandparent.city.unit_currently_being_build = Settler(None, self.grandparent.city.owner)
-            print("Request unit")
+            print(f"Requested unit {self.unit_type_holder}")
             self.grandparent.city.unit_request = {'type': self.unit_type_holder, 'count': count}
             self.grandparent.city.days_left_to_building_completion = self.total_cost_holder["time"]
 

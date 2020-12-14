@@ -110,7 +110,7 @@ class City(arcade.sprite.Sprite):
 
     def pick_tile_to_build_at(self):
         for t in self.area:
-            if not t.occupied() and t.type != 0 and t.type != 3:
+            if not t.occupied() and t.type != 0 and t.type != 3 and t.coords != self.tile.coords:
                 return t
         return None
 

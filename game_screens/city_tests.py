@@ -3,7 +3,8 @@ import unittest
 from game_screens.game_logic import GameLogic
 from game_screens.tiles import Tile
 
-from movement_tests import CIV_ONE, CIV_TWO
+CIV_ONE = "The Great Northern"
+CIV_TWO = "Mixtec"
 
 
 class MovementTests(unittest.TestCase):
@@ -20,7 +21,7 @@ class MovementTests(unittest.TestCase):
             self.tiles.append(Tile(4, y, 1, 3))
         self.game_logic = GameLogic(self.tiles, 5, 5, players=[("one", CIV_ONE, "gray"), ("two", CIV_TWO, "red")],
                                     my_nick="one")
-        self.game_logic.add_unit(2, 2, "one", settler=True)
+        self.game_logic.add_unit(2, 2, "one", 'Settler', 1)
         self.settler = self.game_logic.get_tile(2, 2).occupant
 
     def test_city_building(self):
@@ -31,12 +32,12 @@ class MovementTests(unittest.TestCase):
         player = self.settler.owner
         self.game_logic.build_city(self.settler, "test_name")
         tile = self.settler.tile
-        assert self.settler not in player.units
-        assert not tile.occupied()
+        self.assertNotIn(self.settler, player.units)
+        self.assertFalse(tile.occupied())
         city = tile.city
-        assert city is not None
-        assert city.owner == player
-        assert city.name == "test_name"
+        self.assertIsNotNone(city)
+        self.assertEqual(city.owner, player)
+        self.assertEqual(city.name, "test_name")
 
     def test_city_area(self):
         # a city is created
@@ -47,24 +48,24 @@ class MovementTests(unittest.TestCase):
         city = tile.city
         expected_area = {(x, y) for x in range(1, 4) for y in range(1, 4)}
         real_area = {t.coords for t in city.area}
-        assert expected_area == real_area
+        self.assertEqual(expected_area, real_area)
         for x, y in expected_area:
-            assert self.game_logic.get_tile(x, y).owner == player
+            self.assertEqual(self.game_logic.get_tile(x, y).owner, player)
 
     def test_two_cities_area(self):
         # two cities are created, and the second one is so close that the 3x3 square around it contains
         # the territory of the first one
         # we'll make sure that this territory won't be taken by the new city
-        self.game_logic.add_unit(2, 0, "two", settler=True)
+        self.game_logic.add_unit(2, 0, "two", 'Settler', 1)
         self.game_logic.build_city(self.settler, "one_city")
         self.game_logic.build_opponents_city(2, 0, "two_city")
         expected_area = {(1, 0), (2, 0), (3, 0)}
         city = self.game_logic.get_tile(2, 0).city
         player = city.owner
         real_area = {t.coords for t in city.area}
-        assert expected_area == real_area
+        self.assertEqual(expected_area, real_area)
         for x, y in expected_area:
-            assert self.game_logic.get_tile(x, y).owner == player
+            self.assertEqual(self.game_logic.get_tile(x, y).owner, player)
 
     def test_simple_border(self):
         # a city is created
@@ -73,40 +74,58 @@ class MovementTests(unittest.TestCase):
         expected_border = {(x, y) for x in range(1, 4) for y in range(1, 4) if not x == y == 2}
         player = self.settler.owner
         real_border = {border.tile.coords for border in player.borders}
-        assert expected_border == real_border
+        self.assertEqual(expected_border, real_border)
 
     def test_separated_border(self):
         # two cities whose borders don't touch
         # and they are on screen edges, so their areas are 2x3, which means all their tiles should be borders
-        self.game_logic.add_unit(1, 0, "one", settler=True)
+        self.game_logic.add_unit(1, 0, "one", 'Settler', 1)
         self.game_logic.build_opponents_city(1, 0, "city1")
-        self.game_logic.add_unit(3, 4, "one", settler=True)
+        self.game_logic.add_unit(3, 4, "one", 'Settler', 1)
         self.game_logic.build_opponents_city(3, 4, "city2")
         city1 = self.game_logic.get_tile(1, 0).city
         city2 = self.game_logic.get_tile(3, 4).city
         player = city1.owner
         expected_border = {tile.coords for city in [city1, city2] for tile in city.area}
         real_border = {border.tile.coords for border in player.borders}
-        assert expected_border == real_border
+        self.assertEqual(expected_border, real_border)
 
     def test_border_update(self):
         # we will create two cities so that their borders connect
         # some tiles should stop being borders then
         player = self.settler.owner
         self.game_logic.build_city(self.settler, "city1")
-        assert (2, 1) in [border.tile.coords for border in player.borders]
+        self.assertIn((2, 1), [border.tile.coords for border in player.borders])
         # another city that's very close so the borders touch
-        self.game_logic.add_unit(2, 0, "one", settler=True)
+        self.game_logic.add_unit(2, 0, "one", 'Settler', 1)
         self.game_logic.build_opponents_city(2, 0, "city2")
         expected_border = {(x, y) for x in range(1, 4) for y in range(0, 4) if not (x == 2 and 0 < y < 3)}  # no (2, 1)!
         real_border = {border.tile.coords for border in player.borders}
-        assert expected_border == real_border
+        self.assertEqual(expected_border, real_border)
 
     # TODO Gabi: resource tests
 
     def test_calculating_goods_no_city(self):
         print(self.tiles)
-    # TODO Krzysiu: city taking tests
 
+    def test_city_capture(self):
+        # player two's forces have made it to the players one's stub_city and are ready to capture it
+        self.setUp()
+        x, y = self.settler.tile.coords
+        player1 = self.settler.owner
+        player2 = self.game_logic.players['two']
+        self.game_logic.build_city(self.settler, "stub_city")
+        city = player1.cities[0]
 
+        self.assertNotIn(city, player2.cities)
+        self.game_logic.give_opponents_city(x, y, 'two')
+        self.assertNotIn(city, player1.cities)
+        self.assertIn(city, player2.cities)
+        for t in city.area:
+            self.assertEqual(t.owner, player2)
 
+        # fortunately, it was just player one's sneaky trap and he immediately recovered his city
+
+        self.game_logic.give_opponents_city(x, y, 'one')
+        for t in city.area:
+            self.assertEqual(t.owner, player1)

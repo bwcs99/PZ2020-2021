@@ -9,6 +9,9 @@ SCREEN_WIDTH = 1080
 SCREEN_HEIGHT = 720
 
 if __name__ == "__main__":
+    # import pyglet  # debug purposes
+    # pyglet.options['debug_gl'] = True
+    # pyglet.options['debug_lib'] = True
     app = QApplication(sys.argv)
     win = WelcomeWindow()
     win.show()
