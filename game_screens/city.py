@@ -89,5 +89,5 @@ class City(arcade.sprite.Sprite):
         self.goods = self.calculate_goods()
 
     def get_random_city_visualization_path(self):
-        chosen = random.choice(os.listdir("resources/images/" + f"{self.owner.short_civ}"))
+        chosen = random.choice(os.listdir(os.getcwd() + "/resources/images/" + f"{self.owner.short_civ}"))
         return "resources/images/" + f"{self.owner.short_civ}/" + chosen
