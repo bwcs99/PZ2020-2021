@@ -80,7 +80,8 @@ class GameView(arcade.View):
                 tile.center_y = row * (self.tile_size + MARGIN) + (self.tile_size / 2) + MARGIN + self.centering_y
                 self.tile_sprites.append(tile)
 
-        self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS, self.client.players, self.client.nick)
+        self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS, self.client.players,
+                                    self.client.nick)
 
         threading.Thread(target=self.wait_for_my_turn).start()
 
@@ -302,7 +303,8 @@ class GameView(arcade.View):
                     self.handle_additional_messages(messages)
                     self.unit_popup.hide()
                     self.game_logic.end_turn()
-                    self.top_bar.update_money(self.game_logic.me.granary.gold, 0)  # TODO Gabi gold per turn
+                    self.top_bar.update_treasury(self.game_logic.me.granary,
+                                                 self.game_logic.me.daily_income)  # TODO Gabi gold per turn
                     threading.Thread(target=self.wait_for_my_turn, daemon=True).start()
                 # BUILD A CITY
                 elif symbol == arcade.key.N and self.unit_popup.can_build_city():

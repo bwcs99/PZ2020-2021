@@ -7,6 +7,7 @@ from game_screens.units import Settler
 from game_screens.combat.garrison import Garrison
 import arcade.gui
 
+from granary import Granary
 
 BACKGROUND_COLOR = arcade.color.ST_PATRICK_BLUE
 FONT_COLOR = arcade.color.WHITE
@@ -91,13 +92,13 @@ class TopBar(PopUp):
         """
         super().__init__(0, 1 - size, 1, size, background_color)
 
-        self.money_label = arcade.gui.UILabel("Treasury: 0 (+0)", 0, 0)
-        self.money_label.color = font_color
+        self.treasury_label = arcade.gui.UILabel("Treasury: 0 (+0)", 0, 0)
+        self.treasury_label.color = font_color
         self.time_label = arcade.gui.UILabel("Press SPACE to end turn (5:00)", 0, 0)
         self.time_label.color = font_color
         self.adjust()
         self.max_height = self.height
-        self.add_ui_element(self.money_label)
+        self.add_ui_element(self.treasury_label)
         self.add_ui_element(self.time_label)
         self.ended = False
 
@@ -107,11 +108,11 @@ class TopBar(PopUp):
         """
         self.adjust_coords()
         left, right, top, bottom = self.coords_lrtb
-        self.money_label.center_y = self.time_label.center_y = top - self.height / 2
-        self.money_label.height = self.time_label.height = 0.4 * self.height
-        self.money_label.width = len(self.money_label.text) / 75 * self.width
+        self.treasury_label.center_y = self.time_label.center_y = top - self.height / 2
+        self.treasury_label.height = self.time_label.height = 0.4 * self.height
+        self.treasury_label.width = len(self.treasury_label.text) / 75 * self.width
         self.time_label.width = len(self.time_label.text) / 75 * self.width
-        self.money_label.center_x = left + 0.025 * self.width + 0.5 * self.money_label.width
+        self.treasury_label.center_x = left + 0.025 * self.width + 0.5 * self.treasury_label.width
         self.time_label.center_x = right - 0.025 * self.width - 0.5 * self.time_label.width
 
     def turn_change(self, nick: str = None):
@@ -127,8 +128,15 @@ class TopBar(PopUp):
             self.time_label.text = "Press SPACE to end turn (5:00)"
         self.adjust()
 
-    def update_money(self, total, change):
-        self.money_label.text = f"Treasury: {total} (+{change})"
+    def update_treasury(self, total: Granary, change: dict):
+        self.treasury_label.text = "Treasury: G:{} (+{}), W:{} (+{}), S:{} (+{}), F:{} (+{}),".format(total.gold,
+                                                                                                      change["gold"],
+                                                                                                      total.wood,
+                                                                                                      change["wood"],
+                                                                                                      total.stone,
+                                                                                                      change["stone"],
+                                                                                                      total.food,
+                                                                                                      change["food"])
 
     def game_ended(self):
         self.time_label.text = "The game is finished"
@@ -443,10 +451,8 @@ class EndingPopup(PopUp):
             player.width = len(player.text) * 0.8 * self.width / (self.MAX_USERNAME_LENGTH + 3)
             player.center_x = left + 0.1 * self.width + 0.5 * player.width
             player.height = 0.8 * base_height
-            player.center_y = top - (i+3) * base_height
+            player.center_y = top - (i + 3) * base_height
 
     def on_key_press(self, symbol: int, modifiers: int):
         if self.visible() and symbol == arcade.key.ESCAPE:
             self.hide()
-
-

@@ -196,6 +196,7 @@ class GameLogic:
         city = unit.build_city(name, surroundings)
         unit.owner.units.remove(unit)
         unit.owner.cities.append(city)
+        unit.owner.calculate_daily_income()  # to update player.daily_income used in top_bar
         self.update_players_borders(unit.owner)
         print("Created city area:", city.area)
 

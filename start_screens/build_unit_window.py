@@ -27,7 +27,7 @@ class BuildUnitWindow(QMainWindow):
         self.how_many_slider = QtWidgets.QSlider(self.centralwidget)
         self.how_many_slider.setGeometry(QtCore.QRect(20, 210, 331, 20))
         self.how_many_slider.setOrientation(QtCore.Qt.Horizontal)
-        self.how_many_slider.setMinimum(0)
+        self.how_many_slider.setMinimum(1)
         self.how_many_slider.setMaximum(100)
         self.how_many_slider.setTickInterval(10)  # works when you click next to slider
         self.how_many_slider.setSingleStep(10)
@@ -191,14 +191,14 @@ class BuildUnitWindow(QMainWindow):
     def change_slider_from_line_edit(self):
         try:
             number = int(self.how_many_line_edit.text())
-            if number < 0:
-                number = 0
+            if number < 1:
+                number = 1
                 self.how_many_line_edit.setText(str(number))
             elif number > 100:
                 number = 100
                 self.how_many_line_edit.setText(str(number))
         except:  # catches all strange input
-            number = 0
+            number = 1
             self.how_many_line_edit.setText(str(number))
         self.how_many_slider.setValue(number)
         self.recalculate_costs()
