@@ -25,6 +25,7 @@ class CityView(arcade.View):
         self.backup = None
         self.ui_manager = UIManager()
         self.build_unit_button = None
+        self.build_building_window = None
 
     def set_city(self, city: City):
         self.city = city
@@ -81,7 +82,7 @@ class BuildUnitFlatButton(arcade.gui.UIFlatButton):
         self.app = self.parent.app
 
     def on_click(self):
-        #self.app = QApplication(sys.argv)
+        # self.app = QApplication(sys.argv)
         win = BuildUnitWindow(self, self.parent)
         win.show()
         self.app.exec_()
@@ -92,7 +93,6 @@ class BuildUnitFlatButton(arcade.gui.UIFlatButton):
         self.app.exit()
 
 
-
 class BuildBuildingFlatButton(arcade.gui.UIFlatButton):
     def __init__(self, parent, center_x, center_y):
         super().__init__('Build Building', center_x=center_x // 2 + 300, center_y=center_y // 4, width=250, )
@@ -100,7 +100,7 @@ class BuildBuildingFlatButton(arcade.gui.UIFlatButton):
         self.app = self.parent.app
 
     def on_click(self):
-        #self.app = QApplication(sys.argv)
+        # self.app = QApplication(sys.argv)
         win = BuildBuildingWindow(self, self.parent)
         win.show()
         self.app.exec_()
@@ -109,4 +109,4 @@ class BuildBuildingFlatButton(arcade.gui.UIFlatButton):
 
     def kill_app(self):
         self.app.exit()
-        #self.app = None
+        # self.app = None
