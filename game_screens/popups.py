@@ -2,12 +2,12 @@ from copy import copy
 import random
 
 import arcade
-from city import City
-from game_screens.units import Settler
-from game_screens.combat.garrison import Garrison
 import arcade.gui
 
-from granary import Granary
+from game_screens.city import City
+from game_screens.combat.garrison import Garrison
+from game_screens.units import Settler
+from game_screens.granary import Granary
 
 BACKGROUND_COLOR = arcade.color.ST_PATRICK_BLUE
 FONT_COLOR = arcade.color.WHITE

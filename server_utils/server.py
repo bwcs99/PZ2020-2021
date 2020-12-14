@@ -2,8 +2,8 @@ import socket
 import threading
 from random import randint
 
-from server_utils.player import Player
 from map_generation.spread_players import spread_across_the_map
+from server_utils.player import Player
 
 # Dane potrzebne do wystartowania serwera.
 PORT = 65001
@@ -186,7 +186,7 @@ class Server:
             response.append(f"{request[1]}: YOU HAVE STARTED THE GAME".encode(FORMAT))
             start_coords = spread_across_the_map(self.map_to_send, len(self.queue))
             for i, (y, x) in enumerate(start_coords):
-                broadcast.append(f"ADD_UNIT:{self.queue[i].player_name}:{(x, y)}:settler".encode(FORMAT))
+                broadcast.append(f"ADD_UNIT:{self.queue[i].player_name}:{(x, y)}:Settler:1".encode(FORMAT))
             broadcast.append(f"TURN:{self.queue[0].player_name}".encode(FORMAT))
 
         elif request[0] == "EXIT_LOBBY":

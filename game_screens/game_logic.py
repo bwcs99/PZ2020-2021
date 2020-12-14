@@ -42,6 +42,9 @@ class GameLogic:
         self.hide_unit_range()
         self.me.collect_from_cities()  # maybe this should be here?
 
+    def get_deployed_units(self):
+        return self.me.deploy_units()
+
     def get_tile(self, x: int, y: int) -> Tile or None:
         """
         :return: the tile in column x, row y if it exists, else None
@@ -66,21 +69,22 @@ class GameLogic:
         self.unit_range = arcade.SpriteList()
         self.move_costs = None
 
-    def add_unit(self, x: int, y: int, owner: str, settler: bool = False):
+    def add_unit(self, x: int, y: int, owner: str, unit_type: str, count: int):
         """
         Adds a new unit to the map.
 
         :param x: the x (column) coord of the tile to place the unit on
         :param y: the y (row) coord of the tile to place the unit on
         :param owner: the nickname of the player owning the unit
-        :param settler: whether the unit is a settler
+        :param unit_type: Settler, Archer, Poor Infantry or Calvary
+        :param count: number of soldiers
         """
         tile = self.get_tile(x, y)
         owner = self.players[owner]
-        if settler:
+        if unit_type == 'Settler':
             unit = Settler(tile, owner)
         else:
-            unit = Garrison(tile, owner, "Archers", 20)
+            unit = Garrison(tile, owner, unit_type, count)
         tile.occupant = unit
         owner.units.append(unit)
 

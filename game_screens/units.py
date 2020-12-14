@@ -38,8 +38,11 @@ class Unit(arcade.sprite.Sprite):
 
 class Settler(Unit):
     def __init__(self, tile, owner):
+        # if tile is not None:
         super().__init__(tile, owner)
         self.angle = 90
+        self.type = 'Settler'
+        self.count = 1
 
     def __str__(self):
         return f"{self.owner.short_civ.capitalize()} Settlers"

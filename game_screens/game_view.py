@@ -3,11 +3,11 @@ import threading
 import arcade
 import arcade.gui
 
-from game_screens.city_view import CityView
-from game_screens.popups import TopBar, UnitPopup, CityCreationPopup, EndingPopup, FONT_COLOR
-from game_screens.game_logic import GameLogic
-from game_screens.tiles import Tile
 from game_screens.city import City
+from game_screens.city_view import CityView
+from game_screens.game_logic import GameLogic
+from game_screens.popups import TopBar, UnitPopup, CityCreationPopup, EndingPopup, FONT_COLOR
+from game_screens.tiles import Tile
 
 TOP_BAR_SIZE = 0.0625  # expressed as the percentage of the current screen height
 UNIT_POPUP_SIZE = 3 * TOP_BAR_SIZE
@@ -80,9 +80,9 @@ class GameView(arcade.View):
                 tile.center_y = row * (self.tile_size + MARGIN) + (self.tile_size / 2) + MARGIN + self.centering_y
                 self.tile_sprites.append(tile)
 
-        self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS, self.client.players,
-                                    self.client.nick)
 
+        self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS, self.client.players, self.client.nick)
+        self.city_view = CityView(self.top_bar)
         self.top_bar.update_treasury(self.game_logic.me.granary, self.game_logic.me.daily_income)
 
         threading.Thread(target=self.wait_for_my_turn).start()
@@ -270,17 +270,18 @@ class GameView(arcade.View):
 
                     elif self.my_turn:
                         if tile.city:
-                            self.window.show_view(CityView(tile.city, self.top_bar))
-                        # some cheats, TODO get rid of them maybe
+                            self.city_view.set_city(tile.city)
+                            self.window.show_view(self.city_view)
+                        # some cheats, TODO make them activate by typing 'AEZAKMI'
                         else:
                             if modifiers & arcade.key.MOD_SHIFT:
                                 # shift + click creates a settler on the tile
-                                self.game_logic.add_unit(tile_col, tile_row, self.client.nick, settler=True)
-                                messages = self.client.add_unit(tile_col, tile_row, "settler")
+                                self.game_logic.add_unit(tile_col, tile_row, self.client.nick, 'Settler', 1)
+                                messages = self.client.add_unit(tile_col, tile_row, "Settler", 1)
                             else:
                                 # regular click creates some garrison (see GameLogic.add_unit)
-                                self.game_logic.add_unit(tile_col, tile_row, self.client.nick)
-                                messages = self.client.add_unit(tile_col, tile_row, "not settler")
+                                self.game_logic.add_unit(tile_col, tile_row, self.client.nick, 'Archers', 10)
+                                messages = self.client.add_unit(tile_col, tile_row, "Archers", 10)
                             self.handle_additional_messages(messages)
 
     def on_key_press(self, symbol, modifiers):
@@ -302,12 +303,18 @@ class GameView(arcade.View):
                 # END TURN
                 if symbol == arcade.key.SPACE:
                     self.my_turn = False
-                    messages = self.client.end_turn()
-                    self.handle_additional_messages(messages)
                     self.unit_popup.hide()
                     self.game_logic.end_turn()
                     self.top_bar.update_treasury(self.game_logic.me.granary,
                                                  self.game_logic.me.daily_income)
+                    units = self.game_logic.get_deployed_units()
+                    for u in units:
+                        x, y = u.tile.coords
+                        messages = self.client.add_unit(x, y, u.type, u.count)
+                        self.handle_additional_messages(messages)
+
+                    messages = self.client.end_turn()
+                    self.handle_additional_messages(messages)
                     threading.Thread(target=self.wait_for_my_turn, daemon=True).start()
                 # BUILD A CITY
                 elif symbol == arcade.key.N and self.unit_popup.can_build_city():
@@ -375,7 +382,9 @@ class GameView(arcade.View):
             elif message[0] == "ADD_UNIT":
                 nick = message[1]
                 x, y = eval(message[2])
-                self.game_logic.add_unit(x, y, nick, message[3] == "settler")
+                unit_type = message[3]
+                count = int(message[4])
+                self.game_logic.add_unit(x, y, nick, unit_type, count)
 
             elif message[0] == "MOVE_UNIT":
                 x0, y0 = eval(message[1])

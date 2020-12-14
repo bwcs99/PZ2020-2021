@@ -42,3 +42,12 @@ class Player:
 
         print(daily_income)
         self.daily_income = daily_income
+
+    def deploy_units(self):
+        units_done = []
+        for city in self.cities:
+            unit = city.collect_units()
+            if unit is not None:
+                self.units.append(unit)
+                units_done.append(unit)
+        return units_done

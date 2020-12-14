@@ -113,6 +113,7 @@ class MovementTests(unittest.TestCase):
         self.assertEqual(expected_border, real_border)
 
     def test_calculating_goods_no_city(self):
+<<<<<<< HEAD
         # just check based on known output
         self.assertEqual({'gold': 2, 'wood': 25, 'stone': 5, 'food': 27}, City.calculate_goods_no_city(self.area))
 
@@ -125,7 +126,9 @@ class MovementTests(unittest.TestCase):
         self.assertEqual({'gold': 2, 'wood': 25, 'stone': 5, 'food': 27}, city.calculate_goods())
 
 
-    # TODO Krzysiu: city taking tests
+    # TODO Krzysiu: city taking tests=======
+        print(self.tiles)
+>>>>>>> main
 
     def test_city_capture(self):
         # player two's forces have made it to the players one's stub_city and are ready to capture it

@@ -1,4 +1,3 @@
-import ast
 import socket
 
 # Dane potrzebne do połączenia się z serwerem
@@ -197,12 +196,13 @@ class Client:
         except OSError:
             return self.unexpected_messages("END_GAME")
 
-    def add_unit(self, x, y, unit_type):
+    def add_unit(self, x, y, unit_type, count):
         """
         Adds a unit of the specified type on tile (x,y). It's owner is the player sending the message since only
         they can create a unit for themself.
         """
-        msg = f"ADD_UNIT:{self.nick}:({x},{y}):{unit_type}"
+        msg = f"ADD_UNIT:{self.nick}:({x},{y}):{unit_type}:{count}"
+        print(msg, "-test")
         try:
             self.only_send(msg)
             return self.unexpected_messages(msg)

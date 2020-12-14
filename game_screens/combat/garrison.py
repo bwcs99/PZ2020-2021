@@ -15,8 +15,7 @@ class Garrison(Unit):
     """ Unit inheritance that represents a group of soldiers. """
 
     def __init__(self, tile, owner, soldier_type, count):
-        if tile is not None:
-            super().__init__(tile, owner)
+        super().__init__(tile, owner)
         soldier_stats = SOLDIER_PROPS[soldier_type]
         self.type = soldier_type
         self.damage = soldier_stats['damage']
@@ -36,8 +35,8 @@ class Garrison(Unit):
             random.seed(seed)
         else:
             random.seed()
-        print(f"\nA battle between {defender.owner}'s {defender.count} {defender.type} "
-              f"and {attacker.owner}'s {attacker.count} {attacker.type} is about to start!")
+        print(f"\nA battle between {defender.owner.short_civ.capitalize()} {defender.count} {defender.type} "
+              f"and {attacker.owner.short_civ.capitalize()} {attacker.count} {attacker.type} is about to start!")
         while defender.health > 0 and attacker.health > 0:
             if random.uniform(0, 1) < attacker.probability:
                 defender.health -= attacker.damage
@@ -52,7 +51,8 @@ class Garrison(Unit):
             winner = None  # draw, both died :<
 
         if winner is not None:
-            print(f'The winner is {winner.owner}!\nWith {winner.health} total health left.')
+            print(f'The winner is {winner.owner.short_civ.capitalize()} {winner.type}!'
+                  f'\nWith {winner.health} total health left.')
         else:
             print('Both sides have suffered extreme damage.')
         return winner
