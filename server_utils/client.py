@@ -202,6 +202,7 @@ class Client:
         they can create a unit for themself.
         """
         msg = f"ADD_UNIT:{self.nick}:({x},{y}):{unit_type}:{count}"
+        print(msg, "-test")
         try:
             self.only_send(msg)
             return self.unexpected_messages(msg)
