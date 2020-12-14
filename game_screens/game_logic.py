@@ -46,7 +46,7 @@ class GameLogic:
         """
         :return: the tile in column x, row y if it exists, else None
         """
-        if not (0 < x < self.TILE_COLS and 0 < y < self.TILE_COLS):
+        if not (0 <= x < self.TILE_COLS and 0 <= y < self.TILE_COLS):
             return None
         try:
             return self.tiles[y * self.TILE_COLS + x]
