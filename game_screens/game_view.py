@@ -2,6 +2,7 @@ import threading
 
 import arcade
 import arcade.gui
+from PyQt5.QtWidgets import QApplication
 
 from game_screens.city_view import CityView
 from game_screens.popups import TopBar, UnitPopup, CityCreationPopup, EndingPopup, FONT_COLOR
@@ -80,9 +81,9 @@ class GameView(arcade.View):
                 tile.center_y = row * (self.tile_size + MARGIN) + (self.tile_size / 2) + MARGIN + self.centering_y
                 self.tile_sprites.append(tile)
 
-        self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS, self.client.players,
-                                    self.client.nick)
 
+        self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS, self.client.players, self.client.nick)
+        self.city_view = CityView(self.top_bar)
         self.top_bar.update_treasury(self.game_logic.me.granary, self.game_logic.me.daily_income)
 
         threading.Thread(target=self.wait_for_my_turn).start()
@@ -270,7 +271,8 @@ class GameView(arcade.View):
 
                     elif self.my_turn:
                         if tile.city:
-                            self.window.show_view(CityView(tile.city, self.top_bar))
+                            self.city_view.set_city(tile.city)
+                            self.window.show_view(self.city_view)
                         # some cheats, TODO get rid of them maybe
                         else:
                             if modifiers & arcade.key.MOD_SHIFT:
