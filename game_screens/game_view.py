@@ -304,8 +304,6 @@ class GameView(arcade.View):
                 # END TURN
                 if symbol == arcade.key.SPACE:
                     self.my_turn = False
-                    messages = self.client.end_turn()
-                    self.handle_additional_messages(messages)
                     self.unit_popup.hide()
                     self.game_logic.end_turn()
                     self.top_bar.update_treasury(self.game_logic.me.granary,
@@ -315,6 +313,9 @@ class GameView(arcade.View):
                         x, y = u.tile.coords
                         messages = self.client.add_unit(x, y, u.type, u.count)
                         self.handle_additional_messages(messages)
+
+                    messages = self.client.end_turn()
+                    self.handle_additional_messages(messages)
                     threading.Thread(target=self.wait_for_my_turn, daemon=True).start()
                 # BUILD A CITY
                 elif symbol == arcade.key.N and self.unit_popup.can_build_city():
