@@ -277,12 +277,12 @@ class GameView(arcade.View):
                         else:
                             if modifiers & arcade.key.MOD_SHIFT:
                                 # shift + click creates a settler on the tile
-                                self.game_logic.add_unit(tile_col, tile_row, self.client.nick, settler=True)
-                                messages = self.client.add_unit(tile_col, tile_row, "settler")
+                                self.game_logic.add_unit(tile_col, tile_row, self.client.nick, 'Settler', 1)
+                                messages = self.client.add_unit(tile_col, tile_row, "Settler", 1)
                             else:
                                 # regular click creates some garrison (see GameLogic.add_unit)
-                                self.game_logic.add_unit(tile_col, tile_row, self.client.nick)
-                                messages = self.client.add_unit(tile_col, tile_row, "not settler")
+                                self.game_logic.add_unit(tile_col, tile_row, self.client.nick, 'Archers', 10)
+                                messages = self.client.add_unit(tile_col, tile_row, "Archers", 10)
                             self.handle_additional_messages(messages)
 
     def on_key_press(self, symbol, modifiers):
