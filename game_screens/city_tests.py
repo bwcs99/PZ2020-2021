@@ -103,9 +103,10 @@ class MovementTests(unittest.TestCase):
         assert expected_border == real_border
 
     # TODO Gabi: resource tests
+
+    def test_calculating_goods_no_city(self):
+        print(self.tiles)
     # TODO Krzysiu: city taking tests
-
-
 
 
 
