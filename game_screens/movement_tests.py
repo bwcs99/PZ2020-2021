@@ -99,3 +99,5 @@ class MovementTests(unittest.TestCase):
         assert self.unit.tile == new_tile
 
 
+if __name__ == '__main__':
+    unittest.main()

@@ -4,9 +4,9 @@ import arcade
 from PyQt5.QtWidgets import QApplication
 from arcade.gui import UIManager
 
-from build_building_window import BuildBuildingWindow
 from game_screens.city import City
 from game_screens.popups import GranaryPopup
+from start_screens.build_building_window import BuildBuildingWindow
 from start_screens.build_unit_window import BuildUnitWindow
 
 
@@ -86,7 +86,7 @@ class BuildUnitFlatButton(arcade.gui.UIFlatButton):
 
     def kill_app(self):
         self.app.exit()
-        self.app = None
+        # self.app = None
 
 
 class BuildBuildingFlatButton(arcade.gui.UIFlatButton):
@@ -105,4 +105,4 @@ class BuildBuildingFlatButton(arcade.gui.UIFlatButton):
 
     def kill_app(self):
         self.app.exit()
-        self.app = None
+        #self.app = None

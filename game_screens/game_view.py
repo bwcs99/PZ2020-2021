@@ -4,8 +4,8 @@ import arcade
 import arcade.gui
 
 from game_screens.city_view import CityView
-from game_screens.popups import TopBar, UnitPopup, CityCreationPopup, EndingPopup, FONT_COLOR
 from game_screens.game_logic import GameLogic
+from game_screens.popups import TopBar, UnitPopup, CityCreationPopup, EndingPopup, FONT_COLOR
 from game_screens.tiles import Tile
 
 TOP_BAR_SIZE = 0.0625  # expressed as the percentage of the current screen height
@@ -301,6 +301,11 @@ class GameView(arcade.View):
                     self.handle_additional_messages(messages)
                     self.unit_popup.hide()
                     self.game_logic.end_turn()
+                    units = self.game_logic.get_deployed_units()
+                    for u in units:
+                        x, y = u.tile.coords
+                        messages = self.client.add_unit(x, y, u.type, u.count)
+                        self.handle_additional_messages(messages)
                     threading.Thread(target=self.wait_for_my_turn, daemon=True).start()
                 # BUILD A CITY
                 elif symbol == arcade.key.N and self.unit_popup.can_build_city():
@@ -362,7 +367,9 @@ class GameView(arcade.View):
             elif message[0] == "ADD_UNIT":
                 nick = message[1]
                 x, y = eval(message[2])
-                self.game_logic.add_unit(x, y, nick, message[3] == "settler")
+                unit_type = message[3]
+                count = int(message[4])
+                self.game_logic.add_unit(x, y, nick, unit_type, count)
 
             elif message[0] == "MOVE_UNIT":
                 x0, y0 = eval(message[1])

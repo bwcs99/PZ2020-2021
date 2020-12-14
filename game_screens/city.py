@@ -24,11 +24,13 @@ class City(arcade.sprite.Sprite):
         self.goods = self.calculate_goods()  # this will/is used for displaying stats of the city
         self.granary = Granary()
 
-        self.unit_currently_being_build = None  # if no unit is being build this should be None
-        self.days_left_to_building_completion = None
+        self.unit_request = None  # if no unit is being build this should be None
+
+        self.days_left_to_building_completion = 0
 
     def __str__(self):
-        return f"City_name: {self.name}, Owner: {self.owner.nick}, Civ: {self.owner.civilisation}, Coordinates: {self.tile.coords}, Goods: {self.goods}."
+        return f"City_name: {self.name}, Owner: {self.owner.nick}, " \
+               f"Civ: {self.owner.civilisation}, Coordinates: {self.tile.coords}, Goods: {self.goods}."
 
     def get_city_goods_income(self):
         return self.goods
@@ -78,6 +80,34 @@ class City(arcade.sprite.Sprite):
                 goods['stone'] += 5
         return goods
 
+    def collect_units(self):
+        print("Begin collecting units.")
+        print(self.unit_request)
+        self.days_left_to_building_completion -= 1
+        if self.unit_request is not None and self.days_left_to_building_completion <= 0:
+            request = self.unit_request
+            tile = self.pick_tile_to_build_at()
+            if tile is not None:
+                from game_screens.combat.garrison import Garrison
+                from game_screens.units import Settler
+                if request['type'] == 'Settler':
+                    unit = Settler(tile, self.owner)
+                else:
+                    unit = Garrison(tile, self.owner, request['type'], request['count'])
+                tile.occupant = unit
+                print(f"Unit {str(unit)} finished recruiting.")
+                self.unit_request = None
+                return unit
+            else:
+                print(f"No space left near the city for a new unit.")
+        return None
+
+    def pick_tile_to_build_at(self):
+        for t in self.area:
+            if not t.occupied() and t.type != 0 and t.type != 3:
+                return t
+        return None
+
     def set_area(self, area: list):
         self.area = area
         self.goods = self.calculate_goods()
@@ -104,3 +134,4 @@ class City(arcade.sprite.Sprite):
     def get_random_city_visualization_path(self):
         chosen = random.choice(os.listdir("resources/images/" + f"{self.owner.short_civ}"))
         return "resources/images/" + f"{self.owner.short_civ}/" + chosen
+

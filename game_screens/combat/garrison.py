@@ -15,8 +15,7 @@ class Garrison(Unit):
     """ Unit inheritance that represents a group of soldiers. """
 
     def __init__(self, tile, owner, soldier_type, count):
-        if tile is not None:
-            super().__init__(tile, owner)
+        super().__init__(tile, owner)
         soldier_stats = SOLDIER_PROPS[soldier_type]
         self.type = soldier_type
         self.damage = soldier_stats['damage']

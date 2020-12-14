@@ -28,3 +28,12 @@ class Player:
             city.gather_materials()  # may show some warning, don't worry brother
             city.collect_from_city()  # it's ok
             print(self.granary)
+
+    def deploy_units(self):
+        units_done = []
+        for city in self.cities:
+            unit = city.collect_units()
+            if unit is not None:
+                self.units.append(unit)
+                units_done.append(unit)
+        return units_done

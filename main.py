@@ -9,6 +9,13 @@ SCREEN_WIDTH = 1080
 SCREEN_HEIGHT = 720
 
 if __name__ == "__main__":
+    from ctypes import c_long
+    from pyglet.gl import glGetIntegerv, GL_MAX_TEXTURE_SIZE
+
+    i = c_long()
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, i)
+    print(i)  # output: c_long(1024) (or higher)
+
     app = QApplication(sys.argv)
     win = WelcomeWindow()
     win.show()
