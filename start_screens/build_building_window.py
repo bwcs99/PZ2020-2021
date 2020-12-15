@@ -115,13 +115,13 @@ class BuildBuildingWindow(QMainWindow):
         self.label_5.setText(_translate("MainWindow", "Cost:"))
         self.label_8.setText(_translate("MainWindow", "stone"))
         self.pushButton.setText(_translate("MainWindow", "Build"))
-        self.label_2.setText(_translate("MainWindow", "Astronomic Tower"))
+        self.label_2.setText(_translate("MainWindow", "Mines"))
         self.image_2.setText(_translate("MainWindow", "TextLabel"))
-        self.label_9.setText(_translate("MainWindow", "Astronomic Tower"))
+        self.label_9.setText(_translate("MainWindow", "Free Market"))
         self.image_3.setText(_translate("MainWindow", "TextLabel"))
-        self.label_10.setText(_translate("MainWindow", "Astronomic Tower"))
+        self.label_10.setText(_translate("MainWindow", "Armory"))
         self.image_4.setText(_translate("MainWindow", "TextLabel"))
-        self.label_11.setText(_translate("MainWindow", "Astronomic Tower"))
+        self.label_11.setText(_translate("MainWindow", "Passiflora"))
         self.image_5.setText(_translate("MainWindow", "TextLabel"))
 
     def closeEvent(self, event) -> None:
