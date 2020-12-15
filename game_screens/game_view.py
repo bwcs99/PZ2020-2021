@@ -242,7 +242,7 @@ class GameView(arcade.View):
                                         messages = self.client.kill(opponent.nick)
                                         self.handle_additional_messages(messages)
                                         # if that was the last opponent, the game is over
-                                        if len(self.game_logic.players) == 1:
+                                        if len(self.game_logic.players) - len(self.game_logic.disconnected_players) == 1:
                                             self.game_logic.hide_unit_range()
                                             self.unit_popup.hide()
                                             messages = self.client.end_game_by_host()
