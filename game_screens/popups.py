@@ -195,7 +195,7 @@ class UnitPopup(PopUp):
                 self.action_label.text = ""
 
             self.move_label.text = f"Movement: {f'{self.unit.movement}/{self.unit.max_movement}'.rjust(7, ' ')}"
-            self.health_label.text = f"Health: {f'{self.unit.health}%'.rjust(10, ' ')}"
+            self.health_label.text = f"Health: {f'{self.unit.health} HP'.rjust(10, ' ')}"
             self.adjust()
 
     def hide(self):
