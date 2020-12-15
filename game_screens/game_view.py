@@ -396,7 +396,7 @@ class GameView(arcade.View):
             elif message[0] == "HEALTH":
                 x, y = eval(message[1])
                 health = int(message[2])
-                if health == 0:
+                if health <= 0:
                     self.game_logic.kill_opponents_unit(x, y)
                     self.unit_popup.hide_if_on_tile(x, y)
                 else:
