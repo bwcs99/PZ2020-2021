@@ -58,7 +58,7 @@ class CityView(arcade.View):
         arcade.set_viewport(*self.backup)
         self.granary_bar.hide()
         self.ui_manager.purge_ui_elements()
-        self.backup = None
+        # self.backup = None
 
     def on_key_press(self, symbol: int, modifiers: int):
         if symbol == arcade.key.ESCAPE:
@@ -71,8 +71,7 @@ class CityView(arcade.View):
         This method is called by BuildUnitWindow. This name should NOT be changed.
         """
         self.building_unit_costs = total_costs
-        print(self.building_unit_costs)
-        self.on_show()
+        print("Building unit costs: ", self.building_unit_costs)
 
 
 class BuildUnitFlatButton(arcade.gui.UIFlatButton):

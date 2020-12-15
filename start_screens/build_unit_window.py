@@ -29,8 +29,8 @@ class BuildUnitWindow(QMainWindow):
         self.how_many_slider.setMaximum(100)
         self.how_many_slider.setTickInterval(10)  # works when you click next to slider
         self.how_many_slider.setSingleStep(10)
-
         self.how_many_slider.valueChanged.connect(self.recalculate_how_many)
+        self.how_many_slider.setValue(1)
 
         self.how_many_line_edit = QtWidgets.QLineEdit(self.centralwidget)
         self.how_many_line_edit.setGeometry(QtCore.QRect(360, 210, 81, 21))
