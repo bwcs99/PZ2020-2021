@@ -1,4 +1,7 @@
+import os
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget
 
 
@@ -19,6 +22,9 @@ class BuildBuildingWindow(QMainWindow):
 
         self.image_1 = QtWidgets.QLabel(self.centralwidget)
         self.image_1.setGeometry(QtCore.QRect(20, 20, 81, 71))
+        pixmap = QPixmap(os.getcwd() + '/resources/images/buildings/astronomic_tower.png')
+        self.image_1.setPixmap(pixmap)
+        self.image_1.setScaledContents(True)
 
         self.radioButton = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton.setGeometry(QtCore.QRect(350, 50, 21, 21))
@@ -69,6 +75,9 @@ class BuildBuildingWindow(QMainWindow):
 
         self.image_2 = QtWidgets.QLabel(self.centralwidget)
         self.image_2.setGeometry(QtCore.QRect(20, 110, 81, 71))
+        pixmap = QPixmap(os.getcwd() + '/resources/images/buildings/mines.png')
+        self.image_2.setPixmap(pixmap)
+        self.image_2.setScaledContents(True)
 
         self.radioButton_3 = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton_3.setGeometry(QtCore.QRect(350, 230, 21, 21))
@@ -79,6 +88,9 @@ class BuildBuildingWindow(QMainWindow):
 
         self.image_3 = QtWidgets.QLabel(self.centralwidget)
         self.image_3.setGeometry(QtCore.QRect(20, 200, 81, 71))
+        pixmap = QPixmap(os.getcwd() + '/resources/images/buildings/free_market.png')
+        self.image_3.setPixmap(pixmap)
+        self.image_3.setScaledContents(True)
 
         self.radioButton_4 = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton_4.setGeometry(QtCore.QRect(350, 320, 21, 21))
@@ -89,6 +101,9 @@ class BuildBuildingWindow(QMainWindow):
 
         self.image_4 = QtWidgets.QLabel(self.centralwidget)
         self.image_4.setGeometry(QtCore.QRect(20, 290, 81, 71))
+        pixmap = QPixmap(os.getcwd() + '/resources/images/buildings/armory.png')
+        self.image_4.setPixmap(pixmap)
+        self.image_4.setScaledContents(True)
 
         self.radioButton_5 = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton_5.setGeometry(QtCore.QRect(350, 410, 21, 21))
@@ -97,8 +112,11 @@ class BuildBuildingWindow(QMainWindow):
         self.label_11 = QtWidgets.QLabel(self.centralwidget)
         self.label_11.setGeometry(QtCore.QRect(120, 410, 211, 16))
 
-        self.image_5 = QtWidgets.QLabel(self.centralwidget)
+        self.image_5 = QtWidgets.QLabel(self)
         self.image_5.setGeometry(QtCore.QRect(20, 380, 81, 71))
+        pixmap = QPixmap(os.getcwd() + '/resources/images/buildings/passiflora.png')
+        self.image_5.setPixmap(pixmap)
+        self.image_5.setScaledContents(True)
 
         self.setCentralWidget(self.centralwidget)
 
@@ -107,7 +125,6 @@ class BuildBuildingWindow(QMainWindow):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         self.label.setText(_translate("MainWindow", "Astronomic Tower"))
-        self.image_1.setText(_translate("MainWindow", "TextLabel"))
         self.label_6.setText(_translate("MainWindow", "food"))
         self.label_4.setText(_translate("MainWindow", "wood"))
         self.label_3.setText(_translate("MainWindow", "gold"))
@@ -116,13 +133,10 @@ class BuildBuildingWindow(QMainWindow):
         self.label_8.setText(_translate("MainWindow", "stone"))
         self.pushButton.setText(_translate("MainWindow", "Build"))
         self.label_2.setText(_translate("MainWindow", "Mines"))
-        self.image_2.setText(_translate("MainWindow", "TextLabel"))
         self.label_9.setText(_translate("MainWindow", "Free Market"))
-        self.image_3.setText(_translate("MainWindow", "TextLabel"))
         self.label_10.setText(_translate("MainWindow", "Armory"))
-        self.image_4.setText(_translate("MainWindow", "TextLabel"))
         self.label_11.setText(_translate("MainWindow", "Passiflora"))
-        self.image_5.setText(_translate("MainWindow", "TextLabel"))
+
 
     def closeEvent(self, event) -> None:
         self.parent.kill_app()
