@@ -6,11 +6,16 @@ from PyQt5.QtWidgets import QMainWindow, QDesktopWidget
 
 
 class BuildBuildingWindow(QMainWindow):
-    """ For now just a dummy window, work in progress."""
+    """ The most important window when it comes to experience of building civilization.
+        To be added - inside view of Passiflora.
+    """
 
     def __init__(self, parent, grandparent):
         super(BuildBuildingWindow, self).__init__()
-        self.setWindowTitle("Build Building")
+        self.building_cost_holder = {"gold": 0, "wood": 0, "stone": 0, "food": 0, "time": 0}
+        self.building_type_holder = None
+
+        self.setWindowTitle("Buildings")
         self.resize(450, 660)
         self.parent = parent  # for calling method inside parent object (BuildUnitFlatButton)
         self.grandparent = grandparent  # for calling method inside parent's parent object (CityView)
@@ -125,48 +130,134 @@ class BuildBuildingWindow(QMainWindow):
         self.label_8.setGeometry(QtCore.QRect(222, 506, 41, 21))
         self.label_8.setText("stone")
 
-        self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(150, 570, 141, 61))
-        self.pushButton.setText("Build")
+        self.gold_line_edit = QtWidgets.QLineEdit(self.centralwidget)
+        self.gold_line_edit.setGeometry(QtCore.QRect(62, 506, 41, 21))
 
-        self.lineEdit_3 = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit_3.setGeometry(QtCore.QRect(172, 506, 41, 21))
+        self.wood_line_edit = QtWidgets.QLineEdit(self.centralwidget)
+        self.wood_line_edit.setGeometry(QtCore.QRect(172, 506, 41, 21))
 
-        self.lineEdit_2 = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit_2.setGeometry(QtCore.QRect(62, 506, 41, 21))
+        self.stone_line_edit = QtWidgets.QLineEdit(self.centralwidget)
+        self.stone_line_edit.setGeometry(QtCore.QRect(272, 506, 41, 21))
 
-        self.lineEdit_5 = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit_5.setGeometry(QtCore.QRect(362, 506, 41, 21))
+        self.food_line_edit = QtWidgets.QLineEdit(self.centralwidget)
+        self.food_line_edit.setGeometry(QtCore.QRect(362, 506, 41, 21))
 
-        self.lineEdit_6 = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit_6.setGeometry(QtCore.QRect(212, 536, 41, 21))
-
-        self.lineEdit_4 = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit_4.setGeometry(QtCore.QRect(272, 506, 41, 21))
+        self.time_line_edit = QtWidgets.QLineEdit(self.centralwidget)
+        self.time_line_edit.setGeometry(QtCore.QRect(212, 536, 41, 21))
 
         """ RADIO BUTTONS PART"""
+
+        self.build_button = QtWidgets.QPushButton(self.centralwidget)
+        self.build_button.setGeometry(QtCore.QRect(150, 570, 141, 61))
+        self.build_button.setText("Build")
+        self.build_button.clicked.connect(self.build)
 
         self.radioButton = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton.setGeometry(QtCore.QRect(350, 50, 21, 21))
         self.radioButton.setText("")
+        self.radioButton.building = "Astronomic Tower"
+        self.radioButton.toggled.connect(self.choose_building)
 
         self.radioButton_2 = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton_2.setGeometry(QtCore.QRect(350, 140, 21, 21))
         self.radioButton_2.setText("")
+        self.radioButton_2.building = "Mines"
+        self.radioButton_2.toggled.connect(self.choose_building)
 
         self.radioButton_3 = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton_3.setGeometry(QtCore.QRect(350, 230, 21, 21))
         self.radioButton_3.setText("")
+        self.radioButton_3.building = "Free Market"
+        self.radioButton_3.toggled.connect(self.choose_building)
 
         self.radioButton_4 = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton_4.setGeometry(QtCore.QRect(350, 320, 21, 21))
         self.radioButton_4.setText("")
+        self.radioButton_4.building = "Armory"
+        self.radioButton_4.toggled.connect(self.choose_building)
 
         self.radioButton_5 = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton_5.setGeometry(QtCore.QRect(350, 410, 21, 21))
         self.radioButton_5.setText("")
+        self.radioButton_5.building = "Passiflora"
+        self.radioButton_5.toggled.connect(self.choose_building)
+
+        """ INVISIBLE LABELS """
+
+        self.not_enough_label = QtWidgets.QLabel(self.centralwidget)
+        self.not_enough_label.setGeometry(QtCore.QRect(110, 455, 300, 21))
+        self.not_enough_label.setText("You don't have enough resources.")
+        self.not_enough_label.setStyleSheet("color: rgb(255, 77, 77);")
+        self.not_enough_label.setVisible(False)
+
+        self.no_building_type_label = QtWidgets.QLabel(self.centralwidget)
+        self.no_building_type_label.setGeometry(QtCore.QRect(30, 455, 400, 21))
+        self.no_building_type_label.setText(
+            "Here is stubble for now, but there will be San Francisco.")
+        self.no_building_type_label.setStyleSheet("color: rgb(32,178,170);")
+        self.no_building_type_label.setVisible(False)
 
         self.setCentralWidget(self.centralwidget)
+
+    def choose_building(self):
+        """
+        Here costs should be optimized.
+        """
+        radio_button = self.sender()
+        if radio_button.isChecked():
+
+            if radio_button.building == self.radioButton.building:  # Astronomic Tower
+                self.building_cost_holder = {"gold": 150, "wood": 300, "stone": 50, "food": 10, "time": 4}
+
+            if radio_button.building == self.radioButton_2.building:  # Mines
+                self.building_cost_holder = {"gold": 150, "wood": 400, "stone": 0, "food": 230, "time": 5}
+
+            if radio_button.building == self.radioButton_3.building:  # Free Market
+                self.building_cost_holder = {"gold": 300, "wood": 320, "stone": 70, "food": 320, "time": 4}
+
+            if radio_button.building == self.radioButton_4.building:  # Armory
+                self.building_cost_holder = {"gold": 260, "wood": 300, "stone": 110, "food": 120, "time": 6}
+
+            if radio_button.building == self.radioButton_5.building:  # Passiflora
+                self.building_cost_holder = {"gold": 310, "wood": 400, "stone": 200, "food": 400, "time": 4}
+
+            self.building_type_holder = radio_button.building
+            self.set_costs()
+
+    def set_costs(self):
+        """
+        Sets building cost in appropriate line edits fields.
+        """
+
+        self.gold_line_edit.setText(str(self.building_cost_holder["gold"]))
+        self.wood_line_edit.setText(str(self.building_cost_holder["wood"]))
+        self.stone_line_edit.setText(str(self.building_cost_holder["stone"]))
+        self.food_line_edit.setText(str(self.building_cost_holder["food"]))
+        self.time_line_edit.setText(str(self.building_cost_holder["time"]))
+
+        self.not_enough_label.setVisible(False)
+        self.no_building_type_label.setVisible(False)
+
+    def build(self):
+        """
+        If player has enough materials building building starts else player gets prompt.
+        This method exits this window by calling kill_app in BuildBuildingFlatButton object.
+        Also saves calculated total value inside CityView object.
+        """
+
+        if not self.grandparent.city.owner.granary.is_enough(self.building_cost_holder):
+            self.no_building_type_label.setVisible(False)
+            self.not_enough_label.setVisible(True)
+        elif self.building_type_holder is None:
+            self.not_enough_label.setVisible(False)
+            self.no_building_type_label.setVisible(True)
+        else:
+            self.grandparent.transport_building_building_costs(self.building_cost_holder)
+            self.grandparent.city.days_left_to_building_completion = self.building_cost_holder["time"]
+
+            self.hide()
+            self.parent.kill_app()
+
 
     def closeEvent(self, event) -> None:
         self.parent.kill_app()

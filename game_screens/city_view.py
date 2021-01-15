@@ -10,7 +10,6 @@ from start_screens.build_building_window import BuildBuildingWindow
 from start_screens.build_unit_window import BuildUnitWindow
 
 
-# TODO: Add information after hitting build button which tells when player doesn't have enough materials
 # TODO: Display info about currently building object in the city. Think about units AND city upgrades.
 # TODO: Add displaying city name
 
@@ -19,6 +18,7 @@ class CityView(arcade.View):
         super().__init__()
         self.city = None
         self.building_unit_costs = None
+        self.building_building_costs = None
         self.app = QApplication([])
         self.top_bar = top_bar
         self.granary_bar = None
@@ -73,6 +73,13 @@ class CityView(arcade.View):
         self.building_unit_costs = total_costs
         print("Building unit costs: ", self.building_unit_costs)
 
+    def transport_building_building_costs(self, building_costs):
+        """
+        This method is called by BuildUnitWindow. This name should NOT be changed.
+        """
+        self.building_building_costs = building_costs
+        print("Building building costs: ", self.building_building_costs)
+
 
 class BuildUnitFlatButton(arcade.gui.UIFlatButton):
     def __init__(self, parent, center_x, center_y):
@@ -81,12 +88,10 @@ class BuildUnitFlatButton(arcade.gui.UIFlatButton):
         self.app = self.parent.app
 
     def on_click(self):
-        # self.app = QApplication(sys.argv)
         win = BuildUnitWindow(self, self.parent)
         win.show()
         self.app.exec_()
         print("exited build_unit_window.")
-        # self.parent.on_show()
 
     def kill_app(self):
         self.app.exit()
@@ -99,13 +104,10 @@ class BuildBuildingFlatButton(arcade.gui.UIFlatButton):
         self.app = self.parent.app
 
     def on_click(self):
-        # self.app = QApplication(sys.argv)
         win = BuildBuildingWindow(self, self.parent)
         win.show()
         self.app.exec_()
         print("exited build_building_window.")
-        # self.parent.on_show()
 
     def kill_app(self):
         self.app.exit()
-        # self.app = None

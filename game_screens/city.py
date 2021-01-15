@@ -25,7 +25,10 @@ class City(arcade.sprite.Sprite):
         self.granary = Granary()
 
         self.unit_request = None  # if no unit is being build this should be None
+        self.building_request = None
 
+        self.buildings = {"Astronomic Tower": False, "Mines": False, "Free Market": False, "Armory": False,
+                          "Passiflora": False}
         self.days_left_to_building_completion = 0
 
     def __str__(self):
@@ -121,4 +124,3 @@ class City(arcade.sprite.Sprite):
     def get_random_city_visualization_path(self):
         chosen = random.choice(os.listdir(os.getcwd() + "/resources/images/" + f"{self.owner.short_civ}"))
         return "resources/images/" + f"{self.owner.short_civ}/" + chosen
-
