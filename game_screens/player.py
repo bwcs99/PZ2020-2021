@@ -25,10 +25,9 @@ class Player:
 
     def collect_from_cities(self):
         for city in self.cities:
-            # print(city)
             city.gather_materials()  # may show some warning, don't worry brother
             city.collect_from_city()  # it changes self.granary
-            # print(self.granary)
+            city.collect_building()  # collect_building changes count down, it builds building in city after completion
 
     def calculate_daily_income(self):
         daily_income = {'gold': 0, 'wood': 0, 'stone': 0, 'food': 0}

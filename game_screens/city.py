@@ -29,7 +29,9 @@ class City(arcade.sprite.Sprite):
 
         self.buildings = {"Astronomic Tower": False, "Mines": False, "Free Market": False, "Armory": False,
                           "Passiflora": False}
+
         self.days_left_to_building_completion = 0
+        self.days_left_to_building_building_completion = 0
 
     def __str__(self):
         return f"City_name: {self.name}, Owner: {self.owner.nick}, " \
@@ -110,6 +112,19 @@ class City(arcade.sprite.Sprite):
             else:
                 print(f"No space left near the city for a new unit.")
         return None
+
+    def collect_building(self):
+        if self.building_request is None:
+            return
+
+        self.days_left_to_building_building_completion -= 1  # maybe this should be moved down?
+        if self.days_left_to_building_building_completion <= 0:
+            self.buildings[self.building_request] = True
+
+            self.building_request = None
+            self.days_left_to_building_building_completion = 0
+            print("Build!")
+            print(self.buildings)
 
     def pick_tile_to_build_at(self):
         for t in self.area:

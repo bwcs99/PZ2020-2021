@@ -253,7 +253,8 @@ class BuildBuildingWindow(QMainWindow):
             self.no_building_type_label.setVisible(True)
         else:
             self.grandparent.transport_building_building_costs(self.building_cost_holder)
-            self.grandparent.city.days_left_to_building_completion = self.building_cost_holder["time"]
+            self.grandparent.city.days_left_to_building_building_completion = self.building_cost_holder["time"]
+            self.grandparent.city.building_request = self.building_type_holder
 
             self.hide()
             self.parent.kill_app()

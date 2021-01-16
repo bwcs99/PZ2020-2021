@@ -12,6 +12,7 @@ from start_screens.build_unit_window import BuildUnitWindow
 
 # TODO: Display info about currently building object in the city. Think about units AND city upgrades.
 # TODO: Add displaying city name
+# TODO: Add displaying built buildings
 
 class CityView(arcade.View):
     def __init__(self, top_bar):
