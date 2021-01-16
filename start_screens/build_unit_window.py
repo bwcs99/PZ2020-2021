@@ -39,19 +39,19 @@ class BuildUnitWindow(QMainWindow):
 
         self.radioButton = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton.setGeometry(QtCore.QRect(40, 70, 151, 21))
-        self.radioButton.toggled.connect(self.chose_unit)
+        self.radioButton.toggled.connect(self.choose_unit)
 
         self.radioButton_2 = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton_2.setGeometry(QtCore.QRect(40, 40, 141, 21))
-        self.radioButton_2.toggled.connect(self.chose_unit)
+        self.radioButton_2.toggled.connect(self.choose_unit)
 
         self.radioButton_3 = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton_3.setGeometry(QtCore.QRect(40, 100, 141, 21))
-        self.radioButton_3.toggled.connect(self.chose_unit)
+        self.radioButton_3.toggled.connect(self.choose_unit)
 
         self.radioButton_4 = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton_4.setGeometry(QtCore.QRect(40, 130, 151, 21))
-        self.radioButton_4.toggled.connect(self.chose_unit)
+        self.radioButton_4.toggled.connect(self.choose_unit)
 
         self.build_button = QtWidgets.QPushButton(self.centralwidget)
         self.build_button.setGeometry(QtCore.QRect(148, 394, 141, 61))
@@ -65,7 +65,7 @@ class BuildUnitWindow(QMainWindow):
 
         self.no_unit_type_label = QtWidgets.QLabel(self.centralwidget)
         self.no_unit_type_label.setGeometry(QtCore.QRect(70, 360, 310, 21))
-        self.no_unit_type_label.setText("Would you like to build some air? Chosse unit.")
+        self.no_unit_type_label.setText("Would you like to build some air? Choose unit.")
         self.no_unit_type_label.setStyleSheet("color: rgb(32,178,170);")
         self.no_unit_type_label.setVisible(False)
 
@@ -137,9 +137,9 @@ class BuildUnitWindow(QMainWindow):
         self.time_label.setText(_translate("MainWindow", "time"))
         self.build_button.setText(_translate("MainWindow", "Build"))
 
-    def chose_unit(self):
+    def choose_unit(self):
         """
-        Here values should be optimized and units' names changed.
+        Here values should be optimized.
         """
         radio_button = self.sender()
         if radio_button.isChecked():
