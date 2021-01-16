@@ -170,12 +170,22 @@ class BuildUnitWindow(QMainWindow):
     def recalculate_costs(self):
         """
         Calculates and sets value of total unit cost in total_cost_holder.
+        It takes to consider building existing in this city.
         """
         how_many = int(self.how_many_line_edit.text())
         for key in self.unit_cost_holder:
             self.total_cost_holder[key] = int(self.unit_cost_holder[key] * how_many)
+
         if self.total_cost_holder["time"] == 0:
             self.total_cost_holder["time"] = 1  # making a unit always costs at least a day
+
+        if self.grandparent.city.buildings["Armory"]:
+            self.total_cost_holder["wood"] = int(self.total_cost_holder["wood"] * 0.85)
+            self.total_cost_holder["stone"] = int(self.total_cost_holder["stone"] * 0.85)
+
+        if self.grandparent.city.buildings["Passiflora"]:
+            self.total_cost_holder["gold"] = int(self.total_cost_holder["gold"] * 0.8)
+            self.total_cost_holder["food"] = int(self.total_cost_holder["food"] * 0.8)
 
         self.gold_line_edit.setText(str(self.total_cost_holder["gold"]))
         self.wood_line_edit.setText(str(self.total_cost_holder["wood"]))
@@ -213,7 +223,9 @@ class BuildUnitWindow(QMainWindow):
         elif self.unit_type_holder is None:
             self.not_enough_label.setVisible(False)
             self.no_unit_type_label.setVisible(True)
-        else:
+        else: # this happens when everything is ok and unit building starts
+            self.grandparent.city.owner.granary.pay_for(self.total_cost_holder) # paying for unit
+
             self.grandparent.transport_unit_building_costs(self.total_cost_holder)
             count = self.how_many_slider.value()
             print(f"Requested unit {self.unit_type_holder}")

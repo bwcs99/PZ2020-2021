@@ -64,7 +64,7 @@ class BuildBuildingWindow(QMainWindow):
         self.label_9_desc.setGeometry(QtCore.QRect(120, 230, 211, 40))
         self.label_9_desc.setWordWrap(True)
         self.label_9_desc.setStyleSheet("color: rgb(150, 150, 81)")
-        self.label_9_desc.setText("Every city area square brings extra 5 gold.")
+        self.label_9_desc.setText("Every city area square brings extra 3 gold.")
 
         self.image_3 = QtWidgets.QLabel(self.centralwidget)
         self.image_3.setGeometry(QtCore.QRect(20, 200, 81, 71))
@@ -252,12 +252,14 @@ class BuildBuildingWindow(QMainWindow):
             self.not_enough_label.setVisible(False)
             self.no_building_type_label.setVisible(True)
         else:
+            self.grandparent.city.owner.granary.pay_for(self.building_cost_holder)  # paying for building
+
             self.grandparent.transport_building_building_costs(self.building_cost_holder)
-            self.grandparent.city.days_left_to_building_completion = self.building_cost_holder["time"]
+            self.grandparent.city.days_left_to_building_building_completion = self.building_cost_holder["time"]
+            self.grandparent.city.building_request = self.building_type_holder
 
             self.hide()
             self.parent.kill_app()
-
 
     def closeEvent(self, event) -> None:
         self.parent.kill_app()

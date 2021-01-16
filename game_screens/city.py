@@ -21,7 +21,6 @@ class City(arcade.sprite.Sprite):
         self.path_to_visualization = self.get_random_city_visualization_path()
 
         self.area = area
-        self.goods = self.calculate_goods()  # this will/is used for displaying stats of the city
         self.granary = Granary()
 
         self.unit_request = None  # if no unit is being build this should be None
@@ -29,14 +28,17 @@ class City(arcade.sprite.Sprite):
 
         self.buildings = {"Astronomic Tower": False, "Mines": False, "Free Market": False, "Armory": False,
                           "Passiflora": False}
+        self.goods = self.calculate_goods()  # this will/is used for displaying stats of the city
+
         self.days_left_to_building_completion = 0
+        self.days_left_to_building_building_completion = 0
 
     def __str__(self):
         return f"City_name: {self.name}, Owner: {self.owner.nick}, " \
                f"Civ: {self.owner.civilisation}, Coordinates: {self.tile.coords}, Goods: {self.goods}."
 
     def get_city_goods_income(self):
-        return self.goods
+        return self.calculate_goods()
 
     def show_whats_building(self):
         # TODO make it reasonable
@@ -63,6 +65,10 @@ class City(arcade.sprite.Sprite):
             if tile.type == 3:
                 self.granary.add_stone(5)
 
+        if self.buildings["Free Market"]:
+            for _ in self.area:
+                self.granary.add_gold(3)
+
     def collect_from_city(self):
         """
         This method should be called to collect all materials from this city granary to player's master granary
@@ -70,7 +76,12 @@ class City(arcade.sprite.Sprite):
         self.owner.granary.insert_from(self.granary)
 
     def calculate_goods(self):
-        return self.calculate_goods_no_city(self.area)
+        goods = self.calculate_goods_no_city(self.area)
+
+        if self.buildings["Free Market"]:
+            for _ in self.area:
+                goods["gold"] += 3
+        return goods
 
     @staticmethod
     def calculate_goods_no_city(area):
@@ -90,8 +101,8 @@ class City(arcade.sprite.Sprite):
         return goods
 
     def collect_units(self):
-        print("Begin collecting units.")
-        print(self.unit_request)
+        # print("Begin collecting units.")
+        # print(self.unit_request)
         self.days_left_to_building_completion -= 1
         if self.unit_request is not None and self.days_left_to_building_completion <= 0:
             request = self.unit_request
@@ -110,6 +121,19 @@ class City(arcade.sprite.Sprite):
             else:
                 print(f"No space left near the city for a new unit.")
         return None
+
+    def collect_building(self):
+        if self.building_request is None:
+            return
+
+        self.days_left_to_building_building_completion -= 1  # maybe this should be moved down?
+        if self.days_left_to_building_building_completion <= 0:
+            self.buildings[self.building_request] = True
+
+            self.building_request = None
+            self.days_left_to_building_building_completion = 0
+            print("Build!")
+            print(self.buildings)
 
     def pick_tile_to_build_at(self):
         for t in self.area:
