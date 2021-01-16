@@ -32,7 +32,7 @@ class Player:
     def calculate_daily_income(self):
         daily_income = {'gold': 0, 'wood': 0, 'stone': 0, 'food': 0}
         for city in self.cities:
-            one_city = city.goods
+            one_city = city.get_city_goods_income()
             for key in daily_income:
                 if key in one_city:
                     daily_income[key] = daily_income[key] + one_city[key]
