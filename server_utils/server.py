@@ -37,7 +37,7 @@ class Server:
         self.queue = []
         self.connections = dict()
         self.threads = []
-        self.colours = ['pink', 'red', 'purple', 'yellow', 'green', 'brown', 'blue', 'orange', 'gray']
+        self.colours = ['BUBBLE_GUM', 'CHERRY', 'PURPLE', 'CORAL', 'MELLOW_APRICOT']
         self.civilizations = ["The Great Northern", "Kaediredameria", "Mixtec", "Kintsugi"]
         self.current_player = 0  # index in self.players that indicates who is active
         self.rank = 0  # for now

@@ -2,21 +2,22 @@ from math import inf
 
 import arcade
 
-TILE_COLORS = [
-            (0, 64, 128),    # water
-            (112, 169, 0),   # plains
-            (16, 128, 64),   # hills
-            (128, 128, 128)  # mountains
+TILE_TYPES = [
+            "resources/sprites/tiles/water.png",        # water
+            "resources/sprites/tiles/plains.png",       # plains
+            "resources/sprites/tiles/hills.png",        # hills
+            "resources/sprites/tiles/mountains.png"     # mountains
         ]
 
 
-class Tile(arcade.SpriteSolidColor):
+class Tile(arcade.Sprite):
     """
     Represents a single square map tile. Has the ability to hold information about the potential unit occupying it.
     """
 
     def __init__(self, x, y, size: int, cost: int):
-        super().__init__(size, size, TILE_COLORS[cost])
+        super().__init__(TILE_TYPES[cost])
+        self.width = self.height = size
         self.coords = x, y
         self.occupant = None
         self.city = None
@@ -62,6 +63,7 @@ class BorderTile(arcade.SpriteList):
         self.tile = tile
         for i, neighbor in enumerate(neighbors):
             if neighbor:
+                corners[i] = corners[i-1] = False
                 element = arcade.Sprite("resources/sprites/border_side.png")
                 element.width = tile.width
                 element.height = tile.height
