@@ -8,14 +8,15 @@ from game_screens.granary import Granary
 
 class City(arcade.sprite.Sprite):
     def __init__(self, unit, name, area):
-        super().__init__(":resources:images/tiles/brickGrey.png")
+        self.owner = unit.owner
+
+        super().__init__(f"resources/sprites/cities/{self.owner.short_civ}_city.png")
         self.name = name
         self.color = unit.color
         self.tile = unit.tile
         self.tile.city = self
         self.width = self.tile.width
         self.height = self.tile.height
-        self.owner = unit.owner
         self.center_x = self.tile.center_x
         self.center_y = self.tile.center_y
         self.path_to_visualization = self.get_random_city_visualization_path()

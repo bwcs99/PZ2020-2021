@@ -5,8 +5,8 @@ from game_screens.tiles import Tile
 
 
 class Unit(arcade.sprite.Sprite):
-    def __init__(self, tile, owner):
-        super().__init__(":resources:images/enemies/saw.png")
+    def __init__(self, tile, owner, sprite_name):
+        super().__init__(f"resources/sprites/units/{sprite_name}.png")
         self.owner = owner
         self.color = owner.color
         self.tile = tile
@@ -39,8 +39,7 @@ class Unit(arcade.sprite.Sprite):
 class Settler(Unit):
     def __init__(self, tile, owner):
         # if tile is not None:
-        super().__init__(tile, owner)
-        self.angle = 90
+        super().__init__(tile, owner, 'settler')
         self.type = 'Settler'
         self.count = 1
 

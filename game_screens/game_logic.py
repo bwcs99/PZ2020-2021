@@ -30,9 +30,9 @@ class GameLogic:
             player = self.disconnected_players.pop(0)
             self.kill_player(player)
         for player in self.players.values():
-            player.cities.draw()
             for tile in player.borders:
                 tile.draw()
+            player.cities.draw()
             player.units.draw()
 
     def end_turn(self):

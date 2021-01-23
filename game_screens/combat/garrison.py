@@ -5,9 +5,9 @@ from game_screens.units import Unit
 # a concept for test purposes, feel free to change or add more
 """ Dictionary of soldiers' properties. """
 SOLDIER_PROPS = {
-    'Poor Infantry': {'health': 15, 'damage': 5, 'probability': 0.8, 'max_movement': 2},
-    'Archers': {'health': 5, 'damage': 20, 'probability': 0.4, 'max_movement': 3},
-    'Cavalry': {'health': 10, 'damage': 10, 'probability': 0.6, 'max_movement': 4}
+    'Poor Infantry': {'health': 15, 'damage': 5, 'probability': 0.8, 'max_movement': 2, 'short_name': 'infantry'},
+    'Archers': {'health': 5, 'damage': 20, 'probability': 0.4, 'max_movement': 3, 'short_name': 'archer'},
+    'Cavalry': {'health': 10, 'damage': 10, 'probability': 0.6, 'max_movement': 4, 'short_name': 'cavalry'}
 }
 
 
@@ -15,8 +15,9 @@ class Garrison(Unit):
     """ Unit inheritance that represents a group of soldiers. """
 
     def __init__(self, tile, owner, soldier_type, count):
-        super().__init__(tile, owner)
         soldier_stats = SOLDIER_PROPS[soldier_type]
+        super().__init__(tile, owner, soldier_stats['short_name'])
+
         self.type = soldier_type
         self.damage = soldier_stats['damage']
         self.health = soldier_stats['health'] * count
