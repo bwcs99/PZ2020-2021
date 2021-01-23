@@ -6,7 +6,7 @@ import arcade.gui
 from game_screens.city import City
 from game_screens.city_view import CityView
 from game_screens.game_logic import GameLogic
-from game_screens.popups import TopBar, UnitPopup, CityCreationPopup, EndingPopup, FONT_COLOR
+from game_screens.popups import TopBar, UnitPopup, CityCreationPopup, EndingPopup
 from game_screens.tiles import Tile
 
 TOP_BAR_SIZE = 0.0625  # expressed as the percentage of the current screen height
@@ -33,20 +33,6 @@ class GameView(arcade.View):
         :param client: A client object for server communication.
         """
         super().__init__()
-        # arcade.gui.elements.UIStyle.set_class_attrs(
-        #     arcade.gui.elements.UIStyle.default_style(),
-        #     "label",
-        #     font_name="resources/fonts/november",
-        #     font_color=FONT_COLOR,
-        #     font_size=64
-        # )
-        # arcade.gui.elements.UIStyle.set_class_attrs(
-        #     arcade.gui.elements.UIStyle.default_style(),
-        #     "flatbutton",
-        #     font_name="resources/fonts/november",
-        #     font_color=FONT_COLOR,
-        #     bg_color=(60, 0, 0)
-        # )
 
         self.client = client
         self.my_turn = False

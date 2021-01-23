@@ -9,6 +9,7 @@ from game_screens.popups import CityInfo
 from start_screens.build_building_window import BuildBuildingWindow
 from start_screens.build_unit_window import BuildUnitWindow
 
+
 # TODO: Display info about currently building object in the city. Think about units AND city upgrades.
 # TODO: Add displaying city name
 # TODO: Add displaying built buildings
@@ -19,9 +20,6 @@ class CityView(arcade.View):
         self.city = None
         self.building_unit_costs = None
         self.building_building_costs = None
-        self.app = QApplication([])
-        self.top_bar = top_bar
-        self.granary_bar = None
         self.backup = None
         self.clicked_once = False
 
