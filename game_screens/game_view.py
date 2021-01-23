@@ -3,6 +3,7 @@ import threading
 import arcade
 import arcade.gui
 
+from game_screens.enemy_city_view import EnemyCityView
 from game_screens.city import City
 from game_screens.city_view import CityView
 from game_screens.game_logic import GameLogic
@@ -33,6 +34,7 @@ class GameView(arcade.View):
         :param client: A client object for server communication.
         """
         super().__init__()
+
 
         self.client = client
         self.my_turn = False
@@ -71,6 +73,7 @@ class GameView(arcade.View):
 
         self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS, self.client.players, self.client.nick)
         self.city_view = CityView(self.top_bar)
+        self.enemy_city_view = EnemyCityView(self.top_bar, self.city_view.app)
         self.top_bar.update_treasury(self.game_logic.me.granary, self.game_logic.me.daily_income)
 
         threading.Thread(target=self.wait_for_my_turn).start()
@@ -266,8 +269,13 @@ class GameView(arcade.View):
 
                     elif self.my_turn:
                         if tile.city:
-                            self.city_view.set_city(tile.city)
-                            self.window.show_view(self.city_view)
+                            print("inside")
+                            if tile.city.owner == self.game_logic.me:
+                                self.city_view.set_city(tile.city)
+                                self.window.show_view(self.city_view)
+                            else:
+                                self.enemy_city_view.set_city(tile.city)
+                                self.window.show_view(self.enemy_city_view)
                         # some cheats, TODO make them activate by typing 'AEZAKMI'
                         else:
                             if modifiers & arcade.key.MOD_SHIFT:

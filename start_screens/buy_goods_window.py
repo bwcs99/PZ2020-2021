@@ -18,6 +18,9 @@ class BuyGoodsWindow(QMainWindow):
                           "food": 0}  # this dictionary is only used for holding keep of gold, but it's used couple of times so it will be easier to declare it.
         self.material_holder = None
 
+        self.parent = parent
+        self.grandparent = grandparent
+
         self.centralwidget = QtWidgets.QWidget()
 
         """ RADIO BUTTONS PART """

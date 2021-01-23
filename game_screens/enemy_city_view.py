@@ -7,10 +7,10 @@ from game_screens.city import City
 
 
 class EnemyCityView(arcade.View):
-    def __init__(self, top_bar):
+    def __init__(self, top_bar, app):
         super().__init__()
         self.city = None
-        self.app = QApplication([])
+        self.app = app
         self.top_bar = top_bar
         self.backup = None
         self.ui_manager = UIManager()
@@ -56,7 +56,7 @@ class BuyCityButton(arcade.gui.UIFlatButton):
 
     def on_click(self):
 
-        # TODO Diplomacy procedure - 'buying materials'
+        # TODO Diplomacy procedure - 'buying city'
 
         print("Buying city procedure")
 
