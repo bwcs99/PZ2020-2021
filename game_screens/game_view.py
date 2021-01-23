@@ -33,18 +33,20 @@ class GameView(arcade.View):
         :param client: A client object for server communication.
         """
         super().__init__()
-        arcade.gui.elements.UIStyle.set_class_attrs(
-            arcade.gui.elements.UIStyle.default_style(),
-            "label",
-            font_name="resources/fonts/november",
-            font_color=FONT_COLOR,
-            font_size=64
-        )
-        arcade.gui.elements.UIStyle.set_class_attrs(
-            arcade.gui.elements.UIStyle.default_style(),
-            "inputbox",
-            font_name="resources/fonts/november"
-        )
+        # arcade.gui.elements.UIStyle.set_class_attrs(
+        #     arcade.gui.elements.UIStyle.default_style(),
+        #     "label",
+        #     font_name="resources/fonts/november",
+        #     font_color=FONT_COLOR,
+        #     font_size=64
+        # )
+        # arcade.gui.elements.UIStyle.set_class_attrs(
+        #     arcade.gui.elements.UIStyle.default_style(),
+        #     "flatbutton",
+        #     font_name="resources/fonts/november",
+        #     font_color=FONT_COLOR,
+        #     bg_color=(60, 0, 0)
+        # )
 
         self.client = client
         self.my_turn = False
@@ -140,11 +142,19 @@ class GameView(arcade.View):
         if self.city_popup.visible() or self.end_popup.visible():
             return
         if 0 <= self.zoom + scroll_y < MAX_ZOOM:
-            self.zoom += scroll_y
+            zoom_change = 1
+            if self.zoom == 0:
+                self.zoom = 2
+                zoom_change = 2
+            elif self.zoom == 2 and scroll_y < 0:
+                self.zoom = 0
+                zoom_change = 2
+            else:
+                self.zoom += scroll_y
             current = arcade.get_viewport()
 
-            new_width = (current[1] - current[0]) - 2 * scroll_y * self.SCROLL_STEP_X
-            new_height = (current[3] - current[2]) - 2 * scroll_y * self.SCROLL_STEP_Y
+            new_width = (current[1] - current[0]) - 2 * zoom_change * scroll_y * self.SCROLL_STEP_X
+            new_height = (current[3] - current[2]) - 2 * zoom_change * scroll_y * self.SCROLL_STEP_Y
 
             # we need to check if zooming will cross the borders of the map, if so - snap them back
             x, y = self.relative_to_absolute(x, y)
@@ -280,8 +290,8 @@ class GameView(arcade.View):
                                 messages = self.client.add_unit(tile_col, tile_row, "Settler", 1)
                             else:
                                 # regular click creates some garrison (see GameLogic.add_unit)
-                                self.game_logic.add_unit(tile_col, tile_row, self.client.nick, 'Archers', 10)
-                                messages = self.client.add_unit(tile_col, tile_row, "Archers", 10)
+                                self.game_logic.add_unit(tile_col, tile_row, self.client.nick, 'Cavalry', 10)
+                                messages = self.client.add_unit(tile_col, tile_row, "Cavalry", 10)
                             self.handle_additional_messages(messages)
 
     def on_key_press(self, symbol, modifiers):

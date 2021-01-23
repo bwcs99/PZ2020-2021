@@ -9,8 +9,24 @@ from game_screens.combat.garrison import Garrison
 from game_screens.units import Settler
 from game_screens.granary import Granary
 
-BACKGROUND_COLOR = arcade.color.ST_PATRICK_BLUE
+BACKGROUND_COLOR = (60, 0, 0)  # arcade.color.ST_PATRICK_BLUE
 FONT_COLOR = arcade.color.WHITE
+
+arcade.gui.elements.UIStyle.set_class_attrs(
+            arcade.gui.elements.UIStyle.default_style(),
+            "label",
+            font_name="resources/fonts/november",
+            font_color=FONT_COLOR,
+            font_size=64
+        )
+
+arcade.gui.elements.UIStyle.set_class_attrs(
+            arcade.gui.elements.UIStyle.default_style(),
+            "flatbutton",
+            font_name="resources/fonts/november",
+            font_color=FONT_COLOR,
+            bg_color=BACKGROUND_COLOR
+        )
 
 
 class PopUp(arcade.gui.UIManager):
@@ -123,9 +139,9 @@ class TopBar(PopUp):
         if self.ended:
             return
         if nick:
-            self.time_label.text = f"{nick}'s turn (5:00)"
+            self.time_label.text = f"{nick}'s turn"
         else:
-            self.time_label.text = "Press SPACE to end turn (5:00)"
+            self.time_label.text = "Press SPACE to end turn"
         self.adjust()
 
     def update_treasury(self, total: Granary, change: dict):
@@ -319,7 +335,6 @@ class CityCreationPopup(PopUp):
     def update(self):
         """ Updates the labels with potential stats of the new city. """
         if self.visible():
-            # TODO with Gabi
             self.name_input.text = self.get_random_city_name()
             self.gold_label.text = "Gold: " + f"+{self.stats['gold']}".rjust(10, ' ')
             self.food_label.text = "Food: " + f"+{self.stats['food']}".rjust(10, ' ')
@@ -456,3 +471,153 @@ class EndingPopup(PopUp):
     def on_key_press(self, symbol: int, modifiers: int):
         if self.visible() and symbol == arcade.key.ESCAPE:
             self.hide()
+
+
+class CityInfo(PopUp):
+    """
+    A pop-up that shows up in city view.
+    """
+
+    def __init__(self, size_x: float, size_y: float, top: float, background_color=BACKGROUND_COLOR, font_color=FONT_COLOR):
+        """
+        :param size_x: The popup's width expressed as a percentage of current screen width, between 0 and 1.
+        :param size_y: The popup's height expressed as a percentage of current screen height, between 0 and 1.
+        """
+        super().__init__(0.95 * (1 - size_x), 1 - (top + size_y), size_x, size_y, background_color)
+        self.city = None
+        self.base_width = None
+
+        self.name_label = arcade.gui.UILabel("City", 0, 0)
+        self.gold_label = arcade.gui.UILabel("Gold: +", 0, 0)
+        self.food_label = arcade.gui.UILabel("Food: +", 0, 0)
+        self.wood_label = arcade.gui.UILabel("Wood: +", 0, 0)
+        self.stone_label = arcade.gui.UILabel("Stone: +", 0, 0)
+        self.top_part = [self.name_label, self.gold_label, self.food_label, self.wood_label, self.stone_label]
+
+        self.cur_top_label = arcade.gui.UILabel("Current construction:", 0, 0)
+        self.current_label = arcade.gui.UILabel("Nothing", 0, 0)
+        self.mid_part = [self.cur_top_label, self.current_label]
+
+        self.constructed_label = arcade.gui.UILabel("Already built:", 0, 0)
+        self.buildings = [arcade.gui.UILabel("", 0, 0) for _ in range(5)]
+        self.bottom_part = [self.constructed_label, *self.buildings]
+
+        self.all_elements = [*self.top_part, *self.mid_part, *self.bottom_part]
+        for el in self.all_elements:
+            el.color = FONT_COLOR
+
+        self.adjust()
+
+    def display(self, city):
+        """ Attaches a city to the pop-up and makes it visible. """
+        self.hide()
+        self.city = city
+        for el in self.all_elements:
+            self.add_ui_element(el)
+        self.update()
+
+    def update(self):
+        if self.visible():
+            self.name_label.text = self.city.name
+            stats = self.city.goods
+            self.gold_label.text = "Gold:" + f"+{stats['gold']}".rjust(self.base_width-5, ' ')
+            self.food_label.text = "Food:" + f"+{stats['food']}".rjust(self.base_width-5, ' ')
+            self.wood_label.text = "Wood:" + f"+{stats['wood']}".rjust(self.base_width-5, ' ')
+            self.stone_label.text = "Stone:" + f"+{stats['stone']}".rjust(self.base_width-6, ' ')
+
+            self.current_label.text = str(self.city.unit_request)
+            # TODO update building labels
+            self.adjust()
+
+    def hide(self):
+        """ Hides the pop-up. """
+        self.city = None
+        self.purge_ui_elements()
+
+    def visible(self):
+        return self.city is not None
+
+    def adjust(self):
+        self.adjust_coords()
+        left, right, top, bottom = self.coords_lrtb
+        base_height = self.height / (len(self.all_elements) + 5)
+        self.base_width = max(len(el.text) for el in self.all_elements)
+
+        for element in self.all_elements:
+            element.width = len(element.text) * 0.8 * self.width / self.base_width
+            element.center_x = left + 0.1 * self.width + 0.5 * element.width
+            element.height = 0.8 * base_height
+
+        shift = 1
+        for part in [self.top_part, self.mid_part, self.bottom_part]:
+            shift += 1
+            for element in part:
+                element.center_y = top - shift * base_height
+                shift += 1
+
+        self.name_label.center_x = (left + right) / 2
+        self.name_label.center_y = top - base_height
+
+
+class DiplomaticPopup(PopUp):
+    """
+    A pop-up containing a diplomatic notification. Displayed at the start of a player's turn.
+    """
+
+    def __init__(self, size_x: float, size_y: float, background_color=BACKGROUND_COLOR, font_color=FONT_COLOR):
+        """
+        :param size_x: The popup's width expressed as a percentage of current screen width, between 0 and 1.
+        :param size_y: The popup's height expressed as a percentage of current screen height, between 0 and 1.
+        """
+        super().__init__(0.5 * (1 - size_x), 0.5 * (1 - size_y), size_x, size_y, background_color)
+
+        self.top_label = arcade.gui.UILabel("Message from ...", 0, 0)
+        self.message_label = arcade.gui.UILabel("", 0, 0)
+        self.cancel_label = arcade.gui.UILabel("Press ENTER to continue", 0, 0)
+        self.all_elements = [self.top_label, self.message_label, self.cancel_label]
+        for element in self.all_elements:
+            element.color = font_color
+        self.visible = False
+        self.rejectable = False
+        self.adjust()
+
+    def display(self, message, sender, rejectable=False):
+        """ Attaches a unit and potential stats to the pop-up and makes it visible. """
+        self.hide()
+        self.visible = True
+        self.rejectable = True
+        for element in self.all_elements:
+            self.add_ui_element(element)
+        self.top_label.text = f"Message from {sender}"
+        self.message_label.text = message
+        self.cancel_label.text = "ENTER: accept, ESC: reject" if rejectable else "Press ENTER to continue"
+        self.adjust()
+
+    def hide(self):
+        """ Wipes the pop-up's data and hides it. """
+        self.purge_ui_elements()
+        self.visible = False
+
+    def adjust(self):
+        self.adjust_coords()
+        left, right, top, bottom = self.coords_lrtb
+        base_height = self.height / 12
+        for element in self.all_elements:
+            element.center_x = left + 0.5 * self.width
+            element.width = 0.8 * self.width
+            element.height = base_height
+
+        self.top_label.width = 0.6 * self.width
+        self.top_label.center_y = top - self.height / 12
+        self.message_label.center_y = top - 3.5 * self.height / 12
+        self.cancel_label.center_y = top - 11 * self.height / 12
+
+    def on_key_press(self, symbol: int, modifiers: int):
+        if self.visible:
+            if self.rejectable:
+                if symbol == arcade.key.ENTER:
+                    self.hide()
+                elif symbol == arcade.key.ESCAPE:
+                    self.hide()
+            elif symbol == arcade.key.ENTER:
+                self.hide()
