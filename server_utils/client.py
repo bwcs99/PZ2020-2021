@@ -226,6 +226,7 @@ class Client:
             return self.unexpected_messages("END_GAME")
 
     """ Funkcja do wylistowania wszystkich miast """
+
     def get_cities_from_server(self):
         rep = self.send_msg("LIST_CITIES:::")
         return eval(rep)
@@ -233,6 +234,14 @@ class Client:
     def add_city(self, x, y, city_name):
         """ Adds a city with the specified name on tile (x, y). It's owner is the player sending the message. """
         msg = f"ADD_CITY:{self.nick}:({x},{y}):{city_name}"
+        try:
+            self.only_send(msg)
+            return self.unexpected_messages(msg)
+        except OSError:
+            return self.unexpected_messages("END_GAME")
+
+    def enhance_city_area(self, x, y):
+        msg = f"MORE_AREA:({x},{y})"
         try:
             self.only_send(msg)
             return self.unexpected_messages(msg)
