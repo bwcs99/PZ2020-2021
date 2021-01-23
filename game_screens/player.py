@@ -16,7 +16,8 @@ class Player:
         self.units = arcade.SpriteList()
         self.cities = arcade.SpriteList()
         self.borders = []
-
+        self.enemies = [] # lista wrogów - graczy, z którymi toczymy wojnę - list of strings/nicks
+        self.allies = [] # lista sojuszników - list of strings/nicks
         self.granary = Granary(1000, 500, 300, 1000)  # start money, enough to buy 10 Infantry, for testing
         self.daily_income = {'gold': 0, 'wood': 0, 'stone': 0, 'food': 0}
 

@@ -14,13 +14,6 @@ HEADER = 200
 DISCONNECT_MESSAGE = "DISCONNECT"
 default_game_time = 30
 
-#dummy1 = Player('edzia', 'red')
-#dummy2 = Player('marcel', 'pink')
-#dummy1.civilisation_type = 'zgredki'
-#dummy2.civilisation_type = 'antysczepionkowcy'
-#dummy1.city_list = ['Fangorn', 'Moskwa', 'Berlin']
-#dummy2.city_list = ['Rumunia', 'Peja', 'Rychu', 'Bieda']
-
 
 def print_color(text):
     print("\u001b[36m" + text + "\u001b[0m")
@@ -45,10 +38,6 @@ class Server:
         self.finish = False
         self.server_sock = self.create_socket(ADDR)
         self.start_connection(self.server_sock)
-
- #   def custom_timer(self, time):
- #       sleep(time*60)
- #       finish = True
 
     def create_socket(self, address):
         """
@@ -79,7 +68,7 @@ class Server:
         player_list[0].rank = rank
         rank_list = []
         for i in range(1, len(player_list)):
-            if player_list[i-1].scores == player_list[i].scores:
+            if player_list[i - 1].scores == player_list[i].scores:
                 player_list[i].rank = rank
                 continue
             else:
@@ -88,7 +77,16 @@ class Server:
         for player in player_list:
             rank_list.append((player.player_name, player.rank))
         return rank_list
-        
+
+    ''' Udzielanie odpowiedzi każdemu z graczy'''
+    def process_responses(self, response_list):
+        """param1: lista odpowiedzi (str)"""
+        for response in response_list:
+            fields_values = response.split(":")
+            receiver = next((for player in self.players if player.player_name == fields_values[1]), None)
+            receiver.message_queue.extend([response])
+
+
     def parse_request(self, incoming_msg, conn):
         """
         Used to generate a response/broadcast reacting to a clients message. A response is only sent to the original
@@ -195,26 +193,26 @@ class Server:
             broadcast = [f"FINISH:::".encode(FORMAT)]
 
         elif request[0] == "MORE_MONEY":
-          #  print('W more_money')
+            #  print('W more_money')
             wanted = next((player for player in self.players if player.player_name == request[1]), None)
             wanted.treasury += int(request[2])
-          #  print(wanted.treasury)
-        
+        #  print(wanted.treasury)
+
         elif request[0] == "LESS_MONEY":
-        #   print('W less_money')
+            #   print('W less_money')
             wanted = next((player for player in self.players if player.player_name == request[1]), None)
             wanted.treasury -= int(request[2])
         #    print(wanted.treasury)
 
         elif request[0] == "GET_TREASURY":
-     #       print('W get_treasury_state')
+            #       print('W get_treasury_state')
             wanted = next((player for player in self.players if player.player_name == request[1]), None)
-      #      print("Stan skarbca: ", wanted.treasury)
-            response.append(f"{wanted.treasury}".encode(FORMAT)) 
+            #      print("Stan skarbca: ", wanted.treasury)
+            response.append(f"{wanted.treasury}".encode(FORMAT))
 
         elif request[0] == "QUIT_GAME":
-        #    print('W quit_game')
-        #    print(self.connections)
+            #    print('W quit_game')
+            #    print(self.connections)
             wanted = next((player for player in self.players if player.player_name == request[1]), None)
             self.players.remove(wanted)
             idx = self.players.index(wanted)
@@ -225,13 +223,13 @@ class Server:
         #   print(self.connections)
 
         elif request[0] == "ADD_SCORES":
-           # print('W add_scores')
+            # print('W add_scores')
             wanted = next((player for player in self.players if player.player_name == request[1]), None)
             wanted.scores += int(request[2])
-           # print('Punkty: ', wanted.scores)
+        # print('Punkty: ', wanted.scores)
 
         elif request[0] == "END_GAME":
-            #ranking = self.compute_rank(self.players)
+            # ranking = self.compute_rank(self.players)
             for player in self.players:
                 player.rank = player.rank - len(self.queue) + 1 if player.rank else 1
             broadcast.append("GAME_ENDED".encode(FORMAT))
@@ -240,13 +238,13 @@ class Server:
             self.finish = True
 
         elif request[0] == "CHANGE_MAP":
-         #   print('W change map')
-         #   print(request[2])
+            #   print('W change map')
+            #   print(request[2])
             broadcast = [request[2].encode(FORMAT)]
 
         elif request[0] == "ADD_UNIT" or request[0] == "MOVE_UNIT" or request[0] == "HEALTH":
             broadcast = [incoming_msg.encode(FORMAT)]
-        
+
         elif request[0] == "ADD_CITY":
             wanted = next((player for player in self.players if player.player_name == request[1]), None)
             wanted.city_list.append(request[3])
@@ -256,28 +254,112 @@ class Server:
             broadcast = [incoming_msg.encode(FORMAT)]
 
         elif request[0] == "GIVE_CITIES":
-          #  print('W give_cities')
+            #  print('W give_cities')
             wanted1 = next((player for player in self.players if player.player_name == request[1]), None)
             wanted2 = next((player for player in self.players if player.player_name == request[2]), None)
             cities = eval(request[3])
-          #  print(cities)
-          #  print('Listy gracza 1: ', wanted1.city_list)
-          #  print('Listy gracza 2: ', wanted2.city_list)
+            #  print(cities)
+            #  print('Listy gracza 1: ', wanted1.city_list)
+            #  print('Listy gracza 2: ', wanted2.city_list)
             for city in cities:
                 wanted2.city_list.append(city)
                 wanted1.city_list.remove(city)
-          #  print("Pierwszy gracz: ", wanted1.city_list)
-          #  print('Drugi gracz: ', wanted2.city_list)
-        
+        #  print("Pierwszy gracz: ", wanted1.city_list)
+        #  print('Drugi gracz: ', wanted2.city_list)
+
         elif request[0] == "LIST_CITIES":
-          #  print('W list_cities')
+            #  print('W list_cities')
             temp_list = []
             for player in self.players:
                 temp_list.append((player.player_name, player.city_list))
             temp_list_to_str = str(temp_list)
-          #  print(temp_list_to_str)
+            #  print(temp_list_to_str)
             response.append(temp_list_to_str.encode(FORMAT))
 
+        elif request[0] == "ALLIANCE":
+            print("W alliance")
+            receiver = str(request[2])
+            msg_to_queue = ":".join(request)
+            wanted = next((player for player in self.players if player.player_name == receiver), None)
+            if wanted is not None:
+                wanted.message_queue.extend([msg_to_queue])
+            print("Po alliance")
+
+        elif request[0] == "LIST_MSGS":
+            print("W list_msgs")
+            player_nick = str(request[1])
+            wanted = next((player for player in self.players if player.player_name == player_nick), None)
+            msgs_list = wanted.message_queue
+            msg_list_str = str(msgs_list)
+            response.append(msg_list_str.encode(FORMAT))
+            print("Po list_msgs")
+
+        elif request[0] == "END_ALLIANCE":
+            print("W end_alliance")
+            receiver = str(request[2])
+            wanted = next((player for player in self.players if player.player_name == receiver), None)
+            msg = ":".join(request)
+            if wanted is not None:
+                wanted.message_queue.extend([msg])
+            print("Po end_alliance")
+
+        elif request[0] == "DECLARE_WAR":
+            print("W declare_war")
+            msg = ":".join(request)
+            wanted = next((player for player in self.players if player.player_name == request[2]), None)
+            if wanted is not None:
+                wanted.message_queue.extend([msg])
+            print("Po declare_War")
+
+        elif request[0] == "GIVE_UP":
+            print("W give_up")
+            msg = ":".join(request)
+            wanted = next((player for player in self.players if player.player_name == request[2]), None)
+            if wanted is not None:
+                wanted.message_queue.extend([msg])
+            print("Po give_up")
+
+        elif request[0] == "TRUCE":
+            print("W truce")
+            msg = ":".join(request)
+            wanted = next((player for player in self.players if player.player_name == request[2]), None)
+            if wanted is not None:
+                wanted.message_queue.extend([msg])
+            print("Po truce")
+
+        elif request[0] == "GET_TREASURY":
+            print("W get_treasury")
+            wanted = next((player for player in self.players if player.player_name == str(request[1])), None)
+            response.append(str(wanted.treasury).encode(FORMAT))
+            print("Po get treasury")
+
+        elif request[0] == "SEND_RESP":
+            print("W przetwarzaniu odpowiedzi")
+            sender = str(request[1])
+            string_list = str(request[2])
+            normal_list = eval(string_list)
+            print(f"Lista po ewaluacji: {normal_list}")
+            self.process_responses(normal_list)
+
+        elif request[0] == "LIST_PLAYERS":
+            response_list = []
+            for player in self.players:
+                response_list.extend([player.player_name])
+            response_list_to_str = str(response_list)
+            response.append(response_list_to_str.encode(FORMAT))
+
+        elif request[0] == "BUY":
+            print("W BUY_REQUEST")
+            msg = ":".join(request)
+            wanted = next((player for player in self.players if player.player_name == str(request[2])), None)
+            if wanted is not None:
+                wanted.message_queue.extend([msg])
+        elif request[0] == "SELL":
+            print("W SELL_REQUEST")
+            msg = ":".join(request)
+            wanted = next((player for player in self.players if player.player_name == str(request[2])), None)
+            if wanted is not None:
+                wanted.message_queue.extend([msg])
         else:
             response.append(f"UNKNOWN OPTION".encode(FORMAT))
         return response, broadcast
@@ -300,7 +382,7 @@ class Server:
                 print_color(f"RECEIVED NEW MESSAGE: {incoming_message} from {addr}")
                 if incoming_message == DISCONNECT_MESSAGE:
                     connected = False
-                           
+
                 response, broadcast = self.parse_request(incoming_message, conn)
                 if len(response) != 0:
                     response_length = self.header_generator(response[0])

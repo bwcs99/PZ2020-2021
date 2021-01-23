@@ -18,7 +18,6 @@ class Player:
         self.is_civilisation_set = False
         # kolor gracz
         self.player_colour = colour
-        self.message_queue = []
         ''' Nowa rzecz - skarbiec gracza '''
         self.treasury = 2000
         ''' Ranking  - potrzebny przy określanu miejsc na koniec '''
@@ -27,6 +26,12 @@ class Player:
         self.scores = 0
         ''' Lista miast należących do gracza'''
         self.city_list = []
+        ''' Kolejka z wiadomościami '''
+        self.message_queue = []
+        ''' Lista sojuszników gracza - na razie można mieć max 2 sojuszników'''
+        self.allies = []
+        ''' Lista graczy, z którymi jesteśmy w stanie wojny'''
+        self.enemies = []
 
     def set_civilisation_type(self, civ_type):
         self.civilisation_type = civ_type
