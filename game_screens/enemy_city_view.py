@@ -2,10 +2,8 @@ import arcade
 from PyQt5.QtWidgets import QApplication
 from arcade.gui import UIManager
 
+from buy_goods_window import BuyGoodsWindow
 from game_screens.city import City
-from game_screens.popups import GranaryPopup
-from start_screens.build_building_window import BuildBuildingWindow
-from start_screens.build_unit_window import BuildUnitWindow
 
 
 class EnemyCityView(arcade.View):
@@ -57,6 +55,9 @@ class BuyCityButton(arcade.gui.UIFlatButton):
         super().__init__('Buy this city', center_x=center_x // 2 - 300, center_y=center_y // 4, width=250, )
 
     def on_click(self):
+
+        # TODO Diplomacy procedure - 'buying materials'
+
         print("Buying city procedure")
 
 

@@ -1,6 +1,9 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QMainWindow
+import math
 
+
+# TODO make label with total gold cost
 
 class BuyGoodsWindow(QMainWindow):
     """
@@ -10,9 +13,10 @@ class BuyGoodsWindow(QMainWindow):
     def __init__(self, parent, grandparent):
         super(BuyGoodsWindow, self).__init__()
         self.resize(630, 320)
-        self.setWindowTitle(" ")  # TODO
+        self.setWindowTitle("Resource Trade")
         self.gold_dict = {"gold": 0, "wood": 0, "stone": 0,
                           "food": 0}  # this dictionary is only used for holding keep of gold, but it's used couple of times so it will be easier to declare it.
+        self.material_holder = None
 
         self.centralwidget = QtWidgets.QWidget()
 
@@ -22,19 +26,19 @@ class BuyGoodsWindow(QMainWindow):
         self.wood_radio_button.setGeometry(QtCore.QRect(60, 50, 112, 23))
         self.wood_radio_button.setText("Wood")
         self.wood_radio_button.material = "Wood"
-        self.wood_radio_button.clicked.connect(self.make_offer)
+        self.wood_radio_button.clicked.connect(self.choose_material)
 
         self.stone_radio_button = QtWidgets.QRadioButton(self.centralwidget)
         self.stone_radio_button.setGeometry(QtCore.QRect(60, 100, 112, 23))
         self.stone_radio_button.setText("Stone")
         self.stone_radio_button.material = "Stone"
-        self.stone_radio_button.clicked.connect(self.make_offer)
+        self.stone_radio_button.clicked.connect(self.choose_material)
 
         self.food_radio_button = QtWidgets.QRadioButton(self.centralwidget)
         self.food_radio_button.setGeometry(QtCore.QRect(60, 150, 112, 23))
         self.food_radio_button.setText("Food")
         self.food_radio_button.material = "Food"
-        self.food_radio_button.clicked.connect(self.make_offer)
+        self.food_radio_button.clicked.connect(self.choose_material)
 
         """ HOW MANY PART """
 
@@ -71,35 +75,65 @@ class BuyGoodsWindow(QMainWindow):
 
         self.how_much_for_piece_edit = QtWidgets.QLineEdit(self.centralwidget)
         self.how_much_for_piece_edit.setGeometry(QtCore.QRect(350, 160, 113, 25))
+        self.how_much_for_piece_edit.setText("1.0")
+        self.how_much_for_piece_edit.textChanged.connect(self.change_one_piece_cost)
 
         """ MAKE OFFER PART """
 
         self.make_offer_button = QtWidgets.QPushButton(self.centralwidget)
         self.make_offer_button.setGeometry(QtCore.QRect(190, 220, 271, 61))
         self.make_offer_button.setText("Make offer")
+        self.make_offer_button.clicked.connect(self.make_offer)
+
+        """ INVISIBLE LABELS """
+
+        self.not_enough_label = QtWidgets.QLabel(self.centralwidget)
+        self.not_enough_label.setGeometry(QtCore.QRect(180, 190, 300, 21))
+        self.not_enough_label.setText("You don't have enough gold to pay for that.")
+        self.not_enough_label.setStyleSheet("color: rgb(255, 77, 77);")
+        self.not_enough_label.setVisible(False)
+
+        self.no_material_type_label = QtWidgets.QLabel(self.centralwidget)
+        self.no_material_type_label.setGeometry(QtCore.QRect(170, 190, 400, 21))
+        self.no_material_type_label.setText(
+            "Please, chose which material you want to buy.")
+        self.no_material_type_label.setStyleSheet("color: rgb(32,178,170);")
+        self.no_material_type_label.setVisible(False)
 
         self.setCentralWidget(self.centralwidget)
 
+    def choose_material(self):
+        """
+        Here material is being chosen.
+        """
+        radio_button = self.sender()
+        if radio_button.material == self.wood_radio_button.material:
+            self.material_holder = "Wood"
+        if radio_button.material == self.stone_radio_button.material:
+            self.material_holder = "Stone"
+        if radio_button.material == self.food_radio_button.material:
+            self.material_holder = "Food"
+        print(self.material_holder)
+
     def make_offer(self):
         """
+        This method calculates total cost of trade request ( ceiling(how_many_pieces * how_much_for_piece) ).
 
         """
+        payment_cost = math.ceil(float(self.how_much_for_piece_edit.text()) * int(self.how_many_edit.text()))
+        self.gold_dict["gold"] = payment_cost
+
         if not self.grandparent.city.owner.granary.is_enough(self.gold_dict):
             self.no_material_type_label.setVisible(False)
             self.not_enough_label.setVisible(True)
         elif self.material_type_holder is None:
             self.not_enough_label.setVisible(False)
             self.no_material_type_label.setVisible(True)
-        else:  # this happens when everything is ok and unit building starts
-            self.grandparent.city.owner.granary.pay_for(self.total_cost_holder)  # paying for unit
+        else:  # this happens when everything is ok
+            self.grandparent.city.owner.granary.pay_for(self.gold_dict)  # paying for materials
 
-            self.grandparent.transport_unit_building_costs(self.total_cost_holder)
-            count = self.how_many_slider.value()
-            print(f"Requested unit {self.unit_type_holder}")
-            self.grandparent.city.unit_request = {'type': self.unit_type_holder, 'count': count}
-            self.grandparent.city.days_left_to_building_completion = self.total_cost_holder["time"]
+            # TODO Diplomacy procedure - 'buying materials'
 
-            # self.grandparent.city.show_whats_building()
             self.hide()
             self.parent.kill_app()
 
@@ -119,6 +153,19 @@ class BuyGoodsWindow(QMainWindow):
             number = 1
             self.how_many_edit.setText(str(number))
         self.how_many_slider.setValue(number)
+
+    def change_one_piece_cost(self):
+        try:
+            number = float(self.how_much_for_piece_edit.text())
+            if number < 0.0:
+                number = 0.1
+                self.how_much_for_piece_edit.setText(str(number))
+            elif number > 100.0:
+                number = 100.0
+                self.how_much_for_piece_edit.setText(str(number))
+        except:  # catches all strange input
+            number = 1.0
+            self.how_much_for_piece_edit.setText(str(number))
 
 
 if __name__ == "__main__":
