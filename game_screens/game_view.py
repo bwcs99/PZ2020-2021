@@ -317,6 +317,12 @@ class GameView(arcade.View):
                         messages = self.client.add_unit(x, y, u.type, u.count)
                         self.handle_additional_messages(messages)
 
+                    self.game_logic.update_building()
+                    cities = self.game_logic.get_enhanced_cities()
+                    for c in cities:
+                        messages = self.client.enhance_city_area(c[0], c[1])
+                        self.handle_additional_messages(messages)
+
                     messages = self.client.end_turn()
                     self.handle_additional_messages(messages)
                     threading.Thread(target=self.wait_for_my_turn, daemon=True).start()
@@ -421,6 +427,10 @@ class GameView(arcade.View):
                 self.game_logic.give_opponents_city(x, y, recipient)
                 """ "Niech tak będzie" ~ PM """
                 # self.top_bar.update_treasury(self.game_logic.me.granary, self.game_logic.me.daily_income)
+
+            elif message[0] == "MORE_AREA":
+                x, y = eval(message[1])
+                self.game_logic.increase_area(x, y)
 
             elif message[0] == "DISCONNECT" or message[0] == "DEFEAT":
                 nick = message[1]

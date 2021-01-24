@@ -27,6 +27,10 @@ class City(arcade.sprite.Sprite):
         self.unit_request = None  # if no unit is being build this should be None
         self.building_request = None
 
+        # self.enhanced_area_registered = False  # a bool to prevent multiple area recalculations
+        self.current_radius = 1
+        self.age_since_tower = 0
+        self.next_age_threshold = 1
         self.buildings = {"Astronomic Tower": False, "Mines": False, "Free Market": False, "Armory": False,
                           "Passiflora": False}
         self.goods = self.calculate_goods()  # this will/is used for displaying stats of the city

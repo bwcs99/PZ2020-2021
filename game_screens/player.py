@@ -27,7 +27,15 @@ class Player:
         for city in self.cities:
             city.gather_materials()  # may show some warning, don't worry brother
             city.collect_from_city()  # it changes self.granary
-            city.collect_building()  # collect_building changes count down, it builds building in city after completion
+            # city.collect_building()  # collect_building changes count down, it builds building in city after completion
+
+    def update_buildings(self):
+        """
+        Construction of Astronomic Tower changes the area of the city, so building process need to be updated before
+        collecting goods from the city starts.
+        """
+        for city in self.cities:
+            city.collect_building()
 
     def calculate_daily_income(self):
         daily_income = {'gold': 0, 'wood': 0, 'stone': 0, 'food': 0}
@@ -50,3 +58,13 @@ class Player:
                 self.units.append(unit)
                 units_done.append(unit)
         return units_done
+
+    def get_enhanced_cities_coords(self):
+        coords = []
+        for city in self.cities:
+            if city.buildings['Astronomic Tower']:
+                city.age_since_tower += 1
+                if city.age_since_tower == city.next_age_threshold:
+                    coords.append(city.tile.coords)
+                    city.next_age_threshold *= 2
+        return coords

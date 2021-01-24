@@ -242,25 +242,28 @@ class Server:
         elif request[0] == "CHANGE_MAP":
          #   print('W change map')
          #   print(request[2])
-            broadcast = [request[2].encode(FORMAT)]
+         broadcast = [request[2].encode(FORMAT)]
 
         elif request[0] == "ADD_UNIT" or request[0] == "MOVE_UNIT" or request[0] == "HEALTH":
             broadcast = [incoming_msg.encode(FORMAT)]
-        
+
         elif request[0] == "ADD_CITY":
             wanted = next((player for player in self.players if player.player_name == request[1]), None)
             wanted.city_list.append(request[3])
+            broadcast = [incoming_msg.encode(FORMAT)]
+
+        elif request[0] == "MORE_AREA":
             broadcast = [incoming_msg.encode(FORMAT)]
 
         elif request[0] == "GIVE_CITY":
             broadcast = [incoming_msg.encode(FORMAT)]
 
         elif request[0] == "GIVE_CITIES":
-          #  print('W give_cities')
+            #  print('W give_cities')
             wanted1 = next((player for player in self.players if player.player_name == request[1]), None)
             wanted2 = next((player for player in self.players if player.player_name == request[2]), None)
             cities = eval(request[3])
-          #  print(cities)
+            #  print(cities)
           #  print('Listy gracza 1: ', wanted1.city_list)
           #  print('Listy gracza 2: ', wanted2.city_list)
             for city in cities:

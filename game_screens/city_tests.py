@@ -1,6 +1,6 @@
 import unittest
 
-from city import City
+from game_screens.city import City
 from game_screens.game_logic import GameLogic
 from game_screens.tiles import Tile
 
@@ -123,9 +123,6 @@ class MovementTests(unittest.TestCase):
         assert city is not None
         city.set_area(self.area)
         self.assertEqual({'gold': 2, 'wood': 25, 'stone': 5, 'food': 27}, city.calculate_goods())
-
-
-    # TODO Krzysiu: city taking tests
 
     def test_city_capture(self):
         # player two's forces have made it to the players one's stub_city and are ready to capture it

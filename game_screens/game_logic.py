@@ -1,10 +1,12 @@
+from math import sqrt
+
 import arcade
 
+from game_screens.city import City
 from game_screens.combat.garrison import Garrison
+from game_screens.player import Player
 from game_screens.tiles import Tile, BlinkingTile, BorderTile
 from game_screens.units import Unit, Settler
-from game_screens.city import City
-from game_screens.player import Player
 
 
 class GameLogic:
@@ -44,6 +46,31 @@ class GameLogic:
 
     def get_deployed_units(self):
         return self.me.deploy_units()
+
+    def update_building(self):
+        self.me.update_buildings()
+
+    def get_enhanced_cities(self):
+        coords = self.me.get_enhanced_cities_coords()
+        for c in coords:
+            self.increase_area(c[0], c[1])
+        return coords  # inform other players about your mighty kingdom
+
+    def increase_area(self, x_c: int, y_c: int):
+        """
+        Enhances area of a city located at (x_c, y_c).
+        """
+        city = self.get_tile(x_c, y_c).city
+        city.current_radius += 1
+        r = city.current_radius
+        for x in range(x_c - r, x_c + r + 1):
+            for y in range(y_c - r, y_c + r + 1):
+                if sqrt((x_c - x) ** 2 + (y_c - y) ** 2) <= r:
+                    tile = self.get_tile(x, y)
+                    if tile and not tile.owner:
+                        tile.set_owner(city.owner)
+                        city.area.append(tile)
+        self.update_players_borders(city.owner)
 
     def get_tile(self, x: int, y: int) -> Tile or None:
         """
