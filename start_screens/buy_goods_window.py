@@ -7,7 +7,8 @@ import math
 
 class BuyGoodsWindow(QMainWindow):
     """
-
+    This window is used for interacting with trading goods with another player. Barter was not discovered yet,
+    so you can only pay with gold for other goods.
     """
 
     def __init__(self, parent, grandparent):
@@ -16,7 +17,7 @@ class BuyGoodsWindow(QMainWindow):
         self.setWindowTitle("Resource Trade")
         self.gold_dict = {"gold": 0, "wood": 0, "stone": 0,
                           "food": 0}  # this dictionary is only used for holding keep of gold, but it's used couple of times so it will be easier to declare it.
-        self.material_holder = None
+        self.material_type_holder = None
 
         self.parent = parent
         self.grandparent = grandparent
@@ -99,7 +100,7 @@ class BuyGoodsWindow(QMainWindow):
         self.no_material_type_label = QtWidgets.QLabel(self.centralwidget)
         self.no_material_type_label.setGeometry(QtCore.QRect(170, 190, 400, 21))
         self.no_material_type_label.setText(
-            "Please, chose which material you want to buy.")
+            "Choose which material you want to buy.")
         self.no_material_type_label.setStyleSheet("color: rgb(32,178,170);")
         self.no_material_type_label.setVisible(False)
 
@@ -111,17 +112,16 @@ class BuyGoodsWindow(QMainWindow):
         """
         radio_button = self.sender()
         if radio_button.material == self.wood_radio_button.material:
-            self.material_holder = "Wood"
+            self.material_type_holder = "Wood"
         if radio_button.material == self.stone_radio_button.material:
-            self.material_holder = "Stone"
+            self.material_type_holder = "Stone"
         if radio_button.material == self.food_radio_button.material:
-            self.material_holder = "Food"
-        print(self.material_holder)
+            self.material_type_holder = "Food"
 
     def make_offer(self):
         """
         This method calculates total cost of trade request ( ceiling(how_many_pieces * how_much_for_piece) ).
-
+        And checks if it's alright, when it is, diplomacy procedure for 'buying materials' is called.
         """
         payment_cost = math.ceil(float(self.how_much_for_piece_edit.text()) * int(self.how_many_edit.text()))
         self.gold_dict["gold"] = payment_cost
@@ -138,6 +138,7 @@ class BuyGoodsWindow(QMainWindow):
             # TODO Diplomacy procedure - 'buying materials'
 
             self.hide()
+            self.grandparent.window.back_to_game()
             self.parent.kill_app()
 
     def recalculate_how_many(self):
@@ -159,16 +160,16 @@ class BuyGoodsWindow(QMainWindow):
 
     def change_one_piece_cost(self):
         try:
-            number = float(self.how_much_for_piece_edit.text())
-            if number < 0.0:
-                number = 0.1
-                self.how_much_for_piece_edit.setText(str(number))
-            elif number > 100.0:
-                number = 100.0
-                self.how_much_for_piece_edit.setText(str(number))
+            cost = float(self.how_much_for_piece_edit.text())
+            if cost < 0.0:
+                cost = 0.1
+                self.how_much_for_piece_edit.setText(str(cost))
+            elif cost > 100.0:
+                cost = 100.0
+                self.how_much_for_piece_edit.setText(str(cost))
         except:  # catches all strange input
-            number = 1.0
-            self.how_much_for_piece_edit.setText(str(number))
+            cost = 1.0
+            self.how_much_for_piece_edit.setText(str(cost))
 
 
 if __name__ == "__main__":
