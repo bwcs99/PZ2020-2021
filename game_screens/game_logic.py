@@ -319,3 +319,81 @@ class GameLogic:
                             queue.append((col, row))
                             visited[col, row] = unit.movement
         return visited
+
+    @staticmethod
+    def handle_buying_process(self, sender, my_granary, seller_granary, resource_tuple, price, quantity):
+        """ Obługa kupna - param1: nick kupującego (str), param2: mój karbiec (granary),
+        param3: skarbiec sprzedawcy (granary),
+        param4: krotka - (czy miasto, nazwa surowca/współrzędne)(bool, str/(x:int, y:int)), param5: cena (int),
+        param6: ilość (int) """
+        is_city = resource_tuple[0]
+        resource_name = resource_tuple[1]
+        if is_city:
+            my_granary.try_to_sub_gold(int(price))
+            seller_granary.add_gold(int(price))
+            city_cords = resource_name
+            x_cord = city_cords[0]
+            y_cord = city_cords[1]
+            self.give_opponents_city(x_cord, y_cord, str(sender))
+        else:
+            if resource_name == "wood":
+                my_granary.add_wood(int(quantity))
+                my_granary.try_to_sub_gold(int(price))
+                seller_granary.try_to_sub_wood(int(quantity))
+                seller_granary.add_gold(int(price))
+            elif resource_name == "stone":
+                my_granary.add_stone(int(quantity))
+                my_granary.try_to_sub_gold(int(price))
+                seller_granary.try_to_sub_stone(int(quantity))
+                seller_granary.add_gold(int(price))
+            elif resource_name == "food":
+                my_granary.add_food(int(quantity))
+                my_granary.try_to_sub_gold(int(price))
+                seller_granary.try_to_sub_food(int(quantity))
+                seller_granary.add_food(int(price))
+
+    @staticmethod
+    def handle_selling_process(self, my_granary, buyer_granary, resource, price, quantity):
+        """ Obługa sprzedaży - param1: mój skarbiec (granary), param2: skarbiec kupca (granary),
+        param3: surowiec (str), param4: cena (int),
+        param5: ilość (int) """
+        if resource == 'food':
+            my_granary.try_to_sub_food(int(quantity))
+            my_granary.add_gold(int(price))
+            buyer_granary.try_to_sub_gold(int(price))
+            buyer_granary.add_food(int(quantity))
+        elif resource == 'wood':
+            my_granary.try_to_sub_wood(int(quantity))
+            my_granary.add_gold(int(price))
+            buyer_granary.try_to_sub_gold(int(price))
+            buyer_granary.add_wood(int(quantity))
+        elif resource == 'stone':
+            my_granary.try_to_sub_stone(int(quantity))
+            my_granary.add_gold(int(price))
+            buyer_granary.try_to_sub_gold(int(price))
+            buyer_granary.add_stone(int(quantity))
+
+    @staticmethod
+    def update_allies_list(self, sender, receiver, exists):
+        """ Dodawanie/usuwanie z listy sojuszników
+        param1 - nadawca (nick) (str), param2 - receiver (nick) (str),
+        param3 - czy propozycja rozpatrzona pozytywnie (bool) """
+        if exists:
+            sender.allies.extend([receiver.nick])
+            receiver.allies.extend([sender.nick])
+        else:
+            sender.allies.remove(receiver.nick)
+            receiver.alleis.remove(sender.nick)
+
+    @staticmethod
+    def update_enemies_list(self, sender, receiver, exists):
+        """ Dodawanie/usuwanie z listy wrogów (gracze, z którymi toczymy wojnę)
+        param1 - nadawcq (nick) (str), param2 - odbiorca (nick) (str),
+        param3 - czy jesteśmy nadal w stanie wojny (bool)"""
+        if exists:
+            sender.enemies.extend([receiver.nick])
+            receiver.enemies.extend([sender.nick])
+        else:
+            sender.enemies.remove(receiver.nick)
+            receiver.enemies.remove(sender.nick)
+

@@ -61,7 +61,10 @@ class Client:
 
     # Standard connection method
     def connect(self):
-        self.sock.connect(ADDR)
+        try:
+            self.sock.connect(ADDR)
+        except ConnectionRefusedError as e:
+            return f'Game is not hosted yet!'
 
     # Standard disconnection method
     def disconnect(self):
@@ -257,3 +260,236 @@ class Client:
         while new_msg != msg:
             new_msg = self.rec_msg()
             yield new_msg.split(":")
+
+    ''' Funkcja do wysyłania propozycji sojuszu'''
+    def send_alliance_request(self, sender, receiver, sender_allies):
+        """ param1: (str) nadawca, param2: (str) odbiorca, param3: lista sojuszników (list of strings/nicks)"""
+        if receiver in sender_allies:
+            return f'{receiver} is already your allie'
+        else:
+            msg = f'ALLIANCE:{sender}:{receiver}:{False}'
+            self.only_send(msg)
+
+    ''' Funkcja do pobierania listy wiadomości z serwera'''
+    def get_messages_from_server(self, sender):
+        """ param1: nadawca (str)
+        return - lista wiadomości z serwera (lista stringów) """
+        msg = f'LIST_MSGS:{sender}'
+        resp = self.send_msg(msg)
+        msg_queue = eval(resp)
+        return msg_queue
+
+    ''' Funkcja do zrywania sojuszy z innymi graczami'''
+    def end_alliance(self, sender, receiver, sender_allies):
+        """param1: nadawca (str), param2: odbiorca (str), param3: lista sojuszników (list of strings/nicks)"""
+        if receiver not in sender_allies:
+            return f'{receiver} is not your allie, so you cant end alliance with him'
+        else:
+            msg = f'END_ALLIANCE:{sender}:{receiver}:{False}'
+            self.only_send(msg)
+
+    ''' Funkcja służaca do wypowiadania wojny'''
+    def declare_war(self, sender, receiver, sender_enemies):
+        """ param1: nadawca (str), param2: odbiorca (str), param3: lista wrogów (list of stringd/nicks)"""
+        if receiver in sender_enemies:
+            return f'{receiver} is already your enemy'
+        else:
+            msg = f'DECLARE_WAR:{sender}:{receiver}:{False}'
+            self.only_send(msg)
+
+    '''' Podczas wojny możemy się poddać'''
+    def give_up(self, sender, receiver, sender_enemies):
+        """ param1: nadawca (str), param2: odbiorca (str), param3: lista wrogów (list of stringd/nicks)"""
+        if receiver in sender_enemies:
+            return f'{receiver} is already your enemy'
+        else:
+            msg = f'GIVE_UP:{sender}:{receiver}:{False}'
+            self.only_send(msg)
+
+    ''' Lub zaproponować rozejm'''
+    def send_truce_request(self, sender, receiver, sender_enemies):
+        """ param1: nadawca (str), param2: odbiorca (str), param3: lista wrogów (list of stringd/nicks)"""
+        if receiver not in sender_enemies:
+            return f'{receiver} is not your enemy, so you cant send truce request to him'
+        else:
+            msg = f'TRUCE:{sender}:{receiver}:{False}'
+            self.only_send(msg)
+
+    ''' Wysyłanie propozycji kupna'''
+    def send_buy_request(self, sender, receiver, price, resource, my_granary,
+                         seller_granary, is_city=False, city_cords=(), quantity=1):
+        """ param1 : nick nadawcy (str), param2 : nick odbiorcy (str), param3: proponowana cena (int),
+        param4: nazwa surowca (str),
+        param5: mój skarbiec (granary), param6: skarbiec sprzedawcy (granary),
+        param6: czy sprzedajemy miasto (bool), param7: wsp. miasta (tuple: (x: int, y: int)),
+        param8: ilość surowca/miasta (dla miast domyślna ilośc to 1) (int)
+         return - w razie jakichś problemów zwraca odpowiedni komunikat błędu"""
+        if my_granary.gold < price:
+            return f'You cant afford it'
+        if resource == 'food':
+            if seller_granary.food < quantity:
+                return f'{receiver} has not enough resource of this kind'
+        elif resource == "stone":
+            if seller_granary.stone < quantity:
+                return f'{receiver} has not enough resource of this kind'
+        elif resource == "wood":
+            if seller_granary.wood < quantity:
+                return f'{receiver} has not enough resource of this kind'
+        else:
+            resource_tuple = ()
+            if is_city:
+                resource_tuple = (is_city, city_cords)
+            else:
+                resource_tuple = (is_city, resource)
+            msg = f'BUY:{sender}:{receiver}:{str(resource_tuple)}:{price}:{quantity}:{False}'
+            self.only_send(msg)
+
+    '''Wysyłanie propozycji sprzedaży'''
+    def send_sell_request(self, sender, receiver, price, resource, my_granary, buyer_granary, quantity=1):
+        """ param1: nadawca (str), param2: odbiorca (str), param3: cena (int),
+        param4: surowiec (str), param5: mój skarbiec (granary), param6: skarbiec
+        kupca (granary), param7: ilość surowca (int)
+         return - w razie jakichś problemów zwraca odpowiedni komunikat błędu"""
+        if buyer_granary.gold < price:
+            return f'{receiver} cant afford it'
+        if resource == 'food':
+            if my_granary.food < quantity:
+                return f'You have not enough resource of this kind'
+        elif resource == 'stone':
+            if my_granary.stone < quantity:
+                return f'You have not enough resource of this kind'
+        elif resource == 'wood':
+            if my_granary.wood < quantity:
+                return f'You have not enough resource of this kind'
+        else:
+            msg = f'SELL:{sender}:{receiver}:{resource}:{price}:{quantity}:{False}'
+            self.only_send(msg)
+
+    ''' Wysyłamy nasze odpowiedzi na serwer i serwer wysyła je do odpowiednich graczy'''
+    def send_response_to_players(self, sender, response_list):
+        """param1: nadawca (str), param2: lista odpowiedzi (list of strings) """
+        msg = f'SEND_RESP:{sender}:{str(response_list)}'
+        self.only_send(msg)
+
+    ''' Rozpatrujemy propozycje innych graczy '''
+    def create_answer(self, msg, decision=True):
+        """param1: odpowiedź (str), param2: roztrzygnięcie (bool: True lub False) (pozytywne/negatywne)
+        return - odpowiedź - pozytywna/negatywna """
+        splited_msg = msg.split(":")
+        splited_msg[0] += "_ANSWER"
+        if decision:
+            splited_msg[-1] = str(True)
+        else:
+            splited_msg[-1] = str(False)
+        ans = ':'.join(splited_msg)
+        return ans
+
+    def display_message_to_others(self, messages):
+        """ Wyświetla wiadomości dostępne powszechnie. param1: lista wiadomości (lista stringów),
+        return - odpowiednio spreparowane zdania do wyświetlenia. Z tą funkcją jest podobnie jak z poniższą """
+        information_list = []
+        for message in messages:
+            fields_values = message.split(":")
+            if "EAL_INFO" in message:
+                information_list.extend([f'Alliance between {fields_values[1]} and {fields_values[2]} ended'])
+            elif "DCL_WAR_INFO" in message:
+                information_list.extend([f'{fields_values[1]} has declared war to {fields_values[2]}'])
+            elif "ALC_INFO" in message:
+                information_list.extend([f'{fields_values[1]} and {fields_values[2]} are allies'])
+            elif "GUP_INFO" in message:
+                information_list.extend([f'{fields_values[1]} gave up. War between {fields_values[1]}'
+                                         f'and {fields_values[2]} ended'])
+            elif "TRC_INFO" in message:
+                information_list.extend([f'{fields_values[1]} sent truce request to {fields_values[2]}. War between'
+                                         f'them is ended'])
+            elif "B_INFO" in message:
+                cords = eval(fields_values[-1])
+                # zamiast współrzędnych przydałaby się nazwa
+                information_list.extend([f'{fields_values[1]} has bought {cords} city from {fields_values[2]}'])
+            return information_list
+
+
+    ''' Dla Patryka - zwraca napis będący odpowiednim komunikatem. Dzięki temu będziemy musieli tylko podpiąć jakieś
+    okno do wyświetlania wiadomości. To wcale nie musi być w klasie klienckiej (a nawet chyba nie powinno) '''
+    def display_message_queue(self, messages):
+        """param1: lista wiadomości danego użytkownika (z serwera) (list of strings)
+        return - lista stringów (odpowiednio spreparowanych zdań)"""
+        information_list = []
+        for message in messages:
+            value_fields = message.split(":")
+            if "END_ALLIANCE" in message:
+                if "ANSWER" in message:
+                    information_list.extend([f'Alliance between you and {value_fields[2]} ended'])
+                else:
+                    information_list.extend([f'Your ally {value_fields[1]} wants to end alliance with you'])
+            elif "ALLIANCE" in message:
+                if "ANSWER" in message:
+                    if bool(value_fields[-1]):
+                        information_list.extend([f'You and {value_fields[2]} are allies'])
+                    else:
+                        information_list.extend([f'{value_fields[2]} doesnt want to be ally with you'])
+                else:
+                    information_list.extend([f'{value_fields[1]} wants alliance with you'])
+            elif "DECLARE_WAR" in message:
+                if "ANSWER" in message:
+                    information_list.extend([f'{value_fields[2]} knows. Now you can attack each other'])
+                else:
+                    information_list.extend([f'{value_fields[1]} has declared war to you'])
+            elif "GIVE_UP" in message:
+                if "ANSWER" in message:
+                    information_list.extend([f'{value_fields[2]} knows. War is ended. You lost it'])
+                else:
+                    information_list.extend([f'{value_fields[1]} wants to give up'])
+            elif "TRUCE" in message:
+                if "ANSWER" in message:
+                    if bool(value_fields[-1]):
+                        information_list.extend([f'{value_fields[2]} thinks its good idea! War is ended'])
+                    else:
+                        information_list.extend([f'{value_fields[2]} doesnt want peace'])
+                else:
+                    information_list.extend([f'{value_fields[1]} wants to end this war'])
+            elif "BUY" in message:
+                res_tup = eval(value_fields[1])
+                is_city = bool(res_tup[0])
+                res_name = res_tup[1]
+                if "ANSWER" in message:
+                    if bool(value_fields[-1]):
+                        information_list.extend(f'{value_fields[3]} was interested. The transaction ended successfully')
+                    else:
+                        information_list.extend(f'{value_fields[3]} was not interested. The transaction failed')
+                else:
+                    if is_city:
+                        information_list.extend(
+                            f'{value_fields[1]} wants to buy {res_name} city from you. Qunatity: {value_fields[-2]}. '
+                            f'Price: {value_fields[-3]}')
+                    else:
+                        information_list.extend(
+                            f'{value_fields[1]} wants to buy {res_name} from you. Qunatity: {value_fields[-2]}.'
+                            f'Price: {value_fields[-3]}')
+
+            elif "SELL" in message:
+                res_tup = eval(value_fields[1])
+                is_city = bool(res_tup[0])
+                res_name = res_tup[1]
+                if "ANSWER" in message:
+                    if bool(value_fields[-1]):
+                        information_list.extend(f'{value_fields[3]} was interested. The transaction ended successfully')
+                    else:
+                        information_list.extend(f'{value_fields[3]} was not interested. The transaction failed')
+                else:
+                    if is_city:
+                        information_list.extend(
+                            f'{value_fields[1]} wants to sell you {res_name} city. Qunatity: {value_fields[-2]}.'
+                            f'Price: {value_fields[-3]}')
+                    else:
+                        information_list.extend(
+                            f'{value_fields[1]} wants to sell you {res_name}. Qunatity: {value_fields[-2]}.'
+                            f'Price: {value_fields[-3]}')
+            return information_list
+
+
+
+
+
+
+
