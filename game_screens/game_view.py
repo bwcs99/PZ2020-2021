@@ -443,7 +443,15 @@ class GameView(arcade.View):
 
             elif message[0] == "DIPLOMACY_ANSWER":
                 if message[3] == self.client.nick:
-                    print("Some info for me!")
+                    if message[1] == "DECLARE_WAR":
+                        self.game_logic.me.enemies.append(self.game_logic.players[message[2]])
+                        print(self.game_logic.me.enemies)
+                        print("Some info for me!")
+                elif message[2] == self.client.nick:
+                    if message[1] == "DECLARE_WAR":
+                        self.game_logic.me.enemies.append(self.game_logic.players[message[3]])
+                        print("Some info for me!")
+                        print(self.game_logic.me.enemies)
 
             elif message[0] == "DIPLOMACY":
                 if message[3] == self.client.nick:

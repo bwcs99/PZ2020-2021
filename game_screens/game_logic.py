@@ -306,13 +306,13 @@ class GameLogic:
             parent_cost = visited[(x, y)]
             for col, row in [(x, y + 1), (x + 1, y), (x, y - 1), (x - 1, y)]:
                 tile = self.get_tile(col, row)
-                if tile:
+                if tile and (tile.owner is None or tile.owner == self.me or tile.owner in self.me.allies or tile.owner in self.me.enemies):
                     alt_cost = parent_cost + tile.cost
                     if not tile.occupant:
                         if alt_cost <= unit.movement and ((col, row) not in visited or alt_cost < visited[col, row]):
                             queue.append((col, row))
                             visited[col, row] = alt_cost
-                    elif type(unit) != Settler and tile.occupant.owner != self.me:
+                    elif type(unit) != Settler and tile.occupant.owner in self.me.enemies:
                         # i'm not a settler and there's a unit i can fight
                         # it's gonna cost all my movement so that i can't jump over the enemy
                         if alt_cost <= unit.movement and ((col, row) not in visited or alt_cost < visited[col, row]):
