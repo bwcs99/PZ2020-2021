@@ -66,5 +66,5 @@ class Player:
                 city.age_since_tower += 1
                 if city.age_since_tower == city.next_age_threshold:
                     coords.append(city.tile.coords)
-                    city.next_age_threshold *= 2
+                    city.next_age_threshold *= 3
         return coords

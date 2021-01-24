@@ -310,7 +310,7 @@ class GameView(arcade.View):
                     self.my_turn = False
                     self.unit_popup.hide()
                     self.game_logic.end_turn()
-                    self.top_bar.update_treasury()
+
                     units = self.game_logic.get_deployed_units()
                     for u in units:
                         x, y = u.tile.coords
@@ -322,6 +322,10 @@ class GameView(arcade.View):
                     for c in cities:
                         messages = self.client.enhance_city_area(c[0], c[1])
                         self.handle_additional_messages(messages)
+
+                    for city in self.game_logic.me.cities:
+                        city.goods = city.calculate_goods()
+                    self.top_bar.update_treasury()
 
                     messages = self.client.end_turn()
                     self.handle_additional_messages(messages)
