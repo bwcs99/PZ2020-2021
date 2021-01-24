@@ -1,13 +1,14 @@
 import os
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget
 
 
 class BuildBuildingWindow(QMainWindow):
-    """ The most important window when it comes to experience of building civilization.
-        To be added - inside view of Passiflora.
+    """
+    The most important window when it comes to experience of building civilization.
+    To be added - inside view of Passiflora.
     """
 
     def __init__(self, parent, grandparent):
