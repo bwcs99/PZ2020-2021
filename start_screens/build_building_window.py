@@ -158,30 +158,35 @@ class BuildBuildingWindow(QMainWindow):
         self.radioButton.setText("")
         self.radioButton.building = "Astronomic Tower"
         self.radioButton.toggled.connect(self.choose_building)
+        if self.grandparent.city.buildings["Astronomic Tower"]: self.radioButton.setVisible(False)
 
         self.radioButton_2 = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton_2.setGeometry(QtCore.QRect(350, 140, 21, 21))
         self.radioButton_2.setText("")
         self.radioButton_2.building = "Mines"
         self.radioButton_2.toggled.connect(self.choose_building)
+        if self.grandparent.city.buildings["Mines"]: self.radioButton_2.setVisible(False)
 
         self.radioButton_3 = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton_3.setGeometry(QtCore.QRect(350, 230, 21, 21))
         self.radioButton_3.setText("")
         self.radioButton_3.building = "Free Market"
         self.radioButton_3.toggled.connect(self.choose_building)
+        if self.grandparent.city.buildings["Free Market"]: self.radioButton_3.setVisible(False)
 
         self.radioButton_4 = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton_4.setGeometry(QtCore.QRect(350, 320, 21, 21))
         self.radioButton_4.setText("")
         self.radioButton_4.building = "Armory"
         self.radioButton_4.toggled.connect(self.choose_building)
+        if self.grandparent.city.buildings["Armory"]: self.radioButton_4.setVisible(False)
 
         self.radioButton_5 = QtWidgets.QRadioButton(self.centralwidget)
         self.radioButton_5.setGeometry(QtCore.QRect(350, 410, 21, 21))
         self.radioButton_5.setText("")
         self.radioButton_5.building = "Passiflora"
         self.radioButton_5.toggled.connect(self.choose_building)
+        if self.grandparent.city.buildings["Passiflora"]: self.radioButton_5.setVisible(False)
 
         """ INVISIBLE LABELS """
 
