@@ -41,12 +41,6 @@ class City(arcade.sprite.Sprite):
     def get_city_goods_income(self):
         return self.calculate_goods()
 
-    def show_whats_building(self):
-        # TODO make it reasonable
-        # print(self.unit_currently_being_build)
-        # print(self.days_left_to_building_completion)
-        pass
-
     def gather_materials(self):
         """
         Gathering materials works as follows: checking all tiles in self.area and adding appropriate values to granary.
@@ -70,6 +64,9 @@ class City(arcade.sprite.Sprite):
             for _ in self.area:
                 self.granary.add_gold(3)
 
+        if self.buildings["Mines"]:
+            self.granary.add_stone(20)
+
     def collect_from_city(self):
         """
         This method should be called to collect all materials from this city granary to player's master granary
@@ -82,6 +79,9 @@ class City(arcade.sprite.Sprite):
         if self.buildings["Free Market"]:
             for _ in self.area:
                 goods["gold"] += 3
+
+        if self.buildings["Mines"]:
+            goods["stone"] += 20
         return goods
 
     @staticmethod
