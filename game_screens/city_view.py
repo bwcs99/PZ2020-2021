@@ -1,5 +1,3 @@
-import sys
-
 import arcade
 from PyQt5.QtWidgets import QApplication
 from arcade.gui import UIManager
@@ -9,10 +7,6 @@ from game_screens.popups import CityInfo
 from start_screens.build_building_window import BuildBuildingWindow
 from start_screens.build_unit_window import BuildUnitWindow
 
-
-# TODO: Display info about currently building object in the city. Think about units AND city upgrades.
-# TODO: Add displaying city name
-# TODO: Add displaying built buildings
 
 class CityView(arcade.View):
     def __init__(self, top_bar):
@@ -107,6 +101,7 @@ class BuildUnitFlatButton(arcade.gui.UIFlatButton):
             win = BuildUnitWindow(self, self.parent)
             win.show()
             self.app.exec_()
+            self.parent.city_info.update()
             print("exited build_unit_window.")
         else:
             self.parent.clicked_once = True
@@ -126,6 +121,7 @@ class BuildBuildingFlatButton(arcade.gui.UIFlatButton):
             win = BuildBuildingWindow(self, self.parent)
             win.show()
             self.app.exec_()
+            self.parent.city_info.update()
             print("exited build_building_window.")
         else:
             self.parent.clicked_once = True

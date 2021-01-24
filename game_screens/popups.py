@@ -525,8 +525,19 @@ class CityInfo(PopUp):
             self.wood_label.text = "Wood:" + f"+{stats['wood']}".rjust(self.base_width-5, ' ')
             self.stone_label.text = "Stone:" + f"+{stats['stone']}".rjust(self.base_width-6, ' ')
 
-            self.current_label.text = str(self.city.unit_request)
-            # TODO update building labels
+            if self.city.unit_request:
+                self.current_label.text = f"{self.city.unit_request['count']} {self.city.unit_request['type']} ({self.city.days_left_to_building_completion})"
+            elif self.city.building_request:
+                self.current_label.text = f"{self.city.building_request} ({self.city.days_left_to_building_building_completion})"
+            else:
+                self.current_label.text = "Nothing"
+
+            i = 0
+            for building, built in self.city.buildings.items():
+                if built:
+                    self.buildings[i].text = building
+                    i += 1
+
             self.adjust()
 
     def hide(self):
