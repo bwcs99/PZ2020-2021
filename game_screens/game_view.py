@@ -51,6 +51,7 @@ class GameView(arcade.View):
         self.top_bar = TopBar(None, TOP_BAR_SIZE)
         self.unit_popup = UnitPopup(4 * TOP_BAR_SIZE, 4 * TOP_BAR_SIZE)
         self.update_popup = False  # used to only update pop-up once per opponent's move, otherwise game is laggy
+        self.update_topbar = False  # used to update top bar if my city has been taken
         self.city_popup = CityCreationPopup(4 * TOP_BAR_SIZE, 5 * TOP_BAR_SIZE)
         self.end_popup = EndingPopup(6 * TOP_BAR_SIZE, 6 * TOP_BAR_SIZE)
         self.ranking = None
@@ -111,6 +112,9 @@ class GameView(arcade.View):
         if self.update_popup:
             self.unit_popup.update()
             self.update_popup = False
+        if self.update_topbar:
+            self.top_bar.update_treasury()
+            self.update_topbar = False
         if self.ranking:
             self.top_bar.game_ended()
             self.end_popup.display(self.ranking)
@@ -237,6 +241,7 @@ class GameView(arcade.View):
                                     self.game_logic.give_city(city, self.game_logic.me)
                                     messages = self.client.get_city(city)
                                     self.handle_additional_messages(messages)
+                                    self.top_bar.update_treasury()
                                     # if the city was the user's last, they're defeated
                                     if len(opponent.cities) == 0:
                                         messages = self.client.kill(opponent.nick)
@@ -430,11 +435,19 @@ class GameView(arcade.View):
                 recipient = message[2]
                 self.game_logic.give_opponents_city(x, y, recipient)
                 """ "Niech tak będzie" ~ PM """
-                # self.top_bar.update_treasury(self.game_logic.me.granary, self.game_logic.me.daily_income)
+                self.update_topbar = True
 
             elif message[0] == "MORE_AREA":
                 x, y = eval(message[1])
                 self.game_logic.increase_area(x, y)
+
+            elif message[0] == "DIPLOMACY_ANSWER":
+                if message[3] == self.client.nick:
+                    print("Some info for me!")
+
+            elif message[0] == "DIPLOMACY":
+                if message[3] == self.client.nick:
+                    print("A request for me!")
 
             elif message[0] == "DISCONNECT" or message[0] == "DEFEAT":
                 nick = message[1]

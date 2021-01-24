@@ -237,8 +237,6 @@ class Server:
             broadcast = [f"FINISH:::".encode(FORMAT)]
 
         elif request[0] == "QUIT_GAME":
-            #    print('W quit_game')
-            #    print(self.connections)
             wanted = next((player for player in self.players if player.player_name == request[1]), None)
             self.players.remove(wanted)
             idx = self.players.index(wanted)
@@ -246,7 +244,6 @@ class Server:
             self.connections.pop(idx)
             self.threads[idx].join()
             self.threads.pop(idx)
-        #   print(self.connections)
 
         elif request[0] == "END_GAME":
             # ranking = self.compute_rank(self.players)
@@ -273,49 +270,13 @@ class Server:
 
             #####################################################################
 
-        elif request[0] == "ALLIANCE":
-            print("W alliance")
-            receiver = str(request[2])
-            msg_to_queue = ":".join(request)
-            wanted = next((player for player in self.players if player.player_name == receiver), None)
-            if wanted is not None:
-                wanted.message_queue.extend([msg_to_queue])
-            print("Po alliance")
-
-        elif request[0] == "LIST_MSGS":
-            print("W list_msgs")
-            player_nick = str(request[1])
-            wanted = next((player for player in self.players if player.player_name == player_nick), None)
-            msgs_list = wanted.message_queue
-            msg_list_str = str(msgs_list)
-            response.append(msg_list_str.encode(FORMAT))
-            print("Po list_msgs")
-
-        elif request[0] == "END_ALLIANCE":
-            print("W end_alliance")
-            receiver = str(request[2])
-            wanted = next((player for player in self.players if player.player_name == receiver), None)
-            msg = ":".join(request)
-            if wanted is not None:
-                wanted.message_queue.extend([msg])
-            print("Po end_alliance")
-
-        elif request[0] == "DIPLOMACY":
-            print("W declare_war")
+        elif request[0].startswith("DIPLOMACY"):
+            print("W diplo")
             # response.append(incoming_msg.encode(FORMAT))
-            # broadcast = [f"TURN:{self.queue[self.current_player].player_name}".encode(FORMAT)]
             wanted = next((player for player in self.players if player.player_name == request[3]), None)
             if wanted is not None:
                 wanted.message_queue.append(incoming_msg.encode(FORMAT))
-            print("Po declare_War")
-
-        elif request[0] == "TRUCE":
-            print("W truce")
-            msg = ":".join(request)
-            wanted = next((player for player in self.players if player.player_name == request[2]), None)
-            if wanted is not None:
-                wanted.message_queue.extend([msg])
-            print("Po truce")
+            print("Po diplo")
 
         elif request[0] == "SEND_RESP":
             print("W przetwarzaniu odpowiedzi")
@@ -332,19 +293,15 @@ class Server:
             response_list_to_str = str(response_list)
             response.append(response_list_to_str.encode(FORMAT))
 
-        elif request[0] == "BUY":
-            print("W BUY_REQUEST")
-            msg = ":".join(request)
-            wanted = next((player for player in self.players if player.player_name == str(request[2])), None)
-            if wanted is not None:
-                wanted.message_queue.extend([msg])
+        elif request[0] == "LIST_MSGS":
+            print("W list_msgs")
+            player_nick = str(request[1])
+            wanted = next((player for player in self.players if player.player_name == player_nick), None)
+            msgs_list = wanted.message_queue
+            msg_list_str = str(msgs_list)
+            response.append(msg_list_str.encode(FORMAT))
+            print("Po list_msgs")
 
-        elif request[0] == "SELL":
-            print("W SELL_REQUEST")
-            msg = ":".join(request)
-            wanted = next((player for player in self.players if player.player_name == str(request[2])), None)
-            if wanted is not None:
-                wanted.message_queue.extend([msg])
         else:
             response.append(f"UNKNOWN OPTION".encode(FORMAT))
         return response, broadcast

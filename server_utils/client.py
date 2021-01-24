@@ -270,114 +270,59 @@ class Client:
 
     ''' Funkcja do wysyłania propozycji sojuszu'''
 
-    def send_alliance_request(self, sender, receiver, sender_allies):
+    def send_alliance_request(self, receiver):
         """ param1: (str) nadawca, param2: (str) odbiorca, param3: lista sojuszników (list of strings/nicks)"""
-        if receiver in sender_allies:
-            return f'{receiver} is already your allie'
-        else:
-            msg = f'ALLIANCE:{sender}:{receiver}:{False}'
-            self.only_send(msg)
-
-    ''' Funkcja do pobierania listy wiadomości z serwera'''
-
-    def get_messages_from_server(self, sender):
-        """ param1: nadawca (str)
-        return - lista wiadomości z serwera (lista stringów) """
-        msg = f'LIST_MSGS:{sender}'
-        resp = self.send_msg(msg)
-        msg_queue = eval(resp)
-        return msg_queue
+        msg = f'DIPLOMACY:ALLIANCE:{self.nick}:{receiver}:{False}'
+        self.only_send(msg)
 
     ''' Funkcja do zrywania sojuszy z innymi graczami'''
 
-    def end_alliance(self, sender, receiver, sender_allies):
+    def end_alliance(self, receiver):
         """param1: nadawca (str), param2: odbiorca (str), param3: lista sojuszników (list of strings/nicks)"""
-        if receiver not in sender_allies:
-            return f'{receiver} is not your allie, so you cant end alliance with him'
-        else:
-            msg = f'END_ALLIANCE:{sender}:{receiver}:{False}'
-            self.only_send(msg)
+        msg = f'DIPLOMACY_ANSWER:END_ALLIANCE:{self.nick}:{receiver}:{False}'
+        self.only_send(msg)
 
     ''' Funkcja służaca do wypowiadania wojny'''
 
     def declare_war(self, receiver):
-        msg = f'DIPLOMACY:DECLARE_WAR:{self.nick}:{receiver}:{False}'
-
+        msg = f'DIPLOMACY_ANSWER:DECLARE_WAR:{self.nick}:{receiver}:{False}'
         self.only_send(msg)
 
     ''' Podczas wojny możemy się poddać ~ BW '''
-
     ''' Lub zaproponować rozejm'''
 
-    def send_truce_request(self, sender, receiver, sender_enemies):
+    def send_truce_request(self, receiver):
         """ param1: nadawca (str), param2: odbiorca (str), param3: lista wrogów (list of stringd/nicks)"""
-        if receiver not in sender_enemies:
-            return f'{receiver} is not your enemy, so you cant send truce request to him'
-        else:
-            msg = f'TRUCE:{sender}:{receiver}:{False}'
-            self.only_send(msg)
+        msg = f'DIPLOMACY:TRUCE:{self.nick}:{receiver}:{False}'
+        self.only_send(msg)
 
     ''' Wysyłanie propozycji kupna'''
 
-    def send_buy_request(self, sender, receiver, price, resource, my_granary,
-                         seller_granary, is_city=False, city_cords=(), quantity=1):
+    def send_buy_request(self, receiver, price, resource, is_city=False, city_cords=(), quantity=1):
         """ param1 : nick nadawcy (str), param2 : nick odbiorcy (str), param3: proponowana cena (int),
         param4: nazwa surowca (str),
         param5: mój skarbiec (granary), param6: skarbiec sprzedawcy (granary),
         param6: czy sprzedajemy miasto (bool), param7: wsp. miasta (tuple: (x: int, y: int)),
         param8: ilość surowca/miasta (dla miast domyślna ilośc to 1) (int)
          return - w razie jakichś problemów zwraca odpowiedni komunikat błędu"""
-        if my_granary.gold < price:
-            return f'You cant afford it'
-        if resource == 'food':
-            if seller_granary.food < quantity:
-                return f'{receiver} has not enough resource of this kind'
-        elif resource == "stone":
-            if seller_granary.stone < quantity:
-                return f'{receiver} has not enough resource of this kind'
-        elif resource == "wood":
-            if seller_granary.wood < quantity:
-                return f'{receiver} has not enough resource of this kind'
+        if is_city:
+            resource_tuple = (is_city, city_cords)
         else:
-            resource_tuple = ()
-            if is_city:
-                resource_tuple = (is_city, city_cords)
-            else:
-                resource_tuple = (is_city, resource)
-            msg = f'BUY:{sender}:{receiver}:{str(resource_tuple)}:{price}:{quantity}:{False}'
-            self.only_send(msg)
+            resource_tuple = (is_city, resource)
+        msg = f'DIPLOMACY:BUY:{self.nick}:{receiver}:{resource_tuple}:{price}:{quantity}:{False}'
+        self.only_send(msg)
 
     '''Wysyłanie propozycji sprzedaży'''
 
-    def send_sell_request(self, sender, receiver, price, resource, my_granary, buyer_granary, quantity=1):
+    def send_sell_request(self, receiver, price, resource, quantity=1):
         """ param1: nadawca (str), param2: odbiorca (str), param3: cena (int),
         param4: surowiec (str), param5: mój skarbiec (granary), param6: skarbiec
         kupca (granary), param7: ilość surowca (int)
          return - w razie jakichś problemów zwraca odpowiedni komunikat błędu"""
-        if buyer_granary.gold < price:
-            return f'{receiver} cant afford it'
-        if resource == 'food':
-            if my_granary.food < quantity:
-                return f'You have not enough resource of this kind'
-        elif resource == 'stone':
-            if my_granary.stone < quantity:
-                return f'You have not enough resource of this kind'
-        elif resource == 'wood':
-            if my_granary.wood < quantity:
-                return f'You have not enough resource of this kind'
-        else:
-            msg = f'SELL:{sender}:{receiver}:{resource}:{price}:{quantity}:{False}'
-            self.only_send(msg)
-
-    ''' Wysyłamy nasze odpowiedzi na serwer i serwer wysyła je do odpowiednich graczy'''
-
-    def send_response_to_players(self, sender, response_list):
-        """param1: nadawca (str), param2: lista odpowiedzi (list of strings) """
-        msg = f'SEND_RESP:{sender}:{str(response_list)}'
+        msg = f'DIPLOMACY:SELL:{self.nick}:{receiver}:{resource}:{price}:{quantity}:{False}'
         self.only_send(msg)
 
     ''' Rozpatrujemy propozycje innych graczy '''
-
     def create_answer(self, msg, decision=True):
         """param1: odpowiedź (str), param2: roztrzygnięcie (bool: True lub False) (pozytywne/negatywne)
         return - odpowiedź - pozytywna/negatywna """
@@ -492,3 +437,13 @@ class Client:
                             f'{value_fields[1]} wants to sell you {res_name}. Qunatity: {value_fields[-2]}.'
                             f'Price: {value_fields[-3]}')
             return information_list
+
+    ''' Funkcja do pobierania listy wiadomości z serwera'''
+
+    def get_messages_from_server(self, sender):
+        """ param1: nadawca (str)
+        return - lista wiadomości z serwera (lista stringów) """
+        msg = f'LIST_MSGS:{sender}'
+        resp = self.send_msg(msg)
+        msg_queue = eval(resp)
+        return msg_queue
