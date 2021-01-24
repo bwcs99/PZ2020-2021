@@ -62,7 +62,9 @@ class Player:
     def get_enhanced_cities_coords(self):
         coords = []
         for city in self.cities:
-            if city.buildings['Astronomic Tower'] and not city.enhanced_area_registered:
-                city.enhanced_area_registered = True
-                coords.append([city.tile.coords])
+            if city.buildings['Astronomic Tower']:
+                city.age_since_tower += 1
+                if city.age_since_tower == city.next_age_threshold:
+                    coords.append(city.tile.coords)
+                    city.next_age_threshold *= 2
         return coords

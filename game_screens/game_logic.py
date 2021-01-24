@@ -60,16 +60,15 @@ class GameLogic:
         """
         Enhances area of a city located at (x_c, y_c).
         """
-        r = 7  # adjustable range
         city = self.get_tile(x_c, y_c).city
-        new_tiles = []
+        city.current_radius += 1
+        r = city.current_radius
         for x in range(x_c - r, x_c + r + 1):
             for y in range(y_c - r, y_c + r + 1):
                 if sqrt((x_c - x) ** 2 + (y_c - y) ** 2) <= r:
                     tile = self.get_tile(x, y)
                     if tile and not tile.owner:
                         tile.set_owner(city.owner)
-                        new_tiles.append(tile)
                         city.area.append(tile)
         self.update_players_borders(city.owner)
 
