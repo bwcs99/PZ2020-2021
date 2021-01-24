@@ -82,6 +82,7 @@ class City(arcade.sprite.Sprite):
 
         if self.buildings["Mines"]:
             goods["stone"] += 20
+
         return goods
 
     @staticmethod
