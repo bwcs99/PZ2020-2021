@@ -306,7 +306,7 @@ class GameLogic:
             parent_cost = visited[(x, y)]
             for col, row in [(x, y + 1), (x + 1, y), (x, y - 1), (x - 1, y)]:
                 tile = self.get_tile(col, row)
-                if tile and (tile.owner is None or tile.owner == self.me or tile.owner in self.me.allies or tile.owner in self.me.enemies):
+                if tile and (tile.owner is None or tile.owner == self.me or (tile.owner in self.me.allies and tile.city is None) or tile.owner in self.me.enemies):
                     alt_cost = parent_cost + tile.cost
                     if not tile.occupant:
                         if alt_cost <= unit.movement and ((col, row) not in visited or alt_cost < visited[col, row]):

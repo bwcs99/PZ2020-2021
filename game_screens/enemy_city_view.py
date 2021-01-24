@@ -19,7 +19,8 @@ class EnemyCityView(arcade.View):
         self.buy_goods_button = None
         self.declare_war_button = None
         self.propose_peace_button = None
-
+        self.offer_alliance_button = None
+        self.end_alliance_button = None
 
     def set_city(self, city: City):
         self.city = city
@@ -45,6 +46,12 @@ class EnemyCityView(arcade.View):
         self.propose_peace_button = ProposePeaceButton(self, center_x=self.window.width,
                                                        center_y=self.window.height)
         self.ui_manager.add_ui_element(self.propose_peace_button)
+        self.offer_alliance_button = OfferAllianceButton(self, center_x=self.window.width,
+                                                         center_y=self.window.height)
+        self.ui_manager.add_ui_element(self.offer_alliance_button)
+        self.end_alliance_button = EndAllianceButton(self, center_x=self.window.width,
+                                                     center_y=self.window.height)
+        self.ui_manager.add_ui_element(self.end_alliance_button)
 
     def on_draw(self):
         img = arcade.load_texture(f"{self.city.path_to_visualization}")
@@ -99,6 +106,7 @@ class ProposePeaceButton(arcade.gui.UIFlatButton):
 
     def on_click(self):
         # TODO Diplomacy procedure - 'proposing peace'
+        self.parent.client.send_truce_request(self.parent.city.owner.nick)
 
         print("Proposing peace procedure")
         self.parent.window.back_to_game()
@@ -113,4 +121,28 @@ class DeclareWarButton(arcade.gui.UIFlatButton):
         self.parent.client.declare_war(self.parent.city.owner.nick)
 
         print("Declaring war procedure")
+        self.parent.window.back_to_game()
+
+
+class OfferAllianceButton(arcade.gui.UIFlatButton):
+    def __init__(self, parent, center_x, center_y):
+        super().__init__('Offer alliance', center_x=center_x // 2 + 300, center_y=center_y // 4 + 100, width=250, )
+        self.parent = parent
+
+    def on_click(self):
+        self.parent.client.send_alliance_request(self.parent.city.owner.nick)
+
+        print("Offering alliance procedure")
+        self.parent.window.back_to_game()
+
+
+class EndAllianceButton(arcade.gui.UIFlatButton):
+    def __init__(self, parent, center_x, center_y):
+        super().__init__('End alliance', center_x=center_x // 2 - 300, center_y=center_y // 4 + 100, width=250, )
+        self.parent = parent
+
+    def on_click(self):
+        self.parent.client.end_alliance(self.parent.city.owner.nick)
+
+        print("Ending alliance procedure")
         self.parent.window.back_to_game()

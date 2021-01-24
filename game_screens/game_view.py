@@ -447,14 +447,27 @@ class GameView(arcade.View):
                         self.game_logic.me.enemies.append(self.game_logic.players[message[2]])
                         print(self.game_logic.me.enemies)
                         print("Some info for me!")
+                    elif message[1] == "ALLIANCE":
+                        self.game_logic.me.allies.append(self.game_logic.players[message[2]])
+                    elif message[1] == "END_ALLIANCE":
+                        self.game_logic.me.allies.remove(self.game_logic.players[message[2]])
+                    elif message[1] == "TRUCE":
+                        self.game_logic.me.enemies.remove(self.game_logic.players[message[2]])
                 elif message[2] == self.client.nick:
                     if message[1] == "DECLARE_WAR":
                         self.game_logic.me.enemies.append(self.game_logic.players[message[3]])
                         print("Some info for me!")
                         print(self.game_logic.me.enemies)
+                    elif message[1] == "ALLIANCE":
+                        self.game_logic.me.allies.append(self.game_logic.players[message[3]])
+                    elif message[1] == "END_ALLIANCE":
+                        self.game_logic.me.allies.remove(self.game_logic.players[message[3]])
+                    elif message[1] == "TRUCE":
+                        self.game_logic.me.enemies.remove(self.game_logic.players[message[3]])
 
             elif message[0] == "DIPLOMACY":
                 if message[3] == self.client.nick:
+                    self.client.only_send(f"DIPLOMACY_ANSWER:{message[1]}:{message[3]}:{message[2]}:" + ":".join(message[4:]))
                     print("A request for me!")
 
             elif message[0] == "DISCONNECT" or message[0] == "DEFEAT":

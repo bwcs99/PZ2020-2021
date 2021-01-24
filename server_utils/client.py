@@ -268,21 +268,13 @@ class Client:
             new_msg = self.rec_msg()
             yield new_msg.split(":")
 
-    ''' Funkcja do wysyłania propozycji sojuszu'''
-
     def send_alliance_request(self, receiver):
-        """ param1: (str) nadawca, param2: (str) odbiorca, param3: lista sojuszników (list of strings/nicks)"""
         msg = f'DIPLOMACY:ALLIANCE:{self.nick}:{receiver}:{False}'
         self.only_send(msg)
 
-    ''' Funkcja do zrywania sojuszy z innymi graczami'''
-
     def end_alliance(self, receiver):
-        """param1: nadawca (str), param2: odbiorca (str), param3: lista sojuszników (list of strings/nicks)"""
         msg = f'DIPLOMACY_ANSWER:END_ALLIANCE:{self.nick}:{receiver}:{False}'
         self.only_send(msg)
-
-    ''' Funkcja służaca do wypowiadania wojny'''
 
     def declare_war(self, receiver):
         msg = f'DIPLOMACY_ANSWER:DECLARE_WAR:{self.nick}:{receiver}:{False}'
