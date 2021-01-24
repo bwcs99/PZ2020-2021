@@ -48,7 +48,7 @@ class GameView(arcade.View):
         self.TILE_COLS = len(tiles[0])
         self.zoom = 0
 
-        self.top_bar = TopBar(TOP_BAR_SIZE)
+        self.top_bar = TopBar(None, TOP_BAR_SIZE)
         self.unit_popup = UnitPopup(4 * TOP_BAR_SIZE, 4 * TOP_BAR_SIZE)
         self.update_popup = False  # used to only update pop-up once per opponent's move, otherwise game is laggy
         self.city_popup = CityCreationPopup(4 * TOP_BAR_SIZE, 5 * TOP_BAR_SIZE)
@@ -72,9 +72,10 @@ class GameView(arcade.View):
 
 
         self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS, self.client.players, self.client.nick)
+        self.top_bar.me = self.game_logic.me
         self.city_view = CityView(self.top_bar)
         self.enemy_city_view = EnemyCityView(self.top_bar, self.city_view.app)
-        self.top_bar.update_treasury(self.game_logic.me.granary, self.game_logic.me.daily_income)
+        self.top_bar.update_treasury()
 
         threading.Thread(target=self.wait_for_my_turn).start()
 
@@ -300,7 +301,7 @@ class GameView(arcade.View):
                     messages = self.client.add_city(*unit.tile.coords, city_name)
                     self.handle_additional_messages(messages)
                     self.game_logic.build_city(self.unit_popup.unit, city_name)
-                    self.top_bar.update_treasury(self.game_logic.me.granary, self.game_logic.me.daily_income)
+                    self.top_bar.update_treasury()
                     self.unit_popup.hide()
                     self.game_logic.hide_unit_range()
             else:
@@ -309,8 +310,7 @@ class GameView(arcade.View):
                     self.my_turn = False
                     self.unit_popup.hide()
                     self.game_logic.end_turn()
-                    self.top_bar.update_treasury(self.game_logic.me.granary,
-                                                 self.game_logic.me.daily_income)
+                    self.top_bar.update_treasury()
                     units = self.game_logic.get_deployed_units()
                     for u in units:
                         x, y = u.tile.coords

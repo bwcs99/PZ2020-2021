@@ -102,6 +102,7 @@ class BuildUnitFlatButton(arcade.gui.UIFlatButton):
             win.show()
             self.app.exec_()
             self.parent.city_info.update()
+            self.parent.top_bar.update_treasury()
             print("exited build_unit_window.")
         else:
             self.parent.clicked_once = True
@@ -122,6 +123,7 @@ class BuildBuildingFlatButton(arcade.gui.UIFlatButton):
             win.show()
             self.app.exec_()
             self.parent.city_info.update()
+            self.parent.top_bar.update_treasury()
             print("exited build_building_window.")
         else:
             self.parent.clicked_once = True

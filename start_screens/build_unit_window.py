@@ -232,7 +232,7 @@ class BuildUnitWindow(QMainWindow):
             self.grandparent.city.unit_request = {'type': self.unit_type_holder, 'count': count}
             self.grandparent.city.days_left_to_building_completion = self.total_cost_holder["time"]
 
-            # self.grandparent.city.show_whats_building()
+            self.grandparent.city.building_request = None
             self.hide()
             self.parent.kill_app()
 

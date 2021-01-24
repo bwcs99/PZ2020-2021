@@ -133,6 +133,7 @@ class City(arcade.sprite.Sprite):
 
             self.building_request = None
             self.days_left_to_building_building_completion = 0
+            self.goods = self.calculate_goods()
             print("Build!")
             print(self.buildings)
 

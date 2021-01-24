@@ -8,25 +8,26 @@ from game_screens.city import City
 from game_screens.combat.garrison import Garrison
 from game_screens.units import Settler
 from game_screens.granary import Granary
+from player import Player
 
 BACKGROUND_COLOR = (60, 0, 0)  # arcade.color.ST_PATRICK_BLUE
 FONT_COLOR = arcade.color.WHITE
 
 arcade.gui.elements.UIStyle.set_class_attrs(
-            arcade.gui.elements.UIStyle.default_style(),
-            "label",
-            font_name="resources/fonts/november",
-            font_color=FONT_COLOR,
-            font_size=64
-        )
+    arcade.gui.elements.UIStyle.default_style(),
+    "label",
+    font_name="resources/fonts/november",
+    font_color=FONT_COLOR,
+    font_size=64
+)
 
 arcade.gui.elements.UIStyle.set_class_attrs(
-            arcade.gui.elements.UIStyle.default_style(),
-            "flatbutton",
-            font_name="resources/fonts/november",
-            font_color=FONT_COLOR,
-            bg_color=BACKGROUND_COLOR
-        )
+    arcade.gui.elements.UIStyle.default_style(),
+    "flatbutton",
+    font_name="resources/fonts/november",
+    font_color=FONT_COLOR,
+    bg_color=BACKGROUND_COLOR
+)
 
 
 class PopUp(arcade.gui.UIManager):
@@ -102,12 +103,12 @@ class TopBar(PopUp):
     player whose turn is currently taking place. Holds and updates the current position of the bar on the screen.
     """
 
-    def __init__(self, size: float, background_color=BACKGROUND_COLOR, font_color=FONT_COLOR):
+    def __init__(self, me: Player or None, size: float, background_color=BACKGROUND_COLOR, font_color=FONT_COLOR):
         """
         :param size: Should be between 0 and 1. Determines what part of the current screen height should the bar occupy.
         """
         super().__init__(0, 1 - size, 1, size, background_color)
-
+        self.me = me
         self.treasury_label = arcade.gui.UILabel("Treasury: 0 (+0)", 0, 0)
         self.treasury_label.color = font_color
         self.time_label = arcade.gui.UILabel("Press SPACE to end turn (5:00)", 0, 0)
@@ -144,15 +145,24 @@ class TopBar(PopUp):
             self.time_label.text = "Press SPACE to end turn"
         self.adjust()
 
-    def update_treasury(self, total: Granary, change: dict):
+    def update_treasury(self):
+        total = self.me.granary
+        change = {res: 0 for res in ['gold', 'wood', 'food', 'stone']}
+        for city in self.me.cities:
+            change['gold'] += city.goods['gold']
+            change['wood'] += city.goods['wood']
+            change['food'] += city.goods['food']
+            change['stone'] += city.goods['stone']
+
         self.treasury_label.text = "G:{} (+{}), W:{} (+{}), S:{} (+{}), F:{} (+{})".format(total.gold,
-                                                                                            change["gold"],
-                                                                                            total.wood,
-                                                                                            change["wood"],
-                                                                                            total.stone,
-                                                                                            change["stone"],
-                                                                                            total.food,
-                                                                                            change["food"])
+                                                                                           change["gold"],
+                                                                                           total.wood,
+                                                                                           change["wood"],
+                                                                                           total.stone,
+                                                                                           change["stone"],
+                                                                                           total.food,
+                                                                                           change["food"])
+        self.adjust()
 
     def game_ended(self):
         self.time_label.text = "The game is finished"
@@ -478,7 +488,8 @@ class CityInfo(PopUp):
     A pop-up that shows up in city view.
     """
 
-    def __init__(self, size_x: float, size_y: float, top: float, background_color=BACKGROUND_COLOR, font_color=FONT_COLOR):
+    def __init__(self, size_x: float, size_y: float, top: float, background_color=BACKGROUND_COLOR,
+                 font_color=FONT_COLOR):
         """
         :param size_x: The popup's width expressed as a percentage of current screen width, between 0 and 1.
         :param size_y: The popup's height expressed as a percentage of current screen height, between 0 and 1.
@@ -520,10 +531,10 @@ class CityInfo(PopUp):
         if self.visible():
             self.name_label.text = self.city.name
             stats = self.city.goods
-            self.gold_label.text = "Gold:" + f"+{stats['gold']}".rjust(self.base_width-5, ' ')
-            self.food_label.text = "Food:" + f"+{stats['food']}".rjust(self.base_width-5, ' ')
-            self.wood_label.text = "Wood:" + f"+{stats['wood']}".rjust(self.base_width-5, ' ')
-            self.stone_label.text = "Stone:" + f"+{stats['stone']}".rjust(self.base_width-6, ' ')
+            self.gold_label.text = "Gold:" + f"+{stats['gold']}".rjust(self.base_width - 5, ' ')
+            self.food_label.text = "Food:" + f"+{stats['food']}".rjust(self.base_width - 5, ' ')
+            self.wood_label.text = "Wood:" + f"+{stats['wood']}".rjust(self.base_width - 5, ' ')
+            self.stone_label.text = "Stone:" + f"+{stats['stone']}".rjust(self.base_width - 6, ' ')
 
             if self.city.unit_request:
                 self.current_label.text = f"{self.city.unit_request['count']} {self.city.unit_request['type']} ({self.city.days_left_to_building_completion})"

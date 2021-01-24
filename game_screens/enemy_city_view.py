@@ -68,6 +68,7 @@ class BuyCityButton(arcade.gui.UIFlatButton):
         # TODO Diplomacy procedure - 'buying city'
 
         print("Buying city procedure")
+        self.parent.top_bar.update_treasury()
         self.parent.window.back_to_game()
 
 
@@ -81,6 +82,7 @@ class BuyGoodsButton(arcade.gui.UIFlatButton):
         win = BuyGoodsWindow(self, self.parent)
         win.show()
         self.app.exec_()
+        self.parent.top_bar.update_treasury()
         print("exited buy goods.")
 
     def kill_app(self):

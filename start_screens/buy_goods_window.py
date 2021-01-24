@@ -132,7 +132,7 @@ class BuyGoodsWindow(QMainWindow):
             self.not_enough_label.setVisible(False)
             self.no_material_type_label.setVisible(True)
         else:  # this happens when everything is ok
-            self.grandparent.city.owner.granary.pay_for(self.gold_dict)  # paying for materials
+            self.grandparent.top_bar.me.granary.pay_for(self.gold_dict)  # paying for materials
 
             # TODO Diplomacy procedure - 'buying materials'
 

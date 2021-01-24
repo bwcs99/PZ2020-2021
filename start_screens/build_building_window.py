@@ -259,6 +259,8 @@ class BuildBuildingWindow(QMainWindow):
             self.grandparent.city.days_left_to_building_building_completion = self.building_cost_holder["time"]
             self.grandparent.city.building_request = self.building_type_holder
 
+            self.grandparent.city.unit_request = None
+
             self.hide()
             self.parent.kill_app()
 
