@@ -78,6 +78,23 @@ class Server:
             rank_list.append((player.player_name, player.rank))
         return rank_list
 
+    def get_particular_players(self, sender, receiver):
+        """ zwraca listę graczy bez użytkowników o nickach sender (str) i receiver (str)
+        return - lista graczy (typ Player) """
+        res_list = []
+        for player in self.players:
+            if player.player_name == str(sender) or player.player_name == str(receiver):
+                continue
+            else:
+                res_list.extend(player)
+        return res_list
+
+    def inform_others(self, others_list, msg):
+        """ dodaje określoną informacje (deklaracje wojny, zawarcie sojuszu itp.) do wiadomości innych użytkowników
+        (nie będącymi stronami w danej sprawie). param1 - lista graczy (Player), param2 - wiadomość (str)"""
+        for other in others_list:
+            other.message_queue.extend([msg])
+
     ''' Udzielanie odpowiedzi każdemu z graczy'''
     def process_responses(self, response_list):
         """param1: lista odpowiedzi (str)"""
@@ -85,7 +102,31 @@ class Server:
             fields_values = response.split(":")
             receiver = next((for player in self.players if player.player_name == fields_values[1]), None)
             receiver.message_queue.extend([response])
-
+            others = self.get_particular_players(str(fields_values[1]), str(fields_values[2]))
+            if "END_ALLIANCE" in response:
+                msg = f'EAL_INFO:{fields_values[1]}:{fields_values[2]}'
+                self.inform_others(others, msg)
+            elif "ALLIANCE" in response and bool(fields_values[-1]):
+                msg = f'ALC_INFO:{fields_values[1]}:{fields_values[2]}'
+                self.inform_others(others, msg)
+            elif "DECLARE_WAR" in response:
+                msg = f'DCL_WAR_INFO:{fields_values[1]}:{fields_values[2]}'
+                self.inform_others(others, msg)
+            elif "GIVE_UP" in response:
+                msg = f'GUP_INFO:{fields_values[1]}:{fields_values[2]}'
+                self.inform_others(others, msg)
+            elif "TRUCE" in response and bool(fields_values[-1]):
+                msg = f'TRC_INFO:{fields_values[1]}:{fields_values[2]}'
+                self.inform_others(others, msg)
+            elif "BUY" in response and bool(fields_values[-1]):
+                res_tuple = eval(fields_values[3])
+                is_city = res_tuple[0]
+                cords = res_tuple[1]
+                if is_city:
+                    msg = f'B_INFO:{fields_values[1]}:{fields_values[2]}:{cords}'
+                    self.inform_others(others, msg)
+                else:
+                    continue
 
     def parse_request(self, incoming_msg, conn):
         """

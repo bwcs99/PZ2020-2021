@@ -263,7 +263,8 @@ class Client:
 
     ''' Funkcja do pobierania listy wiadomości z serwera'''
     def get_messages_from_server(self, sender):
-        """param1: nadawca (str)"""
+        """ param1: nadawca (str)
+        return - lista wiadomości z serwera (lista stringów) """
         msg = f'LIST_MSGS:{sender}'
         resp = self.send_msg(msg)
         msg_queue = eval(resp)
@@ -312,7 +313,8 @@ class Client:
         param4: nazwa surowca (str),
         param5: mój skarbiec (granary), param6: skarbiec sprzedawcy (granary),
         param6: czy sprzedajemy miasto (bool), param7: wsp. miasta (tuple: (x: int, y: int)),
-        param8: ilość surowca/miasta (dla miast domyślna ilośc to 1) (int) """
+        param8: ilość surowca/miasta (dla miast domyślna ilośc to 1) (int)
+         return - w razie jakichś problemów zwraca odpowiedni komunikat błędu"""
         if my_granary.gold < price:
             return f'You cant afford it'
         if resource == 'food':
@@ -337,7 +339,8 @@ class Client:
     def send_sell_request(self, sender, receiver, price, resource, my_granary, buyer_granary, quantity=1):
         """ param1: nadawca (str), param2: odbiorca (str), param3: cena (int),
         param4: surowiec (str), param5: mój skarbiec (granary), param6: skarbiec
-        kupca (granary), param7: ilość surowca (int) """
+        kupca (granary), param7: ilość surowca (int)
+         return - w razie jakichś problemów zwraca odpowiedni komunikat błędu"""
         if buyer_granary.gold < price:
             return f'{receiver} cant afford it'
         if resource == 'food':
@@ -361,7 +364,8 @@ class Client:
 
     ''' Rozpatrujemy propozycje innych graczy '''
     def create_answer(self, msg, decision=True):
-        """param1: odpowiedź (str), param2: roztrzygnięcie (bool: True lub False) (pozytywne/negatywne)"""
+        """param1: odpowiedź (str), param2: roztrzygnięcie (bool: True lub False) (pozytywne/negatywne)
+        return - odpowiedź - pozytywna/negatywna """
         splited_msg = msg.split(":")
         splited_msg[0] += "_ANSWER"
         if decision:
@@ -371,10 +375,36 @@ class Client:
         ans = ':'.join(splited_msg)
         return ans
 
+    def display_message_to_others(self, messages):
+        """ Wyświetla wiadomości dostępne powszechnie. param1: lista wiadomości (lista stringów),
+        return - odpowiednio spreparowane zdania do wyświetlenia. Z tą funkcją jest podobnie jak z poniższą """
+        information_list = []
+        for message in messages:
+            fields_values = message.split(":")
+            if "EAL_INFO" in message:
+                information_list.extend([f'Alliance between {fields_values[1]} and {fields_values[2]} ended'])
+            elif "DCL_WAR_INFO" in message:
+                information_list.extend([f'{fields_values[1]} has declared war to {fields_values[2]}'])
+            elif "ALC_INFO" in message:
+                information_list.extend([f'{fields_values[1]} and {fields_values[2]} are allies'])
+            elif "GUP_INFO" in message:
+                information_list.extend([f'{fields_values[1]} gave up. War between {fields_values[1]}'
+                                         f'and {fields_values[2]} ended'])
+            elif "TRC_INFO" in message:
+                information_list.extend([f'{fields_values[1]} sent truce request to {fields_values[2]}. War between'
+                                         f'them is ended'])
+            elif "B_INFO" in message:
+                cords = eval(fields_values[-1])
+                # zamiast współrzędnych przydałaby się nazwa
+                information_list.extend([f'{fields_values[1]} has bought {cords} city from {fields_values[2]}'])
+            return information_list
+
+
     ''' Dla Patryka - zwraca napis będący odpowiednim komunikatem. Dzięki temu będziemy musieli tylko podpiąć jakieś
     okno do wyświetlania wiadomości. To wcale nie musi być w klasie klienckiej (a nawet chyba nie powinno) '''
     def display_message_queue(self, messages):
-        """param1: lista wiadomości danego użytkownika (z serwera) (list of strings)"""
+        """param1: lista wiadomości danego użytkownika (z serwera) (list of strings)
+        return - lista stringów (odpowiednio spreparowanych zdań)"""
         information_list = []
         for message in messages:
             value_fields = message.split(":")
@@ -446,6 +476,9 @@ class Client:
                         information_list.extend(
                             f'{value_fields[1]} wants to sell you {res_name}. Qunatity: {value_fields[-2]}.'
                             f'Price: {value_fields[-3]}')
+            return information_list
+
+
 
 
 

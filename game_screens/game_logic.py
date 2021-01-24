@@ -293,6 +293,7 @@ class GameLogic:
                             visited[col, row] = unit.movement
         return visited
 
+    @staticmethod
     def handle_buying_process(self, sender, my_granary, seller_granary, resource_tuple, price, quantity):
         """ Obługa kupna - param1: nick kupującego (str), param2: mój karbiec (granary),
         param3: skarbiec sprzedawcy (granary),
@@ -324,6 +325,7 @@ class GameLogic:
                 seller_granary.try_to_sub_food(int(quantity))
                 seller_granary.add_food(int(price))
 
+    @staticmethod
     def handle_selling_process(self, my_granary, buyer_granary, resource, price, quantity):
         """ Obługa sprzedaży - param1: mój skarbiec (granary), param2: skarbiec kupca (granary),
         param3: surowiec (str), param4: cena (int),
@@ -344,6 +346,7 @@ class GameLogic:
             buyer_granary.try_to_sub_gold(int(price))
             buyer_granary.add_stone(int(quantity))
 
+    @staticmethod
     def update_allies_list(self, sender, receiver, exists):
         """ Dodawanie/usuwanie z listy sojuszników
         param1 - nadawca (nick) (str), param2 - receiver (nick) (str),
@@ -355,6 +358,7 @@ class GameLogic:
             sender.allies.remove(receiver.nick)
             receiver.alleis.remove(sender.nick)
 
+    @staticmethod
     def update_enemies_list(self, sender, receiver, exists):
         """ Dodawanie/usuwanie z listy wrogów (gracze, z którymi toczymy wojnę)
         param1 - nadawcq (nick) (str), param2 - odbiorca (nick) (str),
