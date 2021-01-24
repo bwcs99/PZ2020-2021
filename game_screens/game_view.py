@@ -74,7 +74,7 @@ class GameView(arcade.View):
         self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS, self.client.players, self.client.nick)
         self.top_bar.me = self.game_logic.me
         self.city_view = CityView(self.top_bar)
-        self.enemy_city_view = EnemyCityView(self.top_bar, self.city_view.app)
+        self.enemy_city_view = EnemyCityView(self.top_bar, self.city_view.app, self.client, self.game_logic.me)
         self.top_bar.update_treasury()
 
         threading.Thread(target=self.wait_for_my_turn).start()

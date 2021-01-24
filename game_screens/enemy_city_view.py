@@ -6,17 +6,20 @@ from game_screens.city import City
 
 
 class EnemyCityView(arcade.View):
-    def __init__(self, top_bar, app):
+    def __init__(self, top_bar, app, client, me):
         super().__init__()
         self.city = None
         self.app = app
         self.top_bar = top_bar
+        self.client = client
+        self.me = me
         self.backup = None
         self.ui_manager = UIManager()
         self.buy_city_button = None
         self.buy_goods_button = None
         self.declare_war_button = None
         self.propose_peace_button = None
+
 
     def set_city(self, city: City):
         self.city = city
@@ -107,7 +110,7 @@ class DeclareWarButton(arcade.gui.UIFlatButton):
         self.parent = parent
 
     def on_click(self):
-        # TODO Diplomacy procedure - 'declaring war'
+        self.parent.client.declare_war(self.parent.city.owner.nick)
 
         print("Declaring war procedure")
         self.parent.window.back_to_game()

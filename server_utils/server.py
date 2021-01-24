@@ -62,6 +62,7 @@ class Server:
         return resp_len
 
     ''' Funkcja obliczająca ranking na podstawie liczby przyznanych punktów '''
+
     def compute_rank(self, player_list):
         player_list.sort(key=lambda player: player.scores, reverse=True)
         rank = 1
@@ -89,18 +90,19 @@ class Server:
                 res_list.extend(player)
         return res_list
 
-    def inform_others(self, others_list, msg):
-        """ dodaje określoną informacje (deklaracje wojny, zawarcie sojuszu itp.) do wiadomości innych użytkowników
-        (nie będącymi stronami w danej sprawie). param1 - lista graczy (Player), param2 - wiadomość (str)"""
-        for other in others_list:
-            other.message_queue.extend([msg])
+    # def inform_others(self, others_list, msg):
+    #     """ dodaje określoną informacje (deklaracje wojny, zawarcie sojuszu itp.) do wiadomości innych użytkowników
+    #     (nie będącymi stronami w danej sprawie). param1 - lista graczy (Player), param2 - wiadomość (str)"""
+    #     for other in others_list:
+    #         other.message_queue.extend([msg])
 
     ''' Udzielanie odpowiedzi każdemu z graczy'''
+
     def process_responses(self, response_list):
         """param1: lista odpowiedzi (str)"""
         for response in response_list:
             fields_values = response.split(":")
-            receiver = next((for player in self.players if player.player_name == fields_values[1]), None)
+            receiver = next((player for player in self.players if player.player_name == fields_values[1]), None)
             receiver.message_queue.extend([response])
             others = self.get_particular_players(str(fields_values[1]), str(fields_values[2]))
             if "END_ALLIANCE" in response:
@@ -216,7 +218,8 @@ class Server:
             response.append(incoming_msg.encode(FORMAT))
             self.current_player += 1
             self.current_player %= len(self.queue)
-            broadcast = [f"TURN:{self.queue[self.current_player].player_name}".encode(FORMAT)]
+            next_player = self.queue[self.current_player]
+            broadcast = [*next_player.message_queue, f"TURN:{next_player.player_name}".encode(FORMAT)]
 
         elif request[0] == "START_GAME":
             self.started = True
@@ -233,24 +236,6 @@ class Server:
             # response.append(f"ALL_EXIT_LOBBY".encode(FORMAT))
             broadcast = [f"FINISH:::".encode(FORMAT)]
 
-        elif request[0] == "MORE_MONEY":
-            #  print('W more_money')
-            wanted = next((player for player in self.players if player.player_name == request[1]), None)
-            wanted.treasury += int(request[2])
-        #  print(wanted.treasury)
-
-        elif request[0] == "LESS_MONEY":
-            #   print('W less_money')
-            wanted = next((player for player in self.players if player.player_name == request[1]), None)
-            wanted.treasury -= int(request[2])
-        #    print(wanted.treasury)
-
-        elif request[0] == "GET_TREASURY":
-            #       print('W get_treasury_state')
-            wanted = next((player for player in self.players if player.player_name == request[1]), None)
-            #      print("Stan skarbca: ", wanted.treasury)
-            response.append(f"{wanted.treasury}".encode(FORMAT))
-
         elif request[0] == "QUIT_GAME":
             #    print('W quit_game')
             #    print(self.connections)
@@ -263,12 +248,6 @@ class Server:
             self.threads.pop(idx)
         #   print(self.connections)
 
-        elif request[0] == "ADD_SCORES":
-            # print('W add_scores')
-            wanted = next((player for player in self.players if player.player_name == request[1]), None)
-            wanted.scores += int(request[2])
-        # print('Punkty: ', wanted.scores)
-
         elif request[0] == "END_GAME":
             # ranking = self.compute_rank(self.players)
             for player in self.players:
@@ -277,11 +256,6 @@ class Server:
             broadcast.extend(str(f"RANK:{player.player_name}:{player.rank}").encode(FORMAT) for player in self.players)
             broadcast.append(incoming_msg.encode(FORMAT))
             self.finish = True
-
-        elif request[0] == "CHANGE_MAP":
-            #   print('W change map')
-            #   print(request[2])
-            broadcast = [request[2].encode(FORMAT)]
 
         elif request[0] == "ADD_UNIT" or request[0] == "MOVE_UNIT" or request[0] == "HEALTH":
             broadcast = [incoming_msg.encode(FORMAT)]
@@ -297,28 +271,7 @@ class Server:
         elif request[0] == "GIVE_CITY":
             broadcast = [incoming_msg.encode(FORMAT)]
 
-        elif request[0] == "GIVE_CITIES":
-            #  print('W give_cities')
-            wanted1 = next((player for player in self.players if player.player_name == request[1]), None)
-            wanted2 = next((player for player in self.players if player.player_name == request[2]), None)
-            cities = eval(request[3])
-            #  print(cities)
-            #  print('Listy gracza 1: ', wanted1.city_list)
-            #  print('Listy gracza 2: ', wanted2.city_list)
-            for city in cities:
-                wanted2.city_list.append(city)
-                wanted1.city_list.remove(city)
-        #  print("Pierwszy gracz: ", wanted1.city_list)
-        #  print('Drugi gracz: ', wanted2.city_list)
-
-        elif request[0] == "LIST_CITIES":
-            #  print('W list_cities')
-            temp_list = []
-            for player in self.players:
-                temp_list.append((player.player_name, player.city_list))
-            temp_list_to_str = str(temp_list)
-            #  print(temp_list_to_str)
-            response.append(temp_list_to_str.encode(FORMAT))
+            #####################################################################
 
         elif request[0] == "ALLIANCE":
             print("W alliance")
@@ -347,21 +300,14 @@ class Server:
                 wanted.message_queue.extend([msg])
             print("Po end_alliance")
 
-        elif request[0] == "DECLARE_WAR":
+        elif request[0] == "DIPLOMACY":
             print("W declare_war")
-            msg = ":".join(request)
-            wanted = next((player for player in self.players if player.player_name == request[2]), None)
+            # response.append(incoming_msg.encode(FORMAT))
+            # broadcast = [f"TURN:{self.queue[self.current_player].player_name}".encode(FORMAT)]
+            wanted = next((player for player in self.players if player.player_name == request[3]), None)
             if wanted is not None:
-                wanted.message_queue.extend([msg])
+                wanted.message_queue.append(incoming_msg.encode(FORMAT))
             print("Po declare_War")
-
-        elif request[0] == "GIVE_UP":
-            print("W give_up")
-            msg = ":".join(request)
-            wanted = next((player for player in self.players if player.player_name == request[2]), None)
-            if wanted is not None:
-                wanted.message_queue.extend([msg])
-            print("Po give_up")
 
         elif request[0] == "TRUCE":
             print("W truce")
@@ -370,12 +316,6 @@ class Server:
             if wanted is not None:
                 wanted.message_queue.extend([msg])
             print("Po truce")
-
-        elif request[0] == "GET_TREASURY":
-            print("W get_treasury")
-            wanted = next((player for player in self.players if player.player_name == str(request[1])), None)
-            response.append(str(wanted.treasury).encode(FORMAT))
-            print("Po get treasury")
 
         elif request[0] == "SEND_RESP":
             print("W przetwarzaniu odpowiedzi")
@@ -398,6 +338,7 @@ class Server:
             wanted = next((player for player in self.players if player.player_name == str(request[2])), None)
             if wanted is not None:
                 wanted.message_queue.extend([msg])
+
         elif request[0] == "SELL":
             print("W SELL_REQUEST")
             msg = ":".join(request)
