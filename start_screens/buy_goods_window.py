@@ -3,8 +3,6 @@ from PyQt5.QtWidgets import QMainWindow
 import math
 
 
-# TODO make label with total gold cost
-
 class BuyGoodsWindow(QMainWindow):
     """
     This window is used for interacting with trading goods with another player. Barter was not discovered yet,
@@ -84,8 +82,12 @@ class BuyGoodsWindow(QMainWindow):
 
         """ MAKE OFFER PART """
 
+        self.total_cost_label = QtWidgets.QLabel(self.centralwidget)
+        self.total_cost_label.setGeometry(QtCore.QRect(60, 225, 241, 50))
+        self.total_cost_label.setText("Together it's 1 gold.")
+
         self.make_offer_button = QtWidgets.QPushButton(self.centralwidget)
-        self.make_offer_button.setGeometry(QtCore.QRect(190, 220, 271, 61))
+        self.make_offer_button.setGeometry(QtCore.QRect(245, 220, 271, 61))
         self.make_offer_button.setText("Make offer")
         self.make_offer_button.clicked.connect(self.make_offer)
 
@@ -123,9 +125,6 @@ class BuyGoodsWindow(QMainWindow):
         This method calculates total cost of trade request ( ceiling(how_many_pieces * how_much_for_piece) ).
         And checks if it's alright, when it is, diplomacy procedure for 'buying materials' is called.
         """
-        payment_cost = math.ceil(float(self.how_much_for_piece_edit.text()) * int(self.how_many_edit.text()))
-        self.gold_dict["gold"] = payment_cost
-
         if not self.grandparent.city.owner.granary.is_enough(self.gold_dict):
             self.no_material_type_label.setVisible(False)
             self.not_enough_label.setVisible(True)
@@ -144,6 +143,11 @@ class BuyGoodsWindow(QMainWindow):
     def recalculate_how_many(self):
         self.how_many_edit.setText(str(self.how_many_slider.value()))
 
+    def calculate_total_cost(self):
+        payment_cost = math.ceil(float(self.how_much_for_piece_edit.text()) * int(self.how_many_edit.text()))
+        self.total_cost_label.setText(f"Together it's {payment_cost} gold.")
+        self.gold_dict["gold"] = payment_cost
+
     def change_slider_from_line_edit(self):
         try:
             number = int(self.how_many_edit.text())
@@ -157,6 +161,7 @@ class BuyGoodsWindow(QMainWindow):
             number = 1
             self.how_many_edit.setText(str(number))
         self.how_many_slider.setValue(number)
+        self.calculate_total_cost()
 
     def change_one_piece_cost(self):
         try:
@@ -170,6 +175,7 @@ class BuyGoodsWindow(QMainWindow):
         except:  # catches all strange input
             cost = 1.0
             self.how_much_for_piece_edit.setText(str(cost))
+        self.calculate_total_cost()
 
 
 if __name__ == "__main__":
