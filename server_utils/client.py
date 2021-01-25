@@ -157,45 +157,9 @@ class Client:
         except OSError:
             return ["DISCONNECTED"]
 
-    """ Funkcja służąca do kończenia gry przez hosta """
-
     def end_game_by_host(self):
         self.only_send("END_GAME")
         return self.unexpected_messages("END_GAME")
-
-    """ Funkcja służąca do kończenia gry przez danego gracza """
-
-    def quit_game(self, player_nick):
-        self.only_send("QUIT_GAME:" + player_nick + "::")
-
-    """ Funkcja zwiększająca stan skarbca danego gracza """
-
-    def more_money(self, number, player_nick):
-        self.only_send("MORE_MONEY:" + player_nick + ":" + str(number) + ":")
-
-    """ Funkcja zmniejszająca stan skarbca danego gracza """
-
-    def less_money(self, number, player_nick):
-        self.only_send("LESS_MONEY:" + player_nick + ":" + str(number) + ":")
-
-    """ Funkcja zwracjąca aktualny stan skarbca danego gracza """
-
-    def get_treasury_state(self, player_nick):
-        state = self.send_msg("GET_TREASURY:" + player_nick + "::")
-        return int(state)
-
-    """ Służy do doawania punktów konkretnemu graczowi (tu trzeba opracować polityke przyznawania punktów)"""
-
-    def add_scores(self, new_scores, player_nick):
-        self.only_send("ADD_SCORES:" + player_nick + ":" + str(new_scores) + ":")
-
-    """ Wysyłanie zmienionej mapy na serwer (move_unit i put_unit w jednym przy założeniu, że zmiany na mapach
-    odbywają się po stronie klienta) """
-
-    # być może przyda się w momencie gdy ktoś będzie out of sync, ale ja na razie wolałem to zrobić tak jak niżej /P
-    def send_changed(self, changed_map):
-        map_to_str = str(changed_map)
-        self.only_send("CHANGE_MAP:" + ":" + map_to_str + ":")
 
     def move_unit(self, x0, y0, x1, y1, cost):
         """ Moves the unit located on the tile (x0, y0) to the tile (x1, y1) at a specified cost."""
@@ -234,12 +198,6 @@ class Client:
             return self.unexpected_messages(msg)
         except OSError:
             return self.unexpected_messages("END_GAME")
-
-    """ Funkcja do wylistowania wszystkich miast """
-
-    def get_cities_from_server(self):
-        rep = self.send_msg("LIST_CITIES:::")
-        return eval(rep)
 
     def add_city(self, x, y, city_name):
         """ Adds a city with the specified name on tile (x, y). It's owner is the player sending the message. """
@@ -288,29 +246,15 @@ class Client:
         msg = f'DIPLOMACY:TRUCE:{self.nick}:{receiver}:{False}'
         self.only_send(msg)
 
-    ''' Wysyłanie propozycji kupna'''
-
-    def send_buy_request(self, receiver, price, resource, is_city=False, city_cords=(), quantity=1):
-        """ param1 : nick nadawcy (str), param2 : nick odbiorcy (str), param3: proponowana cena (int),
-        param4: nazwa surowca (str),
-        param5: mój skarbiec (granary), param6: skarbiec sprzedawcy (granary),
-        param6: czy sprzedajemy miasto (bool), param7: wsp. miasta (tuple: (x: int, y: int)),
-        param8: ilość surowca/miasta (dla miast domyślna ilośc to 1) (int)
-         return - w razie jakichś problemów zwraca odpowiedni komunikat błędu"""
-        if is_city:
-            resource_tuple = (is_city, city_cords)
-        else:
-            resource_tuple = (is_city, resource)
-        msg = f'DIPLOMACY:BUY:{self.nick}:{receiver}:{resource_tuple}:{price}:{quantity}:{False}'
+    def buy_city(self, receiver, price, city_cords):
+        msg = f'DIPLOMACY:BUY_CITY:{self.nick}:{receiver}:{city_cords}:{price}:{False}'
         self.only_send(msg)
 
-    '''Wysyłanie propozycji sprzedaży'''
+    def buy_resource(self, receiver, price, resource, quantity):
+        msg = f'DIPLOMACY:BUY_RESOURCE:{self.nick}:{receiver}:{resource}:{price}:{quantity}:{False}'
+        self.only_send(msg)
 
     def send_sell_request(self, receiver, price, resource, quantity=1):
-        """ param1: nadawca (str), param2: odbiorca (str), param3: cena (int),
-        param4: surowiec (str), param5: mój skarbiec (granary), param6: skarbiec
-        kupca (granary), param7: ilość surowca (int)
-         return - w razie jakichś problemów zwraca odpowiedni komunikat błędu"""
         msg = f'DIPLOMACY:SELL:{self.nick}:{receiver}:{resource}:{price}:{quantity}:{False}'
         self.only_send(msg)
 

@@ -1,4 +1,5 @@
 import threading
+from math import ceil
 
 import arcade
 import arcade.gui
@@ -445,6 +446,8 @@ class GameView(arcade.View):
                         self.game_logic.me.allies.remove(self.game_logic.players[message[2]])
                     elif message[1] == "TRUCE":
                         self.game_logic.me.enemies.remove(self.game_logic.players[message[2]])
+                    elif message[1] == "BUY_RESOURCE":
+                        pass
                 elif message[2] == self.client.nick:
                     if message[1] == "DECLARE_WAR":
                         self.game_logic.me.enemies.append(self.game_logic.players[message[3]])
@@ -456,10 +459,26 @@ class GameView(arcade.View):
                         self.game_logic.me.allies.remove(self.game_logic.players[message[3]])
                     elif message[1] == "TRUCE":
                         self.game_logic.me.enemies.remove(self.game_logic.players[message[3]])
+                    elif message[1] == "BUY_RESOURCE":
+                        pass
 
             elif message[0] == "DIPLOMACY":
                 if message[3] == self.client.nick:
-                    self.client.only_send(f"DIPLOMACY_ANSWER:{message[1]}:{message[3]}:{message[2]}:" + ":".join(message[4:]))
+                    if message[1] == "BUY_RESOURCE":
+                        resource = message[4]
+                        price = float(message[5])
+                        quantity = int(message[6])
+                        max_price = ceil(price * quantity)
+                        in_storage = self.game_logic.me.granary.__getattribute__(resource.lower())
+                        actual_quantity = max(quantity, in_storage)
+                        actual_price = ceil(price * actual_quantity)
+                        change = max_price - actual_price
+                        # TODO granary reconsideration
+                        self.client.only_send(
+                            f"DIPLOMACY_ANSWER:{message[1]}:{message[3]}:{message[2]}:{message[4]}:{change}:{actual_quantity}")
+
+                    else:
+                        self.client.only_send(f"DIPLOMACY_ANSWER:{message[1]}:{message[3]}:{message[2]}:" + ":".join(message[4:]))
                     print("A request for me!")
 
             elif message[0] == "DISCONNECT" or message[0] == "DEFEAT":
