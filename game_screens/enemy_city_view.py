@@ -25,9 +25,18 @@ class EnemyCityView(arcade.View):
         self.offer_alliance_button = None
         self.end_alliance_button = None
 
-        sidebar_top = self.top_bar.size_y + 0.05
+        self.sidebar_top = self.top_bar.size_y + 0.05
         popup_height = 0.2
-        self.city_info = EnemyCityInfo(0.3, popup_height, sidebar_top)
+        self.city_info = EnemyCityInfo(0.3, popup_height, self.sidebar_top)
+
+        left, right, _, _ = self.city_info.coords_lrtb
+        self.center_x = (left + right) / 2
+        self.sidebar_width = right - left
+        self.sidebar_top += popup_height + 0.025
+
+        self.relative_button_height = 0.075
+        self.button_height = int(self.relative_button_height * self.window.height)
+        self.sidebar_top += self.relative_button_height / 2
 
     def set_city(self, city: City):
         self.city = city
@@ -41,25 +50,44 @@ class EnemyCityView(arcade.View):
         self.city_info.display(self.city)
         self.top_bar.adjust()
 
-        # TODO Diplomacy - add handling which buttons should be displayed in particular diplomacy situation.
+        if True:
+            self.buy_city_button = BuyCityButton(self, self.center_x, (1 - self.sidebar_top) * self.window.height,
+                                                 self.sidebar_width, self.button_height)
+            self.sidebar_top += self.relative_button_height + 0.025
+            self.ui_manager.add_ui_element(self.buy_city_button)
 
-        self.buy_city_button = BuyCityButton(self, center_x=self.window.width, center_y=self.window.height)
-        self.ui_manager.add_ui_element(self.buy_city_button)
+        if True:
+            self.buy_goods_button = BuyGoodsButton(self, self.center_x, (1 - self.sidebar_top) * self.window.height,
+                                                   self.sidebar_width, self.button_height)
+            self.sidebar_top += self.relative_button_height + 0.025
+            self.ui_manager.add_ui_element(self.buy_goods_button)
 
-        self.buy_goods_button = BuyGoodsButton(self, center_x=self.window.width,
-                                               center_y=self.window.height)
-        self.ui_manager.add_ui_element(self.buy_goods_button)
-        self.declare_war_button = DeclareWarButton(self, center_x=self.window.width, center_y=self.window.height)
-        self.ui_manager.add_ui_element(self.declare_war_button)
-        self.propose_peace_button = ProposePeaceButton(self, center_x=self.window.width,
-                                                       center_y=self.window.height)
-        self.ui_manager.add_ui_element(self.propose_peace_button)
-        self.offer_alliance_button = OfferAllianceButton(self, center_x=self.window.width,
-                                                         center_y=self.window.height)
-        self.ui_manager.add_ui_element(self.offer_alliance_button)
-        self.end_alliance_button = EndAllianceButton(self, center_x=self.window.width,
-                                                     center_y=self.window.height)
-        self.ui_manager.add_ui_element(self.end_alliance_button)
+        if True:
+            self.declare_war_button = DeclareWarButton(self, self.center_x, (1 - self.sidebar_top) * self.window.height,
+                                                       self.sidebar_width, self.button_height)
+            self.sidebar_top += self.relative_button_height + 0.025
+            self.ui_manager.add_ui_element(self.declare_war_button)
+
+        if True:
+            self.propose_peace_button = ProposePeaceButton(self, self.center_x,
+                                                           (1 - self.sidebar_top) * self.window.height,
+                                                           self.sidebar_width, self.button_height)
+            self.sidebar_top += self.relative_button_height + 0.025
+            self.ui_manager.add_ui_element(self.propose_peace_button)
+
+        if True:
+            self.offer_alliance_button = OfferAllianceButton(self, self.center_x,
+                                                             (1 - self.sidebar_top) * self.window.height,
+                                                             self.sidebar_width, self.button_height)
+            self.sidebar_top += self.relative_button_height + 0.025
+            self.ui_manager.add_ui_element(self.offer_alliance_button)
+
+        if True:
+            self.end_alliance_button = EndAllianceButton(self, self.center_x,
+                                                         (1 - self.sidebar_top) * self.window.height,
+                                                         self.sidebar_width, self.button_height)
+            self.sidebar_top += self.relative_button_height + 0.025
+            self.ui_manager.add_ui_element(self.end_alliance_button)
 
     def on_draw(self):
         img = arcade.load_texture(f"{self.city.path_to_visualization}")
@@ -82,8 +110,8 @@ class EnemyCityView(arcade.View):
 
 
 class BuyCityButton(arcade.gui.UIFlatButton):
-    def __init__(self, parent, center_x, center_y):
-        super().__init__('Buy this city', center_x=center_x // 2 - 300, center_y=center_y // 4, width=250, )
+    def __init__(self, parent, center_x, y_position, width, height):
+        super().__init__('Buy this city', center_x=center_x, center_y=y_position, width=width, height=height)
         self.parent = parent
 
     def on_click(self):
@@ -97,8 +125,8 @@ class BuyCityButton(arcade.gui.UIFlatButton):
 
 
 class BuyGoodsButton(arcade.gui.UIFlatButton):
-    def __init__(self, parent, center_x, center_y):
-        super().__init__('Buy goods', center_x=center_x // 2 - 300, center_y=center_y // 4 - 100, width=250, )
+    def __init__(self, parent, center_x, y_position, width, height):
+        super().__init__('Buy goods', center_x=center_x, center_y=y_position, width=width, height=height)
         self.parent = parent
         self.app = self.parent.app
 
@@ -117,8 +145,8 @@ class BuyGoodsButton(arcade.gui.UIFlatButton):
 
 
 class ProposePeaceButton(arcade.gui.UIFlatButton):
-    def __init__(self, parent, center_x, center_y):
-        super().__init__('Propose peace', center_x=center_x // 2 + 300, center_y=center_y // 4, width=250, )
+    def __init__(self, parent, center_x, y_position, width, height):
+        super().__init__('Propose peace', center_x=center_x, center_y=y_position, width=width, height=height)
         self.parent = parent
 
     def on_click(self):
@@ -133,8 +161,8 @@ class ProposePeaceButton(arcade.gui.UIFlatButton):
 
 
 class DeclareWarButton(arcade.gui.UIFlatButton):
-    def __init__(self, parent, center_x, center_y):
-        super().__init__('Declare war', center_x=center_x // 2 + 300, center_y=center_y // 4 - 100, width=250, )
+    def __init__(self, parent, center_x, y_position, width, height):
+        super().__init__('Declare war', center_x=center_x, center_y=y_position, width=width, height=height)
         self.parent = parent
 
     def on_click(self):
@@ -148,8 +176,8 @@ class DeclareWarButton(arcade.gui.UIFlatButton):
 
 
 class OfferAllianceButton(arcade.gui.UIFlatButton):
-    def __init__(self, parent, center_x, center_y):
-        super().__init__('Offer alliance', center_x=center_x // 2 + 300, center_y=center_y // 4 + 100, width=250, )
+    def __init__(self, parent, center_x, y_position, width, height):
+        super().__init__('Offer alliance', center_x=center_x, center_y=y_position, width=width, height=height)
         self.parent = parent
 
     def on_click(self):
@@ -163,8 +191,8 @@ class OfferAllianceButton(arcade.gui.UIFlatButton):
 
 
 class EndAllianceButton(arcade.gui.UIFlatButton):
-    def __init__(self, parent, center_x, center_y):
-        super().__init__('End alliance', center_x=center_x // 2 - 300, center_y=center_y // 4 + 100, width=250, )
+    def __init__(self, parent, center_x, y_position, width, height):
+        super().__init__('End alliance', center_x=center_x, center_y=y_position, width=width, height=height)
         self.parent = parent
 
     def on_click(self):
