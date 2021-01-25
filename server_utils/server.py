@@ -100,7 +100,7 @@ class Server:
         """param1: lista odpowiedzi (str)"""
         for response in response_list:
             fields_values = response.split(":")
-            receiver = next((for player in self.players if player.player_name == fields_values[1]), None)
+            receiver = next((player for player in self.players if player.player_name == fields_values[1]), None)
             receiver.message_queue.extend([response])
             others = self.get_particular_players(str(fields_values[1]), str(fields_values[2]))
             if "END_ALLIANCE" in response:

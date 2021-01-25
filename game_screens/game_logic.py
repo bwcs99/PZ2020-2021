@@ -323,7 +323,7 @@ class GameLogic:
                 my_granary.add_food(int(quantity))
                 my_granary.try_to_sub_gold(int(price))
                 seller_granary.try_to_sub_food(int(quantity))
-                seller_granary.add_food(int(price))
+                seller_granary.add_gold(int(price))
 
     @staticmethod
     def handle_selling_process(self, my_granary, buyer_granary, resource, price, quantity):
@@ -356,7 +356,7 @@ class GameLogic:
             receiver.allies.extend([sender.nick])
         else:
             sender.allies.remove(receiver.nick)
-            receiver.alleis.remove(sender.nick)
+            receiver.allies.remove(sender.nick)
 
     @staticmethod
     def update_enemies_list(self, sender, receiver, exists):

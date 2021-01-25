@@ -397,7 +397,7 @@ class Client:
                 cords = eval(fields_values[-1])
                 # zamiast współrzędnych przydałaby się nazwa
                 information_list.extend([f'{fields_values[1]} has bought {cords} city from {fields_values[2]}'])
-            return information_list
+        return information_list
 
 
     ''' Dla Patryka - zwraca napis będący odpowiednim komunikatem. Dzięki temu będziemy musieli tylko podpiąć jakieś
@@ -440,23 +440,23 @@ class Client:
                 else:
                     information_list.extend([f'{value_fields[1]} wants to end this war'])
             elif "BUY" in message:
-                res_tup = eval(value_fields[1])
+                res_tup = eval(value_fields[3])
                 is_city = bool(res_tup[0])
                 res_name = res_tup[1]
                 if "ANSWER" in message:
                     if bool(value_fields[-1]):
-                        information_list.extend(f'{value_fields[3]} was interested. The transaction ended successfully')
+                        information_list.extend([f'{value_fields[2]} was interested. The transaction ended successfully'])
                     else:
-                        information_list.extend(f'{value_fields[3]} was not interested. The transaction failed')
+                        information_list.extend([f'{value_fields[2]} was not interested. The transaction failed'])
                 else:
                     if is_city:
                         information_list.extend(
-                            f'{value_fields[1]} wants to buy {res_name} city from you. Qunatity: {value_fields[-2]}. '
-                            f'Price: {value_fields[-3]}')
+                            [f'{value_fields[1]} wants to buy {res_name} city from you. Qunatity: {value_fields[-2]}. '
+                            f'Price: {value_fields[-3]}'])
                     else:
                         information_list.extend(
-                            f'{value_fields[1]} wants to buy {res_name} from you. Qunatity: {value_fields[-2]}.'
-                            f'Price: {value_fields[-3]}')
+                            [f'{value_fields[1]} wants to buy {res_name} from you. Qunatity: {value_fields[-2]}.'
+                            f'Price: {value_fields[-3]}'])
 
             elif "SELL" in message:
                 res_tup = eval(value_fields[1])
@@ -464,19 +464,19 @@ class Client:
                 res_name = res_tup[1]
                 if "ANSWER" in message:
                     if bool(value_fields[-1]):
-                        information_list.extend(f'{value_fields[3]} was interested. The transaction ended successfully')
+                        information_list.extend([f'{value_fields[3]} was interested. The transaction ended successfully'])
                     else:
-                        information_list.extend(f'{value_fields[3]} was not interested. The transaction failed')
+                        information_list.extend([f'{value_fields[3]} was not interested. The transaction failed'])
                 else:
                     if is_city:
                         information_list.extend(
-                            f'{value_fields[1]} wants to sell you {res_name} city. Qunatity: {value_fields[-2]}.'
-                            f'Price: {value_fields[-3]}')
+                            [f'{value_fields[1]} wants to sell you {res_name} city. Qunatity: {value_fields[-2]}.'
+                            f'Price: {value_fields[-3]}'])
                     else:
                         information_list.extend(
-                            f'{value_fields[1]} wants to sell you {res_name}. Qunatity: {value_fields[-2]}.'
-                            f'Price: {value_fields[-3]}')
-            return information_list
+                            [f'{value_fields[1]} wants to sell you {res_name}. Qunatity: {value_fields[-2]}.'
+                            f'Price: {value_fields[-3]}'])
+        return information_list
 
 
 
