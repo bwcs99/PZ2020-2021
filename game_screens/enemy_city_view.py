@@ -1,8 +1,8 @@
 import arcade
 from arcade.gui import UIManager
 
-from buy_goods_window import BuyGoodsWindow
 from game_screens.city import City
+from start_screens.buy_goods_window import BuyGoodsWindow
 
 
 class EnemyCityView(arcade.View):

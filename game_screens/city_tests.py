@@ -1,4 +1,5 @@
 import unittest
+from math import sqrt
 
 from game_screens.city import City
 from game_screens.game_logic import GameLogic
@@ -145,3 +146,34 @@ class MovementTests(unittest.TestCase):
         self.game_logic.give_opponents_city(x, y, 'one')
         for t in city.area:
             self.assertEqual(t.owner, player1)
+
+
+class CityAreaTest(unittest.TestCase):
+    def setUp_bigger(self):
+        self.tiles = []
+        for x in range(20):
+            for y in range(20):
+                self.tiles.append(Tile(x, y, 1, 1))
+        self.game_logic = GameLogic(self.tiles, 20, 20, players=[("one", CIV_ONE, "gray"), ("two", CIV_TWO, "red")],
+                                    my_nick="one")
+        self.game_logic.add_unit(10, 10, "one", 'Settler', 1)
+        settler = self.game_logic.get_tile(10, 10).occupant
+        self.game_logic.build_city(settler, "stub")
+
+    def test_city_resize(self):
+        self.setUp_bigger()
+        x_c, y_c = 10, 10
+        city = self.game_logic.get_tile(x_c, y_c).city
+        owner = city.owner
+        for r in range(2, 9):
+            self.game_logic.increase_area(x_c, y_c)
+            self.assertEqual(city.current_radius, r)
+            for x in range(x_c - r, x_c + r + 1):
+                for y in range(y_c - r, y_c + r + 1):
+                    tile = self.game_logic.get_tile(x, y)
+                    if sqrt((x_c - x) ** 2 + (y_c - y) ** 2) <= r:
+                        self.assertIn(tile, city.area)
+                        self.assertEqual(tile.owner, owner)
+                    else:
+                        self.assertNotIn(tile, city.area)
+                        self.assertIsNone(tile.owner)
