@@ -136,19 +136,11 @@ class GameView(arcade.View):
         if self.city_popup.visible() or self.end_popup.visible():
             return
         if 0 <= self.zoom + scroll_y < MAX_ZOOM:
-            zoom_change = 1
-            if self.zoom == 0:
-                self.zoom = 2
-                zoom_change = 2
-            elif self.zoom == 2 and scroll_y < 0:
-                self.zoom = 0
-                zoom_change = 2
-            else:
-                self.zoom += scroll_y
+            self.zoom += scroll_y
             current = arcade.get_viewport()
 
-            new_width = (current[1] - current[0]) - 2 * zoom_change * scroll_y * self.SCROLL_STEP_X
-            new_height = (current[3] - current[2]) - 2 * zoom_change * scroll_y * self.SCROLL_STEP_Y
+            new_width = (current[1] - current[0]) - 2 * scroll_y * self.SCROLL_STEP_X
+            new_height = (current[3] - current[2]) - 2 * scroll_y * self.SCROLL_STEP_Y
 
             # we need to check if zooming will cross the borders of the map, if so - snap them back
             x, y = self.relative_to_absolute(x, y)

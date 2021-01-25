@@ -3,6 +3,7 @@ from arcade.gui import UIManager
 
 from buy_goods_window import BuyGoodsWindow
 from game_screens.city import City
+from game_screens.popups import EnemyCityInfo
 
 
 class EnemyCityView(arcade.View):
@@ -14,6 +15,8 @@ class EnemyCityView(arcade.View):
         self.client = client
         self.me = me
         self.backup = None
+        self.clicked_once = False
+
         self.ui_manager = UIManager()
         self.buy_city_button = None
         self.buy_goods_button = None
@@ -21,6 +24,10 @@ class EnemyCityView(arcade.View):
         self.propose_peace_button = None
         self.offer_alliance_button = None
         self.end_alliance_button = None
+
+        sidebar_top = self.top_bar.size_y + 0.05
+        popup_height = 0.2
+        self.city_info = EnemyCityInfo(0.3, popup_height, sidebar_top)
 
     def set_city(self, city: City):
         self.city = city
@@ -31,6 +38,7 @@ class EnemyCityView(arcade.View):
         self.backup = arcade.get_viewport()
         arcade.set_viewport(0, self.window.width, 0, self.window.height)
 
+        self.city_info.display(self.city)
         self.top_bar.adjust()
 
         # TODO Diplomacy - add handling which buttons should be displayed in particular diplomacy situation.
@@ -56,11 +64,15 @@ class EnemyCityView(arcade.View):
     def on_draw(self):
         img = arcade.load_texture(f"{self.city.path_to_visualization}")
         arcade.draw_lrwh_rectangle_textured(0, 0, self.window.width, self.window.height, img)
+        self.city_info.draw_background()
         self.top_bar.draw_background()
+        self.clicked_once = True
 
     def on_hide_view(self):
         arcade.set_viewport(*self.backup)
+        self.city_info.hide()
         self.ui_manager.purge_ui_elements()
+        self.clicked_once = False
 
     def on_key_press(self, symbol: int, modifiers: int):
         if symbol == arcade.key.ESCAPE:
@@ -76,10 +88,12 @@ class BuyCityButton(arcade.gui.UIFlatButton):
 
     def on_click(self):
         # TODO Diplomacy procedure - 'buying city'
-
-        print("Buying city procedure")
-        self.parent.top_bar.update_treasury()
-        self.parent.window.back_to_game()
+        if self.parent.clicked_once:
+            print("Buying city procedure")
+            self.parent.top_bar.update_treasury()
+            self.parent.window.back_to_game()
+        else:
+            self.parent.clicked_once = True
 
 
 class BuyGoodsButton(arcade.gui.UIFlatButton):
@@ -89,11 +103,14 @@ class BuyGoodsButton(arcade.gui.UIFlatButton):
         self.app = self.parent.app
 
     def on_click(self):
-        win = BuyGoodsWindow(self, self.parent)
-        win.show()
-        self.app.exec_()
-        self.parent.top_bar.update_treasury()
-        print("exited buy goods.")
+        if self.parent.clicked_once:
+            win = BuyGoodsWindow(self, self.parent)
+            win.show()
+            self.app.exec_()
+            self.parent.top_bar.update_treasury()
+            print("exited buy goods.")
+        else:
+            self.parent.clicked_once = True
 
     def kill_app(self):
         self.app.exit()
@@ -105,11 +122,14 @@ class ProposePeaceButton(arcade.gui.UIFlatButton):
         self.parent = parent
 
     def on_click(self):
-        # TODO Diplomacy procedure - 'proposing peace'
-        self.parent.client.send_truce_request(self.parent.city.owner.nick)
+        if self.parent.clicked_once:
+            # TODO Diplomacy procedure - 'proposing peace'
+            self.parent.client.send_truce_request(self.parent.city.owner.nick)
 
-        print("Proposing peace procedure")
-        self.parent.window.back_to_game()
+            print("Proposing peace procedure")
+            self.parent.window.back_to_game()
+        else:
+            self.parent.clicked_once = True
 
 
 class DeclareWarButton(arcade.gui.UIFlatButton):
@@ -118,10 +138,13 @@ class DeclareWarButton(arcade.gui.UIFlatButton):
         self.parent = parent
 
     def on_click(self):
-        self.parent.client.declare_war(self.parent.city.owner.nick)
+        if self.parent.clicked_once:
+            self.parent.client.declare_war(self.parent.city.owner.nick)
 
-        print("Declaring war procedure")
-        self.parent.window.back_to_game()
+            print("Declaring war procedure")
+            self.parent.window.back_to_game()
+        else:
+            self.parent.clicked_once = True
 
 
 class OfferAllianceButton(arcade.gui.UIFlatButton):
@@ -130,10 +153,13 @@ class OfferAllianceButton(arcade.gui.UIFlatButton):
         self.parent = parent
 
     def on_click(self):
-        self.parent.client.send_alliance_request(self.parent.city.owner.nick)
+        if self.parent.clicked_once:
+            self.parent.client.send_alliance_request(self.parent.city.owner.nick)
 
-        print("Offering alliance procedure")
-        self.parent.window.back_to_game()
+            print("Offering alliance procedure")
+            self.parent.window.back_to_game()
+        else:
+            self.parent.clicked_once = True
 
 
 class EndAllianceButton(arcade.gui.UIFlatButton):
@@ -142,7 +168,10 @@ class EndAllianceButton(arcade.gui.UIFlatButton):
         self.parent = parent
 
     def on_click(self):
-        self.parent.client.end_alliance(self.parent.city.owner.nick)
+        if self.parent.clicked_once:
+            self.parent.client.end_alliance(self.parent.city.owner.nick)
 
-        print("Ending alliance procedure")
-        self.parent.window.back_to_game()
+            print("Ending alliance procedure")
+            self.parent.window.back_to_game()
+        else:
+            self.parent.clicked_once = True

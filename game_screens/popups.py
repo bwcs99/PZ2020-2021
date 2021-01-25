@@ -515,7 +515,7 @@ class CityInfo(PopUp):
 
         self.all_elements = [*self.top_part, *self.mid_part, *self.bottom_part]
         for el in self.all_elements:
-            el.color = FONT_COLOR
+            el.color = font_color
 
         self.adjust()
 
@@ -579,6 +579,67 @@ class CityInfo(PopUp):
 
         self.name_label.center_x = (left + right) / 2
         self.name_label.center_y = top - base_height
+
+
+class EnemyCityInfo(PopUp):
+    """
+    A pop-up that shows up in enemy city view.
+    """
+
+    def __init__(self, size_x: float, size_y: float, top: float, background_color=BACKGROUND_COLOR,
+                 font_color=FONT_COLOR):
+        """
+        :param size_x: The popup's width expressed as a percentage of current screen width, between 0 and 1.
+        :param size_y: The popup's height expressed as a percentage of current screen height, between 0 and 1.
+        """
+        super().__init__(0.95 * (1 - size_x), 1 - (top + size_y), size_x, size_y, background_color)
+        self.city = None
+
+        self.name_label = arcade.gui.UILabel("City", 0, 0)
+        self.civ_label = arcade.gui.UILabel("Civ", 0, 0)
+        self.player_label = arcade.gui.UILabel("Nick", 0, 0)
+
+        self.all_elements = [self.name_label, self.civ_label, self.player_label]
+        for el in self.all_elements:
+            el.color = font_color
+
+        self.adjust()
+
+    def display(self, city):
+        """ Attaches a city to the pop-up and makes it visible. """
+        self.hide()
+        self.city = city
+        for el in self.all_elements:
+            self.add_ui_element(el)
+        self.update()
+
+    def update(self):
+        if self.visible():
+            self.name_label.text = self.city.name
+            self.civ_label.text = self.city.owner.civilisation
+            self.player_label.text = self.city.owner.nick
+            self.adjust()
+
+    def hide(self):
+        """ Hides the pop-up. """
+        self.city = None
+        self.purge_ui_elements()
+
+    def visible(self):
+        return self.city is not None
+
+    def adjust(self):
+        self.adjust_coords()
+        left, right, top, bottom = self.coords_lrtb
+        base_height = self.height / (len(self.all_elements) + 1)
+        center = (right + left) / 2
+        base_width = max(len(el.text) for el in self.all_elements)
+
+        for i, element in enumerate(self.all_elements):
+            element.width = len(element.text) * 0.8 * self.width / base_width
+            element.center_y = top - (i + 1) * base_height
+            element.center_x = center
+            element.height = 0.8 * base_height
 
 
 class DiplomaticPopup(PopUp):

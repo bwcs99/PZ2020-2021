@@ -61,24 +61,6 @@ class Server:
         resp_len += b' ' * (HEADER - len(resp_len))
         return resp_len
 
-    ''' Funkcja obliczająca ranking na podstawie liczby przyznanych punktów '''
-
-    def compute_rank(self, player_list):
-        player_list.sort(key=lambda player: player.scores, reverse=True)
-        rank = 1
-        player_list[0].rank = rank
-        rank_list = []
-        for i in range(1, len(player_list)):
-            if player_list[i - 1].scores == player_list[i].scores:
-                player_list[i].rank = rank
-                continue
-            else:
-                rank += 1
-                player_list[i].rank = rank
-        for player in player_list:
-            rank_list.append((player.player_name, player.rank))
-        return rank_list
-
     def get_particular_players(self, sender, receiver):
         """ zwraca listę graczy bez użytkowników o nickach sender (str) i receiver (str)
         return - lista graczy (typ Player) """
