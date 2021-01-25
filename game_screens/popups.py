@@ -647,7 +647,7 @@ class DiplomaticPopup(PopUp):
     A pop-up containing a diplomatic notification. Displayed at the start of a player's turn.
     """
 
-    def __init__(self, size_x: float, size_y: float, background_color=BACKGROUND_COLOR, font_color=FONT_COLOR):
+    def __init__(self, size_x: float, size_y: float, diplo_event, background_color=BACKGROUND_COLOR, font_color=FONT_COLOR):
         """
         :param size_x: The popup's width expressed as a percentage of current screen width, between 0 and 1.
         :param size_y: The popup's height expressed as a percentage of current screen height, between 0 and 1.
@@ -660,15 +660,18 @@ class DiplomaticPopup(PopUp):
         self.all_elements = [self.top_label, self.message_label, self.cancel_label]
         for element in self.all_elements:
             element.color = font_color
-        self.visible = False
+        self.displayed = False
         self.rejectable = False
+        self.diplo_event = diplo_event
+        self.accepted = True
         self.adjust()
 
     def display(self, message, sender, rejectable=False):
         """ Attaches a unit and potential stats to the pop-up and makes it visible. """
         self.hide()
-        self.visible = True
-        self.rejectable = True
+        self.displayed = True
+        self.rejectable = rejectable
+        self.accepted = True
         for element in self.all_elements:
             self.add_ui_element(element)
         self.top_label.text = f"Message from {sender}"
@@ -679,7 +682,7 @@ class DiplomaticPopup(PopUp):
     def hide(self):
         """ Wipes the pop-up's data and hides it. """
         self.purge_ui_elements()
-        self.visible = False
+        self.displayed = False
 
     def adjust(self):
         self.adjust_coords()
@@ -695,12 +698,19 @@ class DiplomaticPopup(PopUp):
         self.message_label.center_y = top - 3.5 * self.height / 12
         self.cancel_label.center_y = top - 11 * self.height / 12
 
+    def visible(self):
+        return self.displayed
+
     def on_key_press(self, symbol: int, modifiers: int):
         if self.visible:
             if self.rejectable:
                 if symbol == arcade.key.ENTER:
                     self.hide()
+                    self.diplo_event.set()
                 elif symbol == arcade.key.ESCAPE:
+                    self.accepted = False
                     self.hide()
+                    self.diplo_event.set()
             elif symbol == arcade.key.ENTER:
                 self.hide()
+                self.diplo_event.set()

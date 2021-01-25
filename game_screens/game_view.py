@@ -8,7 +8,7 @@ from game_screens.enemy_city_view import EnemyCityView
 from game_screens.city import City
 from game_screens.city_view import CityView
 from game_screens.game_logic import GameLogic
-from game_screens.popups import TopBar, UnitPopup, CityCreationPopup, EndingPopup
+from game_screens.popups import TopBar, UnitPopup, CityCreationPopup, EndingPopup, DiplomaticPopup
 from game_screens.tiles import Tile
 
 TOP_BAR_SIZE = 0.0625  # expressed as the percentage of the current screen height
@@ -52,7 +52,10 @@ class GameView(arcade.View):
         self.unit_popup = UnitPopup(4 * TOP_BAR_SIZE, 4 * TOP_BAR_SIZE)
         self.update_popup = False  # used to only update pop-up once per opponent's move, otherwise game is laggy
         self.update_topbar = False  # used to update top bar if my city has been taken
+        self.update_diplo = None  # will be updated to a tuple of (message, sender, is_rejectable)
+        self.diplo_answered = threading.Event()
         self.city_popup = CityCreationPopup(4 * TOP_BAR_SIZE, 5 * TOP_BAR_SIZE)
+        self.diplo_popup = DiplomaticPopup(4 * TOP_BAR_SIZE, 5 * TOP_BAR_SIZE, self.diplo_answered)
         self.end_popup = EndingPopup(6 * TOP_BAR_SIZE, 6 * TOP_BAR_SIZE)
         self.ranking = None
         self.tiles = tiles
@@ -104,9 +107,6 @@ class GameView(arcade.View):
         self.top_bar.adjust()
         self.unit_popup.adjust()
 
-    def on_hide_view(self):
-        print("im hidden")
-
     def on_update(self, delta_time: float):
         self.game_logic.update()
         if self.update_popup:
@@ -115,6 +115,9 @@ class GameView(arcade.View):
         if self.update_topbar:
             self.top_bar.update_treasury()
             self.update_topbar = False
+        if self.update_diplo:
+            self.diplo_popup.display(*self.update_diplo)
+            self.update_diplo = None
         if self.ranking:
             self.top_bar.game_ended()
             self.end_popup.display(self.ranking)
@@ -130,10 +133,11 @@ class GameView(arcade.View):
         # unit popup
         self.unit_popup.draw_background()
         self.city_popup.draw_background()
+        self.diplo_popup.draw_background()
         self.end_popup.draw_background()
 
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
-        if self.city_popup.visible() or self.end_popup.visible():
+        if self.city_popup.visible() or self.diplo_popup.visible() or self.end_popup.visible():
             return
         if 0 <= self.zoom + scroll_y < MAX_ZOOM:
             self.zoom += scroll_y
@@ -172,7 +176,7 @@ class GameView(arcade.View):
             self.unit_popup.adjust()
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
-        if self.city_popup.visible() or self.end_popup.visible():
+        if self.city_popup.visible() or self.diplo_popup.visible() or self.end_popup.visible():
             return
         if buttons == 4:
             current = arcade.get_viewport()
@@ -193,7 +197,7 @@ class GameView(arcade.View):
             self.unit_popup.adjust()
 
     def on_mouse_press(self, x, y, button, modifiers):
-        if self.city_popup.visible() or self.end_popup.visible():
+        if self.city_popup.visible() or self.diplo_popup.visible() or self.end_popup.visible():
             return
         if button == 1:
             # don't let the player click through the unit pop-up or the top bar
@@ -302,6 +306,8 @@ class GameView(arcade.View):
                     self.top_bar.update_treasury()
                     self.unit_popup.hide()
                     self.game_logic.hide_unit_range()
+            elif self.diplo_popup.visible():
+                pass
             else:
                 # END TURN
                 if symbol == arcade.key.SPACE:
@@ -383,6 +389,7 @@ class GameView(arcade.View):
         """
         ranking = []
         while True:
+            self.diplo_answered.clear()
             message = self.client.get_opponents_move()
             print(message)
             if message[0] == "TURN":
@@ -438,6 +445,8 @@ class GameView(arcade.View):
                 self.game_logic.increase_area(x, y)
 
             elif message[0] == "DIPLOMACY_ANSWER":
+                self.update_diplo = message[1], message[2], False
+                self.diplo_answered.wait()
                 if message[3] == self.client.nick:
                     if message[1] == "DECLARE_WAR":
                         self.game_logic.me.enemies.append(self.game_logic.players[message[2]])
@@ -481,8 +490,11 @@ class GameView(arcade.View):
                             f"DIPLOMACY_ANSWER:{message[1]}:{message[3]}:{message[2]}:{message[4]}:{change}:{actual_quantity}")
 
                     else:
+                        self.update_diplo = message[1], message[2], True
+                        self.diplo_answered.wait()
+                        response = self.diplo_popup.accepted
                         self.client.only_send(
-                            f"DIPLOMACY_ANSWER:{message[1]}:{message[3]}:{message[2]}:" + ":".join(message[4:]))
+                            f"DIPLOMACY_ANSWER:{message[1]}:{message[3]}:{message[2]}:" + ":".join(message[4:]) + f":{response}")
                     print("A request for me!")
 
             elif message[0] == "DISCONNECT" or message[0] == "DEFEAT":
