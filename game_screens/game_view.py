@@ -36,7 +36,6 @@ class GameView(arcade.View):
         """
         super().__init__()
 
-
         self.client = client
         self.my_turn = False
         self.cur_enemy = ""
@@ -72,8 +71,8 @@ class GameView(arcade.View):
                 tile.center_y = row * (self.tile_size + MARGIN) + (self.tile_size / 2) + MARGIN + self.centering_y
                 self.tile_sprites.append(tile)
 
-
-        self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS, self.client.players, self.client.nick)
+        self.game_logic = GameLogic(self.tile_sprites, self.TILE_ROWS, self.TILE_COLS, self.client.players,
+                                    self.client.nick)
         self.top_bar.me = self.game_logic.me
         self.city_view = CityView(self.top_bar)
         self.enemy_city_view = EnemyCityView(self.top_bar, self.city_view.app, self.client, self.game_logic.me)
@@ -240,7 +239,8 @@ class GameView(arcade.View):
                                         messages = self.client.kill(opponent.nick)
                                         self.handle_additional_messages(messages)
                                         # if that was the last opponent, the game is over
-                                        if len(self.game_logic.players) - len(self.game_logic.disconnected_players) == 1:
+                                        if len(self.game_logic.players) - len(
+                                                self.game_logic.disconnected_players) == 1:
                                             self.game_logic.hide_unit_range()
                                             self.unit_popup.hide()
                                             messages = self.client.end_game_by_host()
@@ -324,6 +324,9 @@ class GameView(arcade.View):
                     for city in self.game_logic.me.cities:
                         city.goods = city.calculate_goods()
                     self.top_bar.update_treasury()
+
+                    for player in self.game_logic.players.values():  # forgetting that message was sent
+                        player.deputation = None
 
                     messages = self.client.end_turn()
                     self.handle_additional_messages(messages)
@@ -478,7 +481,8 @@ class GameView(arcade.View):
                             f"DIPLOMACY_ANSWER:{message[1]}:{message[3]}:{message[2]}:{message[4]}:{change}:{actual_quantity}")
 
                     else:
-                        self.client.only_send(f"DIPLOMACY_ANSWER:{message[1]}:{message[3]}:{message[2]}:" + ":".join(message[4:]))
+                        self.client.only_send(
+                            f"DIPLOMACY_ANSWER:{message[1]}:{message[3]}:{message[2]}:" + ":".join(message[4:]))
                     print("A request for me!")
 
             elif message[0] == "DISCONNECT" or message[0] == "DEFEAT":
