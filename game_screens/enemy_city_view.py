@@ -1,6 +1,7 @@
 import arcade
 from arcade.gui import UIManager
 
+from buy_city_window import BuyCityWindow
 from buy_goods_window import BuyGoodsWindow
 from game_screens.city import City
 from game_screens.popups import EnemyCityInfo
@@ -65,7 +66,8 @@ class EnemyCityView(arcade.View):
                 self.ui_manager.add_ui_element(self.buy_goods_button)
 
             if self.city.owner not in self.me.enemies and self.city.owner not in self.me.allies:  # Can declare war only if neutral
-                self.declare_war_button = DeclareWarButton(self, self.center_x, (1 - self.sidebar_top) * self.window.height,
+                self.declare_war_button = DeclareWarButton(self, self.center_x,
+                                                           (1 - self.sidebar_top) * self.window.height,
                                                            self.sidebar_width, self.button_height)
                 self.sidebar_top += self.relative_button_height + 0.025
                 self.ui_manager.add_ui_element(self.declare_war_button)
@@ -93,8 +95,7 @@ class EnemyCityView(arcade.View):
 
             self.sidebar_top = sidebar_top_backup
         else:
-            pass # TODO Enemycityinfo
-
+            pass  # TODO Enemycityinfo
 
     def on_draw(self):
         img = arcade.load_texture(f"{self.city.path_to_visualization}")
@@ -120,16 +121,23 @@ class BuyCityButton(arcade.gui.UIFlatButton):
     def __init__(self, parent, center_x, y_position, width, height):
         super().__init__('Buy this city', center_x=center_x, center_y=y_position, width=width, height=height)
         self.parent = parent
+        self.app = self.parent.app
 
     def on_click(self):
         if self.parent.clicked_once:
+            win = BuyCityWindow(self, self.parent)
+            win.show()
+            self.app.exec_()
             self.parent.top_bar.update_treasury()
-            self.parent.window.back_to_game()
             self.parent.city.owner.deputation = f"Buy city {self.parent.city.name}"
 
             self.parent.window.back_to_game()
+
         else:
             self.parent.clicked_once = True
+
+    def kill_app(self):
+        self.app.exit()
 
 
 class BuyGoodsButton(arcade.gui.UIFlatButton):
