@@ -155,7 +155,10 @@ class Server:
             self.queue.pop(ind)
             if ind == self.current_player:
                 ind = ind % len(self.queue)
-                broadcast.append(f"TURN:{self.queue[ind].player_name}".encode(FORMAT))
+                next_player = self.queue[ind]
+                broadcast.extend(next_player.message_queue)
+                broadcast.append(f"TURN:{next_player.player_name}".encode(FORMAT))
+                next_player.message_queue.clear()
             elif ind < self.current_player:
                 self.current_player = (self.current_player - 1) % len(self.queue)
             self.connections.pop(conn)
@@ -173,7 +176,10 @@ class Server:
                 self.queue.pop(ind)
                 if ind == self.current_player:
                     ind = ind % len(self.queue)
-                    broadcast.append(f"TURN:{self.queue[ind].player_name}".encode(FORMAT))
+                    next_player = self.queue[ind]
+                    broadcast.extend(next_player.message_queue)
+                    broadcast.append(f"TURN:{next_player.player_name}".encode(FORMAT))
+                    next_player.message_queue.clear()
                 elif ind < self.current_player:
                     self.current_player = (self.current_player - 1) % len(self.queue)
 
@@ -202,6 +208,7 @@ class Server:
             self.current_player %= len(self.queue)
             next_player = self.queue[self.current_player]
             broadcast = [*next_player.message_queue, f"TURN:{next_player.player_name}".encode(FORMAT)]
+            next_player.message_queue.clear()
 
         elif request[0] == "START_GAME":
             self.started = True
