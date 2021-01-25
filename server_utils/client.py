@@ -307,54 +307,27 @@ class Client:
             self.only_send(msg)
 
     ''' Wysyłanie propozycji kupna'''
-    def send_buy_request(self, sender, receiver, price, resource, my_granary,
-                         seller_granary, is_city=False, city_cords=(), quantity=1):
+    def send_buy_request(self, sender, receiver, price, resource,
+                          is_city=False, city_cords=(), quantity=1):
         """ param1 : nick nadawcy (str), param2 : nick odbiorcy (str), param3: proponowana cena (int),
         param4: nazwa surowca (str),
-        param5: mój skarbiec (granary), param6: skarbiec sprzedawcy (granary),
-        param6: czy sprzedajemy miasto (bool), param7: wsp. miasta (tuple: (x: int, y: int)),
-        param8: ilość surowca/miasta (dla miast domyślna ilośc to 1) (int)
+        param5: czy sprzedajemy miasto (bool), param6: wsp. miasta (tuple: (x: int, y: int)),
+        param7: ilość surowca/miasta (dla miast domyślna ilośc to 1) (int)
          return - w razie jakichś problemów zwraca odpowiedni komunikat błędu"""
-        if my_granary.gold < price:
-            return f'You cant afford it'
-        if resource == 'food':
-            if seller_granary.food < quantity:
-                return f'{receiver} has not enough resource of this kind'
-        elif resource == "stone":
-            if seller_granary.stone < quantity:
-                return f'{receiver} has not enough resource of this kind'
-        elif resource == "wood":
-            if seller_granary.wood < quantity:
-                return f'{receiver} has not enough resource of this kind'
+        resource_tuple = ()
+        if is_city:
+            resource_tuple = (is_city, city_cords)
         else:
-            resource_tuple = ()
-            if is_city:
-                resource_tuple = (is_city, city_cords)
-            else:
-                resource_tuple = (is_city, resource)
-            msg = f'BUY:{sender}:{receiver}:{str(resource_tuple)}:{price}:{quantity}:{False}'
-            self.only_send(msg)
+            resource_tuple = (is_city, resource)
+        msg = f'BUY:{sender}:{receiver}:{str(resource_tuple)}:{price}:{quantity}:{False}'
+        self.only_send(msg)
 
     '''Wysyłanie propozycji sprzedaży'''
-    def send_sell_request(self, sender, receiver, price, resource, my_granary, buyer_granary, quantity=1):
+    def send_sell_request(self, sender, receiver, price, resource,  quantity=1):
         """ param1: nadawca (str), param2: odbiorca (str), param3: cena (int),
-        param4: surowiec (str), param5: mój skarbiec (granary), param6: skarbiec
-        kupca (granary), param7: ilość surowca (int)
-         return - w razie jakichś problemów zwraca odpowiedni komunikat błędu"""
-        if buyer_granary.gold < price:
-            return f'{receiver} cant afford it'
-        if resource == 'food':
-            if my_granary.food < quantity:
-                return f'You have not enough resource of this kind'
-        elif resource == 'stone':
-            if my_granary.stone < quantity:
-                return f'You have not enough resource of this kind'
-        elif resource == 'wood':
-            if my_granary.wood < quantity:
-                return f'You have not enough resource of this kind'
-        else:
-            msg = f'SELL:{sender}:{receiver}:{resource}:{price}:{quantity}:{False}'
-            self.only_send(msg)
+        param4: surowiec (str),  param5: ilość surowca (int) """
+        msg = f'SELL:{sender}:{receiver}:{resource}:{price}:{quantity}:{False}'
+        self.only_send(msg)
 
     ''' Wysyłamy nasze odpowiedzi na serwer i serwer wysyła je do odpowiednich graczy'''
     def send_response_to_players(self, sender, response_list):
@@ -418,7 +391,7 @@ class Client:
                     if bool(value_fields[-1]):
                         information_list.extend([f'You and {value_fields[2]} are allies'])
                     else:
-                        information_list.extend([f'{value_fields[2]} doesnt want to be ally with you'])
+                        information_list.extend([f'{value_fields[2]} doesnt want to be your ally'])
                 else:
                     information_list.extend([f'{value_fields[1]} wants alliance with you'])
             elif "DECLARE_WAR" in message:
@@ -459,23 +432,16 @@ class Client:
                             f'Price: {value_fields[-3]}'])
 
             elif "SELL" in message:
-                res_tup = eval(value_fields[1])
-                is_city = bool(res_tup[0])
-                res_name = res_tup[1]
+                res_name = value_fields[3]
                 if "ANSWER" in message:
                     if bool(value_fields[-1]):
-                        information_list.extend([f'{value_fields[3]} was interested. The transaction ended successfully'])
+                        information_list.extend([f'{value_fields[2]} was interested. The transaction ended successfully'])
                     else:
-                        information_list.extend([f'{value_fields[3]} was not interested. The transaction failed'])
+                        information_list.extend([f'{value_fields[2]} was not interested. The transaction failed'])
                 else:
-                    if is_city:
-                        information_list.extend(
-                            [f'{value_fields[1]} wants to sell you {res_name} city. Qunatity: {value_fields[-2]}.'
-                            f'Price: {value_fields[-3]}'])
-                    else:
-                        information_list.extend(
-                            [f'{value_fields[1]} wants to sell you {res_name}. Qunatity: {value_fields[-2]}.'
-                            f'Price: {value_fields[-3]}'])
+                    information_list.extend(
+                        [f'{value_fields[1]} wants to sell you {res_name}. Qunatity: {value_fields[-2]}.'
+                        f'Price: {value_fields[-3]}'])
         return information_list
 
 

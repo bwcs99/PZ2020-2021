@@ -86,7 +86,7 @@ class Server:
             if player.player_name == str(sender) or player.player_name == str(receiver):
                 continue
             else:
-                res_list.extend(player)
+                res_list.extend([player])
         return res_list
 
     def inform_others(self, others_list, msg):
@@ -376,7 +376,6 @@ class Server:
 
         elif request[0] == "SEND_RESP":
             print("W przetwarzaniu odpowiedzi")
-            sender = str(request[1])
             string_list = str(request[2])
             normal_list = eval(string_list)
             print(f"Lista po ewaluacji: {normal_list}")
