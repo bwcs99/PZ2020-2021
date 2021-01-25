@@ -16,10 +16,15 @@ class Player:
         self.units = arcade.SpriteList()
         self.cities = arcade.SpriteList()
         self.borders = []
-        self.enemies = [] # list of enemies' nicks
-        self.allies = [] # list of allies' nicks
+        self.enemies = []  # list of enemies' nicks
+        self.allies = []  # list of allies' nicks
         self.granary = Granary(1000, 500, 300, 1000)  # start money, enough to buy 10 Infantry, for testing
         self.daily_income = {'gold': 0, 'wood': 0, 'stone': 0, 'food': 0}
+
+        # also known as message. Is set by each (other) player and deleted right after other player
+        # ends turn, it's used for checking if deputation was already sent in that turn.
+        self.deputation = None
+
 
     def __str__(self):
         return f"({self.nick}, {self.civilisation}, {self.color})"

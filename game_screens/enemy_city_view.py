@@ -49,45 +49,52 @@ class EnemyCityView(arcade.View):
 
         self.city_info.display(self.city)
         self.top_bar.adjust()
+        if self.city.owner.deputation is not None:
+            sidebar_top_backup = self.sidebar_top
 
-        if True:
-            self.buy_city_button = BuyCityButton(self, self.center_x, (1 - self.sidebar_top) * self.window.height,
-                                                 self.sidebar_width, self.button_height)
-            self.sidebar_top += self.relative_button_height + 0.025
-            self.ui_manager.add_ui_element(self.buy_city_button)
+            if self.city.owner not in self.me.enemies:  # Can't buy city only if in war
+                self.buy_city_button = BuyCityButton(self, self.center_x, (1 - self.sidebar_top) * self.window.height,
+                                                     self.sidebar_width, self.button_height)
+                self.sidebar_top += self.relative_button_height + 0.025
+                self.ui_manager.add_ui_element(self.buy_city_button)
 
-        if True:
-            self.buy_goods_button = BuyGoodsButton(self, self.center_x, (1 - self.sidebar_top) * self.window.height,
-                                                   self.sidebar_width, self.button_height)
-            self.sidebar_top += self.relative_button_height + 0.025
-            self.ui_manager.add_ui_element(self.buy_goods_button)
-
-        if True:
-            self.declare_war_button = DeclareWarButton(self, self.center_x, (1 - self.sidebar_top) * self.window.height,
+            if self.city.owner not in self.me.enemies:  # Can't buy goods only if in war
+                self.buy_goods_button = BuyGoodsButton(self, self.center_x, (1 - self.sidebar_top) * self.window.height,
                                                        self.sidebar_width, self.button_height)
-            self.sidebar_top += self.relative_button_height + 0.025
-            self.ui_manager.add_ui_element(self.declare_war_button)
+                self.sidebar_top += self.relative_button_height + 0.025
+                self.ui_manager.add_ui_element(self.buy_goods_button)
 
-        if True:
-            self.propose_peace_button = ProposePeaceButton(self, self.center_x,
-                                                           (1 - self.sidebar_top) * self.window.height,
+            if self.city.owner not in self.me.enemies and self.city.owner not in self.me.allies:  # Can declare war only if neutral
+                self.declare_war_button = DeclareWarButton(self, self.center_x, (1 - self.sidebar_top) * self.window.height,
                                                            self.sidebar_width, self.button_height)
-            self.sidebar_top += self.relative_button_height + 0.025
-            self.ui_manager.add_ui_element(self.propose_peace_button)
+                self.sidebar_top += self.relative_button_height + 0.025
+                self.ui_manager.add_ui_element(self.declare_war_button)
 
-        if True:
-            self.offer_alliance_button = OfferAllianceButton(self, self.center_x,
+            if self.city.owner in self.me.enemies:  # Can only if enemies
+                self.propose_peace_button = ProposePeaceButton(self, self.center_x,
+                                                               (1 - self.sidebar_top) * self.window.height,
+                                                               self.sidebar_width, self.button_height)
+                self.sidebar_top += self.relative_button_height + 0.025
+                self.ui_manager.add_ui_element(self.propose_peace_button)
+
+            if self.city.owner not in self.me.enemies and self.city.owner not in self.me.allies:  # Can offer alliance only if neutral
+                self.offer_alliance_button = OfferAllianceButton(self, self.center_x,
+                                                                 (1 - self.sidebar_top) * self.window.height,
+                                                                 self.sidebar_width, self.button_height)
+                self.sidebar_top += self.relative_button_height + 0.025
+                self.ui_manager.add_ui_element(self.offer_alliance_button)
+
+            if self.city.owner in self.me.allies:  # Can end alliance only if in alliance (duh)
+                self.end_alliance_button = EndAllianceButton(self, self.center_x,
                                                              (1 - self.sidebar_top) * self.window.height,
                                                              self.sidebar_width, self.button_height)
-            self.sidebar_top += self.relative_button_height + 0.025
-            self.ui_manager.add_ui_element(self.offer_alliance_button)
+                self.sidebar_top += self.relative_button_height + 0.025
+                self.ui_manager.add_ui_element(self.end_alliance_button)
 
-        if True:
-            self.end_alliance_button = EndAllianceButton(self, self.center_x,
-                                                         (1 - self.sidebar_top) * self.window.height,
-                                                         self.sidebar_width, self.button_height)
-            self.sidebar_top += self.relative_button_height + 0.025
-            self.ui_manager.add_ui_element(self.end_alliance_button)
+            self.sidebar_top = sidebar_top_backup
+        else:
+            pass # TODO Enemycityinfo
+
 
     def on_draw(self):
         img = arcade.load_texture(f"{self.city.path_to_visualization}")
@@ -115,11 +122,11 @@ class BuyCityButton(arcade.gui.UIFlatButton):
         self.parent = parent
 
     def on_click(self):
-        # TODO Diplomacy procedure - 'buying city'
         if self.parent.clicked_once:
             print("Buying city procedure")
             self.parent.top_bar.update_treasury()
             self.parent.window.back_to_game()
+            self.parent.city.owner.deputation = f"Buy city {self.parent.city.name}"
         else:
             self.parent.clicked_once = True
 
