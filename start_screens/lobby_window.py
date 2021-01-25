@@ -7,9 +7,9 @@ from arcade import color
 from PIL import Image
 from PIL.ImageQt import ImageQt
 from PyQt5.QtCore import QRect
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QColor
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QTableWidget, QLabel, QPushButton, QApplication, QHeaderView, \
-    QTableWidgetItem
+    QTableWidgetItem, QAbstractItemView
 
 from server_utils.client import Client
 from . import img_gen
@@ -78,7 +78,10 @@ class LobbyWindow(QMainWindow):
         self.players_table.setColumnCount(3)
         header = self.players_table.horizontalHeader()
         self.players_table.setHorizontalHeaderLabels(["Nickname", "Civilization", "Color"])
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        self.players_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.Stretch)
 
         self.map_label = QLabel(self)
         self.map_label.setGeometry(QRect(480, 30, 570, 570))
@@ -100,10 +103,14 @@ class LobbyWindow(QMainWindow):
         This function should appends player_table by finding "lowest" entry and inserting row after it
         Function should receive information parameter in form of [ nick_name, civ_name, color_name ] all in string
         """
-        row_position = self.players_table.rowCount()
-        self.players_table.insertRow(row_position)
-        for i, peace in enumerate(information):
-            self.players_table.setItem(row_position, i, QTableWidgetItem(peace))
+        if len(information) == 3:
+            row_position = self.players_table.rowCount()
+            self.players_table.insertRow(row_position)
+            nick, civ, col = information
+            self.players_table.setItem(row_position, 0, QTableWidgetItem(nick))
+            self.players_table.setItem(row_position, 1, QTableWidgetItem(civ))
+            self.players_table.setItem(row_position, 2, QTableWidgetItem(""))
+            self.players_table.item(row_position, 2).setBackground(QColor(*eval(f"color.{col}")))
 
     def __launch_game(self):
         # TODO "Warto się pochylić"
