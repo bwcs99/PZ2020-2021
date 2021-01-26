@@ -33,7 +33,7 @@ class BuildBuildingWindow(QMainWindow):
         self.label_desc.setGeometry(QtCore.QRect(120, 50, 211, 40))
         self.label_desc.setWordWrap(True)
         self.label_desc.setStyleSheet("color: rgb(150, 150, 81)")
-        self.label_desc.setText("Increases radius of city are by 1.")
+        self.label_desc.setText("Allows city borders to grow.")
 
         self.image_1 = QtWidgets.QLabel(self.centralwidget)
         self.image_1.setGeometry(QtCore.QRect(20, 20, 81, 71))
@@ -81,7 +81,7 @@ class BuildBuildingWindow(QMainWindow):
         self.label_10_desc.setGeometry(QtCore.QRect(120, 320, 211, 40))
         self.label_10_desc.setWordWrap(True)
         self.label_10_desc.setStyleSheet("color: rgb(150, 150, 81)")
-        self.label_10_desc.setText("All unites cost 15% less wood and stone.")
+        self.label_10_desc.setText("All units cost 15% less wood and stone.")
 
         self.image_4 = QtWidgets.QLabel(self.centralwidget)
         self.image_4.setGeometry(QtCore.QRect(20, 290, 81, 71))
@@ -97,7 +97,7 @@ class BuildBuildingWindow(QMainWindow):
         self.label_11_desc.setGeometry(QtCore.QRect(120, 410, 211, 40))
         self.label_11_desc.setWordWrap(True)
         self.label_11_desc.setStyleSheet("color: rgb(150, 150, 81)")
-        self.label_11_desc.setText("All unites cost 20% less food and gold.")
+        self.label_11_desc.setText("All units cost 20% less food and gold.")
 
         self.image_5 = QtWidgets.QLabel(self)
         self.image_5.setGeometry(QtCore.QRect(20, 380, 81, 71))

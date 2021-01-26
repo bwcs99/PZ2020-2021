@@ -1,10 +1,10 @@
-import os
 import sys
 
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QMainWindow, QDesktopWidget, \
     QVBoxLayout, QPushButton
 
+from about_window import AboutWindow
 from start_screens.connect_window import ConnectWindow
 from start_screens.map_generator_window import MapGeneratorWindow
 
@@ -20,12 +20,13 @@ class WelcomeWindow(QMainWindow):
         super(WelcomeWindow, self).__init__()
         self.connect_window = None
         self.map_generator_window = None
+        self.about_window = None
         self.__init_ui()
 
     def __init_ui(self):
         self.setWindowTitle("Age of Divisiveness")
         self.__put_buttons()
-        self.setFixedSize(480, 380)
+        self.setFixedSize(480, 400)
         self.__center()
         self.show()
 
@@ -37,11 +38,6 @@ class WelcomeWindow(QMainWindow):
         main_widget = QWidget(self)
         main_layout = QVBoxLayout()
 
-        """ Use if some kind text will be needed in welcome window """
-        # title = QLabel("<h1> Welcome to </h1>")
-        # title.setAlignment(QtCore.Qt.AlignCenter)
-        # up_layout.addWidget(title)
-
         connect_button = QPushButton('Connect to server', self)
         connect_button.clicked.connect(self.__init_connect_to_server_window)
         down_layout.addWidget(connect_button)
@@ -50,10 +46,9 @@ class WelcomeWindow(QMainWindow):
         host_button.clicked.connect(self.__init_map_generator_window)
         down_layout.addWidget(host_button)
 
-        """ This block is adding about button which opens about window below """
-        # about_button = QPushButton('About', self)
-        # about_button.clicked.connect(self.init_about_window)
-        # down_layout.addWidget(about_button)
+        about_button = QPushButton('Read about', self)
+        about_button.clicked.connect(self.__show_about)
+        down_layout.addWidget(about_button)
 
         image_label = QLabel(self)  # background image label
         pixmap = QPixmap('resources/images/aod_logo.png')  # path to logo.png
@@ -74,7 +69,7 @@ class WelcomeWindow(QMainWindow):
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
-    def __init_connect_to_server_window(self): #
+    def __init_connect_to_server_window(self):
         self.connect_window = ConnectWindow()
         self.connect_window.show()
         self.hide()
@@ -85,11 +80,9 @@ class WelcomeWindow(QMainWindow):
         self.hide()
         pass
 
-    """ Left for use if about window will be needed """
-    # def init_about_window(self):
-    #     self.about_window = AboutWindow(self)
-    #     self.about_window.show()
-    #     self.hide()
+    def __show_about(self):
+        self.about_window = AboutWindow()
+        self.about_window.show()
 
 
 # for testing
