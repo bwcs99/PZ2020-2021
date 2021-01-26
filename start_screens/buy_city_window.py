@@ -62,7 +62,10 @@ class BuyCityWindow(QMainWindow):
         # receiver, price, resource, quantity
         # self.grandparent.client.buy_resource(self.grandparent.city.owner.nick, self.how_much_for_piece_edit.text(),
         #                                      self.material_type_holder, self.gold_edit.text())
-
+        city = self.grandparent.city
+        receiver = city.owner.nick
+        coords = city.tile.coords
+        self.grandparent.client.buy_city(receiver, self.gold_dict['gold'], coords)
         self.hide()
         self.grandparent.window.back_to_game()
         self.parent.kill_app()

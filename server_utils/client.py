@@ -227,15 +227,15 @@ class Client:
             yield new_msg.split(":")
 
     def send_alliance_request(self, receiver):
-        msg = f'DIPLOMACY:ALLIANCE:{self.nick}:{receiver}:{False}'
+        msg = f'DIPLOMACY:ALLIANCE:{self.nick}:{receiver}'
         self.only_send(msg)
 
     def end_alliance(self, receiver):
-        msg = f'DIPLOMACY_ANSWER:END_ALLIANCE:{self.nick}:{receiver}:{False}'
+        msg = f'DIPLOMACY_ANSWER:END_ALLIANCE:{self.nick}:{receiver}'
         self.only_send(msg)
 
     def declare_war(self, receiver):
-        msg = f'DIPLOMACY_ANSWER:DECLARE_WAR:{self.nick}:{receiver}:{False}'
+        msg = f'DIPLOMACY_ANSWER:DECLARE_WAR:{self.nick}:{receiver}'
         self.only_send(msg)
 
     ''' Podczas wojny możemy się poddać ~ BW '''
@@ -243,19 +243,15 @@ class Client:
 
     def send_truce_request(self, receiver):
         """ param1: nadawca (str), param2: odbiorca (str), param3: lista wrogów (list of stringd/nicks)"""
-        msg = f'DIPLOMACY:TRUCE:{self.nick}:{receiver}:{False}'
+        msg = f'DIPLOMACY:TRUCE:{self.nick}:{receiver}'
         self.only_send(msg)
 
     def buy_city(self, receiver, price, city_cords):
-        msg = f'DIPLOMACY:BUY_CITY:{self.nick}:{receiver}:{city_cords}:{price}:{False}'
+        msg = f'DIPLOMACY:BUY_CITY:{self.nick}:{receiver}:{city_cords}:{price}'
         self.only_send(msg)
 
     def buy_resource(self, receiver, price, resource, quantity):
-        msg = f'DIPLOMACY:BUY_RESOURCE:{self.nick}:{receiver}:{resource}:{price}:{quantity}:{False}'
-        self.only_send(msg)
-
-    def send_sell_request(self, receiver, price, resource, quantity=1):
-        msg = f'DIPLOMACY:SELL:{self.nick}:{receiver}:{resource}:{price}:{quantity}:{False}'
+        msg = f'DIPLOMACY:BUY_RESOURCE:{self.nick}:{receiver}:{resource.lower()}:{price}:{quantity}'
         self.only_send(msg)
 
     ''' Rozpatrujemy propozycje innych graczy '''
