@@ -687,7 +687,7 @@ class DiplomaticPopup(PopUp):
                 self.display_buy_resources(message[2], message[4], message[5], message[6])
             self.cancel_label.text = "ENTER: accept, ESC: reject"
         else:
-            self.display_info(message[1], message[2], message[3], sender_is_me)
+            self.display_info(message, sender_is_me)
             self.cancel_label.text = "Press ENTER to continue"
         self.adjust()
 
@@ -707,17 +707,42 @@ class DiplomaticPopup(PopUp):
     def display_alliance_offer(self, sender):
         self.message_label2.text = f"{sender} wants to form an alliance with you"
 
-    def display_info(self, message, sender, subject, sender_is_me=False):
-        if message == "DECLARE_WAR":
+    def display_info(self, message, sender_is_me=False):
+        sender = message[2]
+        subject = message[3]
+        if message[1] == "DECLARE_WAR":
             self.message_label2.text = f"{sender} {'have' if sender_is_me else 'has'} declared war on {subject}"
-        elif message == "ALLIANCE":
-            self.message_label2.text = f"{sender} and {subject}"
-            self.message_label3.text = "have formed an alliance"
-        elif message == "END_ALLIANCE":
+        elif message[1] == "ALLIANCE":
+            if eval(message[-1]):
+                self.message_label2.text = f"{sender} and {subject}"
+                self.message_label3.text = "have formed an alliance"
+            else:
+                self.message_label2.text = f"{sender} {'have' if sender_is_me else 'has'} refused to"
+                self.message_label3.text = f"form an alliance with {subject}"
+        elif message[1] == "END_ALLIANCE":
             self.message_label2.text = f"{sender} {'have' if sender_is_me else 'has'} ended the alliance with {subject}"
-        elif message == "TRUCE":
-            self.message_label2.text = f"{sender} and {subject}"
-            self.message_label3.text = "have ended the war"
+        elif message[1] == "TRUCE":
+            if eval(message[-1]):
+                self.message_label2.text = f"{sender} and {subject}"
+                self.message_label3.text = "have ended the war"
+            else:
+                self.message_label2.text = f"{sender} {'have' if sender_is_me else 'has'} rejected"
+                self.message_label3.text = f"the peace offer made by {subject}"
+        elif message[1] == "BUY_RESOURCE":
+            if eval(message[-1]):
+                self.message_label2.text = f"{sender} {'have' if sender_is_me else 'has'} sold {subject}"
+                self.message_label3.text = f"{message[6]} {message[4]} for {message[5]} gold"
+            else:
+                self.message_label2.text = f"{sender} {'have' if sender_is_me else 'has'} rejected"
+                self.message_label3.text = f"the trade offer made by {subject}"
+        elif message[1] == "BUY_CITY":
+            if eval(message[-1]):
+                self.message_label2.text = f"{sender} {'have' if sender_is_me else 'has'} sold {subject}"
+                self.message_label3.text = f"the city of {message[4]} for {message[5]} gold"
+            else:
+                self.message_label2.text = f"{sender} didn't agree to sell {subject}"
+                self.message_label3.text = f"the city of {message[4]} for {message[5]} "
+
 
     def hide(self):
         """ Wipes the pop-up's data and hides it. """
