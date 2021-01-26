@@ -135,6 +135,9 @@ class BuyGoodsWindow(QMainWindow):
             self.grandparent.top_bar.me.granary.pay_for(self.gold_dict)  # paying for materials
 
             # TODO Diplomacy procedure - 'buying materials'
+            # receiver, price, resource, quantity
+            self.grandparent.client.buy_resource(self.grandparent.city.owner.nick, self.how_much_for_piece_edit.text(),
+                                                 self.material_type_holder, self.how_many_edit.text())
 
             self.hide()
             self.grandparent.window.back_to_game()

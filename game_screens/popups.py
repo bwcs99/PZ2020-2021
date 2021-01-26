@@ -514,7 +514,7 @@ class CityInfo(PopUp):
 
         self.all_elements = [*self.top_part, *self.mid_part, *self.bottom_part]
         for el in self.all_elements:
-            el.color = FONT_COLOR
+            el.color = font_color
 
         self.adjust()
 
@@ -580,65 +580,204 @@ class CityInfo(PopUp):
         self.name_label.center_y = top - base_height
 
 
+class EnemyCityInfo(PopUp):
+    """
+    A pop-up that shows up in enemy city view.
+    """
+
+    def __init__(self, size_x: float, size_y: float, top: float, background_color=BACKGROUND_COLOR,
+                 font_color=FONT_COLOR):
+        """
+        :param size_x: The popup's width expressed as a percentage of current screen width, between 0 and 1.
+        :param size_y: The popup's height expressed as a percentage of current screen height, between 0 and 1.
+        """
+        super().__init__(0.95 * (1 - size_x), 1 - (top + size_y), size_x, size_y, background_color)
+        self.city = None
+
+        self.name_label = arcade.gui.UILabel("City", 0, 0)
+        self.civ_label = arcade.gui.UILabel("Civ", 0, 0)
+        self.player_label = arcade.gui.UILabel("Nick", 0, 0)
+
+        self.all_elements = [self.name_label, self.civ_label, self.player_label]
+        for el in self.all_elements:
+            el.color = font_color
+
+        self.adjust()
+
+    def display(self, city):
+        """ Attaches a city to the pop-up and makes it visible. """
+        self.hide()
+        self.city = city
+        for el in self.all_elements:
+            self.add_ui_element(el)
+        self.update()
+
+    def update(self):
+        if self.visible():
+            self.name_label.text = self.city.name
+            self.civ_label.text = self.city.owner.civilisation
+            self.player_label.text = self.city.owner.nick
+            self.adjust()
+
+    def hide(self):
+        """ Hides the pop-up. """
+        self.city = None
+        self.purge_ui_elements()
+
+    def visible(self):
+        return self.city is not None
+
+    def adjust(self):
+        self.adjust_coords()
+        left, right, top, bottom = self.coords_lrtb
+        base_height = self.height / (len(self.all_elements) + 1)
+        center = (right + left) / 2
+        base_width = max(len(el.text) for el in self.all_elements)
+
+        for i, element in enumerate(self.all_elements):
+            element.width = len(element.text) * 0.8 * self.width / base_width
+            element.center_y = top - (i + 1) * base_height
+            element.center_x = center
+            element.height = 0.8 * base_height
+
+
 class DiplomaticPopup(PopUp):
     """
     A pop-up containing a diplomatic notification. Displayed at the start of a player's turn.
     """
 
-    def __init__(self, size_x: float, size_y: float, background_color=BACKGROUND_COLOR, font_color=FONT_COLOR):
+    def __init__(self, size_x: float, size_y: float, diplo_event, background_color=BACKGROUND_COLOR,
+                 font_color=FONT_COLOR):
         """
         :param size_x: The popup's width expressed as a percentage of current screen width, between 0 and 1.
         :param size_y: The popup's height expressed as a percentage of current screen height, between 0 and 1.
         """
         super().__init__(0.5 * (1 - size_x), 0.5 * (1 - size_y), size_x, size_y, background_color)
 
-        self.top_label = arcade.gui.UILabel("Message from ...", 0, 0)
-        self.message_label = arcade.gui.UILabel("", 0, 0)
+        self.message_label1 = arcade.gui.UILabel("level 1", 0, 0)
+        self.message_label2 = arcade.gui.UILabel("level 2", 0, 0)
+        self.message_label3 = arcade.gui.UILabel("level 3", 0, 0)
         self.cancel_label = arcade.gui.UILabel("Press ENTER to continue", 0, 0)
-        self.all_elements = [self.top_label, self.message_label, self.cancel_label]
+        self.all_elements = [self.message_label1, self.message_label2, self.message_label3, self.cancel_label]
         for element in self.all_elements:
             element.color = font_color
-        self.visible = False
+        self.displayed = False
         self.rejectable = False
+        self.diplo_event = diplo_event
+        self.accepted = True
         self.adjust()
 
-    def display(self, message, sender, rejectable=False):
+    def display(self, message, sender_is_me):
         """ Attaches a unit and potential stats to the pop-up and makes it visible. """
         self.hide()
-        self.visible = True
-        self.rejectable = True
+        self.displayed = True
+        self.rejectable = message[0] == "DIPLOMACY"
+        self.accepted = True
         for element in self.all_elements:
             self.add_ui_element(element)
-        self.top_label.text = f"Message from {sender}"
-        self.message_label.text = message
-        self.cancel_label.text = "ENTER: accept, ESC: reject" if rejectable else "Press ENTER to continue"
+        if self.rejectable:
+            if message[1] == "TRUCE":
+                self.display_peace_offer(message[2])
+            elif message[1] == "ALLIANCE":
+                self.display_alliance_offer(message[2])
+            elif message[1] == "BUY_CITY":
+                self.display_buy_city(message[2], message[4], message[5])
+            elif message[1] == "BUY_RESOURCE":
+                self.display_buy_resources(message[2], message[4], message[5], message[6])
+            self.cancel_label.text = "ENTER: accept, ESC: reject"
+        else:
+            self.display_info(message, sender_is_me)
+            self.cancel_label.text = "Press ENTER to continue"
         self.adjust()
+
+    def display_buy_resources(self, buyer, resource, total_price, quantity):
+        self.message_label1.text = f"{buyer} wants to buy"
+        self.message_label2.text = f"{quantity} {resource}"
+        self.message_label3.text = f"for {total_price} gold"
+
+    def display_buy_city(self, buyer, city_name, price):
+        self.message_label1.text = f"{buyer} wants to buy your city of"
+        self.message_label2.text = city_name
+        self.message_label3.text = f"for {price} gold"
+
+    def display_peace_offer(self, sender):
+        self.message_label2.text = f"{sender} offers you peace"
+
+    def display_alliance_offer(self, sender):
+        self.message_label2.text = f"{sender} wants to form an alliance with you"
+
+    def display_info(self, message, sender_is_me=False):
+        sender = message[2]
+        subject = message[3]
+        if message[1] == "DECLARE_WAR":
+            self.message_label2.text = f"{sender} {'have' if sender_is_me else 'has'} declared war on {subject}"
+        elif message[1] == "ALLIANCE":
+            if eval(message[-1]):
+                self.message_label2.text = f"{sender} and {subject}"
+                self.message_label3.text = "have formed an alliance"
+            else:
+                self.message_label2.text = f"{sender} {'have' if sender_is_me else 'has'} refused to"
+                self.message_label3.text = f"form an alliance with {subject}"
+        elif message[1] == "END_ALLIANCE":
+            self.message_label2.text = f"{sender} {'have' if sender_is_me else 'has'} ended the alliance with {subject}"
+        elif message[1] == "TRUCE":
+            if eval(message[-1]):
+                self.message_label2.text = f"{sender} and {subject}"
+                self.message_label3.text = "have ended the war"
+            else:
+                self.message_label2.text = f"{sender} {'have' if sender_is_me else 'has'} rejected"
+                self.message_label3.text = f"the peace offer made by {subject}"
+        elif message[1] == "BUY_RESOURCE":
+            if eval(message[-1]):
+                self.message_label2.text = f"{sender} {'have' if sender_is_me else 'has'} sold {subject}"
+                self.message_label3.text = f"{message[6]} {message[4]} for {message[5]} gold"
+            else:
+                self.message_label2.text = f"{sender} {'have' if sender_is_me else 'has'} rejected"
+                self.message_label3.text = f"the trade offer made by {subject}"
+        elif message[1] == "BUY_CITY":
+            if eval(message[-1]):
+                self.message_label2.text = f"{sender} {'have' if sender_is_me else 'has'} sold {subject}"
+                self.message_label3.text = f"the city of {message[4]} for {message[5]} gold"
+            else:
+                self.message_label2.text = f"{sender} didn't agree to sell {subject}"
+                self.message_label3.text = f"the city of {message[4]} for {message[5]} "
+
 
     def hide(self):
         """ Wipes the pop-up's data and hides it. """
+        for element in self.all_elements:
+            element.text = ""
         self.purge_ui_elements()
-        self.visible = False
+        self.displayed = False
 
     def adjust(self):
         self.adjust_coords()
         left, right, top, bottom = self.coords_lrtb
-        base_height = self.height / 12
-        for element in self.all_elements:
-            element.center_x = left + 0.5 * self.width
-            element.width = 0.8 * self.width
-            element.height = base_height
+        base_height = self.height / (len(self.all_elements) + 2)
+        base_width = 60
+        center = (right + left) / 2
 
-        self.top_label.width = 0.6 * self.width
-        self.top_label.center_y = top - self.height / 12
-        self.message_label.center_y = top - 3.5 * self.height / 12
-        self.cancel_label.center_y = top - 11 * self.height / 12
+        for i, element in enumerate(self.all_elements):
+            element.width = len(element.text) * 0.8 * self.width / base_width
+            element.center_y = top - (i + 1) * base_height
+            element.center_x = center
+            element.height = 0.8 * base_height
+
+        self.cancel_label.center_y = bottom + base_height
+
+    def visible(self):
+        return self.displayed
 
     def on_key_press(self, symbol: int, modifiers: int):
         if self.visible:
             if self.rejectable:
                 if symbol == arcade.key.ENTER:
                     self.hide()
+                    self.diplo_event.set()
                 elif symbol == arcade.key.ESCAPE:
+                    self.accepted = False
                     self.hide()
+                    self.diplo_event.set()
             elif symbol == arcade.key.ENTER:
                 self.hide()
+                self.diplo_event.set()

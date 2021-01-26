@@ -16,6 +16,7 @@ class Client:
     It sends requests as -> <REQUEST>:::.
     Which is afterwards smartly handled by server.
     """
+
     def __init__(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.available_civilizations = None
@@ -23,7 +24,6 @@ class Client:
         self.nick = None
         self.players = []
         self.started = False
-
 
     # This method listens for messages from server.
     def rec_msg(self):
@@ -157,38 +157,9 @@ class Client:
         except OSError:
             return ["DISCONNECTED"]
 
-    """ Funkcja służąca do kończenia gry przez hosta """
     def end_game_by_host(self):
         self.only_send("END_GAME")
         return self.unexpected_messages("END_GAME")
-
-    """ Funkcja służąca do kończenia gry przez danego gracza """
-    def quit_game(self, player_nick):
-        self.only_send("QUIT_GAME:"+player_nick+"::")
-
-    """ Funkcja zwiększająca stan skarbca danego gracza """
-    def more_money(self, number, player_nick):
-        self.only_send("MORE_MONEY:"+player_nick+":"+str(number)+":")
-
-    """ Funkcja zmniejszająca stan skarbca danego gracza """
-    def less_money(self, number, player_nick):
-        self.only_send("LESS_MONEY:"+player_nick+":"+str(number)+":")
-
-    """ Funkcja zwracjąca aktualny stan skarbca danego gracza """
-    def get_treasury_state(self, player_nick):
-        state = self.send_msg("GET_TREASURY:"+player_nick+"::")
-        return int(state)
-
-    """ Służy do doawania punktów konkretnemu graczowi (tu trzeba opracować polityke przyznawania punktów)"""
-    def add_scores(self, new_scores, player_nick):
-        self.only_send("ADD_SCORES:"+player_nick+":"+str(new_scores)+":")
-
-    """ Wysyłanie zmienionej mapy na serwer (move_unit i put_unit w jednym przy założeniu, że zmiany na mapach
-    odbywają się po stronie klienta) """
-    # być może przyda się w momencie gdy ktoś będzie out of sync, ale ja na razie wolałem to zrobić tak jak niżej /P
-    def send_changed(self, changed_map):
-        map_to_str = str(changed_map)
-        self.only_send("CHANGE_MAP:"+":"+map_to_str+":")
 
     def move_unit(self, x0, y0, x1, y1, cost):
         """ Moves the unit located on the tile (x0, y0) to the tile (x1, y1) at a specified cost."""
@@ -228,12 +199,6 @@ class Client:
         except OSError:
             return self.unexpected_messages("END_GAME")
 
-    """ Funkcja do wylistowania wszystkich miast """
-
-    def get_cities_from_server(self):
-        rep = self.send_msg("LIST_CITIES:::")
-        return eval(rep)
-
     def add_city(self, x, y, city_name):
         """ Adds a city with the specified name on tile (x, y). It's owner is the player sending the message. """
         msg = f"ADD_CITY:{self.nick}:({x},{y}):{city_name}"
@@ -261,114 +226,32 @@ class Client:
             new_msg = self.rec_msg()
             yield new_msg.split(":")
 
-    ''' Funkcja do wysyłania propozycji sojuszu'''
-    def send_alliance_request(self, sender, receiver, sender_allies):
-        """ param1: (str) nadawca, param2: (str) odbiorca, param3: lista sojuszników (list of strings/nicks)"""
-        if receiver in sender_allies:
-            return f'{receiver} is already your allie'
-        else:
-            msg = f'ALLIANCE:{sender}:{receiver}:{False}'
-            self.only_send(msg)
+    def send_alliance_request(self, receiver):
+        msg = f'DIPLOMACY:ALLIANCE:{self.nick}:{receiver}'
+        self.only_send(msg)
 
-    ''' Funkcja do pobierania listy wiadomości z serwera'''
-    def get_messages_from_server(self, sender):
-        """ param1: nadawca (str)
-        return - lista wiadomości z serwera (lista stringów) """
-        msg = f'LIST_MSGS:{sender}'
-        resp = self.send_msg(msg)
-        msg_queue = eval(resp)
-        return msg_queue
+    def end_alliance(self, receiver):
+        msg = f'DIPLOMACY_ANSWER:END_ALLIANCE:{self.nick}:{receiver}'
+        self.only_send(msg)
 
-    ''' Funkcja do zrywania sojuszy z innymi graczami'''
-    def end_alliance(self, sender, receiver, sender_allies):
-        """param1: nadawca (str), param2: odbiorca (str), param3: lista sojuszników (list of strings/nicks)"""
-        if receiver not in sender_allies:
-            return f'{receiver} is not your allie, so you cant end alliance with him'
-        else:
-            msg = f'END_ALLIANCE:{sender}:{receiver}:{False}'
-            self.only_send(msg)
+    def declare_war(self, receiver):
+        msg = f'DIPLOMACY_ANSWER:DECLARE_WAR:{self.nick}:{receiver}'
+        self.only_send(msg)
 
-    ''' Funkcja służaca do wypowiadania wojny'''
-    def declare_war(self, sender, receiver, sender_enemies):
-        """ param1: nadawca (str), param2: odbiorca (str), param3: lista wrogów (list of stringd/nicks)"""
-        if receiver in sender_enemies:
-            return f'{receiver} is already your enemy'
-        else:
-            msg = f'DECLARE_WAR:{sender}:{receiver}:{False}'
-            self.only_send(msg)
-
-    '''' Podczas wojny możemy się poddać'''
-    def give_up(self, sender, receiver, sender_enemies):
-        """ param1: nadawca (str), param2: odbiorca (str), param3: lista wrogów (list of stringd/nicks)"""
-        if receiver in sender_enemies:
-            return f'{receiver} is already your enemy'
-        else:
-            msg = f'GIVE_UP:{sender}:{receiver}:{False}'
-            self.only_send(msg)
-
+    ''' Podczas wojny możemy się poddać ~ BW '''
     ''' Lub zaproponować rozejm'''
-    def send_truce_request(self, sender, receiver, sender_enemies):
+
+    def send_truce_request(self, receiver):
         """ param1: nadawca (str), param2: odbiorca (str), param3: lista wrogów (list of stringd/nicks)"""
-        if receiver not in sender_enemies:
-            return f'{receiver} is not your enemy, so you cant send truce request to him'
-        else:
-            msg = f'TRUCE:{sender}:{receiver}:{False}'
-            self.only_send(msg)
+        msg = f'DIPLOMACY:TRUCE:{self.nick}:{receiver}'
+        self.only_send(msg)
 
-    ''' Wysyłanie propozycji kupna'''
-    def send_buy_request(self, sender, receiver, price, resource, my_granary,
-                         seller_granary, is_city=False, city_cords=(), quantity=1):
-        """ param1 : nick nadawcy (str), param2 : nick odbiorcy (str), param3: proponowana cena (int),
-        param4: nazwa surowca (str),
-        param5: mój skarbiec (granary), param6: skarbiec sprzedawcy (granary),
-        param6: czy sprzedajemy miasto (bool), param7: wsp. miasta (tuple: (x: int, y: int)),
-        param8: ilość surowca/miasta (dla miast domyślna ilośc to 1) (int)
-         return - w razie jakichś problemów zwraca odpowiedni komunikat błędu"""
-        if my_granary.gold < price:
-            return f'You cant afford it'
-        if resource == 'food':
-            if seller_granary.food < quantity:
-                return f'{receiver} has not enough resource of this kind'
-        elif resource == "stone":
-            if seller_granary.stone < quantity:
-                return f'{receiver} has not enough resource of this kind'
-        elif resource == "wood":
-            if seller_granary.wood < quantity:
-                return f'{receiver} has not enough resource of this kind'
-        else:
-            resource_tuple = ()
-            if is_city:
-                resource_tuple = (is_city, city_cords)
-            else:
-                resource_tuple = (is_city, resource)
-            msg = f'BUY:{sender}:{receiver}:{str(resource_tuple)}:{price}:{quantity}:{False}'
-            self.only_send(msg)
+    def buy_city(self, receiver, price, city_cords):
+        msg = f'DIPLOMACY:BUY_CITY:{self.nick}:{receiver}:{city_cords}:{price}'
+        self.only_send(msg)
 
-    '''Wysyłanie propozycji sprzedaży'''
-    def send_sell_request(self, sender, receiver, price, resource, my_granary, buyer_granary, quantity=1):
-        """ param1: nadawca (str), param2: odbiorca (str), param3: cena (int),
-        param4: surowiec (str), param5: mój skarbiec (granary), param6: skarbiec
-        kupca (granary), param7: ilość surowca (int)
-         return - w razie jakichś problemów zwraca odpowiedni komunikat błędu"""
-        if buyer_granary.gold < price:
-            return f'{receiver} cant afford it'
-        if resource == 'food':
-            if my_granary.food < quantity:
-                return f'You have not enough resource of this kind'
-        elif resource == 'stone':
-            if my_granary.stone < quantity:
-                return f'You have not enough resource of this kind'
-        elif resource == 'wood':
-            if my_granary.wood < quantity:
-                return f'You have not enough resource of this kind'
-        else:
-            msg = f'SELL:{sender}:{receiver}:{resource}:{price}:{quantity}:{False}'
-            self.only_send(msg)
-
-    ''' Wysyłamy nasze odpowiedzi na serwer i serwer wysyła je do odpowiednich graczy'''
-    def send_response_to_players(self, sender, response_list):
-        """param1: nadawca (str), param2: lista odpowiedzi (list of strings) """
-        msg = f'SEND_RESP:{sender}:{str(response_list)}'
+    def buy_resource(self, receiver, price, resource, quantity):
+        msg = f'DIPLOMACY:BUY_RESOURCE:{self.nick}:{receiver}:{resource.lower()}:{price}:{quantity}'
         self.only_send(msg)
 
     ''' Rozpatrujemy propozycje innych graczy '''
@@ -408,9 +291,9 @@ class Client:
                 information_list.extend([f'{fields_values[1]} has bought {cords} city from {fields_values[2]}'])
             return information_list
 
-
     ''' Dla Patryka - zwraca napis będący odpowiednim komunikatem. Dzięki temu będziemy musieli tylko podpiąć jakieś
     okno do wyświetlania wiadomości. To wcale nie musi być w klasie klienckiej (a nawet chyba nie powinno) '''
+
     def display_message_queue(self, messages):
         """param1: lista wiadomości danego użytkownika (z serwera) (list of strings)
         return - lista stringów (odpowiednio spreparowanych zdań)"""
@@ -487,9 +370,12 @@ class Client:
                             f'Price: {value_fields[-3]}')
             return information_list
 
+    ''' Funkcja do pobierania listy wiadomości z serwera'''
 
-
-
-
-
-
+    def get_messages_from_server(self, sender):
+        """ param1: nadawca (str)
+        return - lista wiadomości z serwera (lista stringów) """
+        msg = f'LIST_MSGS:{sender}'
+        resp = self.send_msg(msg)
+        msg_queue = eval(resp)
+        return msg_queue
