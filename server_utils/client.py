@@ -251,11 +251,7 @@ class Client:
         self.only_send(msg)
 
     def buy_resource(self, receiver, price, resource, quantity):
-        msg = f'DIPLOMACY:BUY_RESOURCE:{self.nick}:{receiver}:{resource}:{price}:{quantity}'
-        self.only_send(msg)
-
-    def send_sell_request(self, receiver, price, resource, quantity=1):
-        msg = f'DIPLOMACY:SELL:{self.nick}:{receiver}:{resource}:{price}:{quantity}'
+        msg = f'DIPLOMACY:BUY_RESOURCE:{self.nick}:{receiver}:{resource.lower()}:{price}:{quantity}'
         self.only_send(msg)
 
     ''' Rozpatrujemy propozycje innych graczy '''

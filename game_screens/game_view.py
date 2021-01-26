@@ -463,18 +463,29 @@ class GameView(arcade.View):
                     self.diplo_answered.wait()
                     if message[1] == "DECLARE_WAR":
                         self.game_logic.me.enemies.append(self.game_logic.players[other])
-                    elif message[1] == "ALLIANCE":
+                    elif message[1] == "ALLIANCE" and message[-1]:
                         self.game_logic.me.allies.append(self.game_logic.players[other])
                     elif message[1] == "END_ALLIANCE":
                         self.game_logic.me.allies.remove(self.game_logic.players[other])
-                    elif message[1] == "TRUCE":
+                    elif message[1] == "TRUCE" and message[-1]:
                         self.game_logic.me.enemies.remove(self.game_logic.players[other])
+                    elif message[1] == "BUY_CITY":
+                        if message[-1]:
+                            self.game_logic.give_opponents_city(*eval(message[4]), message[3])
+                        elif message[3] == self.client.nick:
+                            self.game_logic.me.granary.change_resource('gold', int(message[5]))
+                        self.update_topbar = True
                     elif message[1] == "BUY_RESOURCE":
-                        pass
+                        if message[3] == self.client.nick:
+                            self.game_logic.me.granary.change_resource('gold', int(message[5]))
+                            self.game_logic.me.granary.change_resource(message[4], int(message[6]))
+                            self.update_topbar = True
                 else:
                     if message[1] != "BUY_RESOURCE":
                         self.update_diplo = new_message, sender_is_me
                         self.diplo_answered.wait()
+                    if message[1] == "BUY_CITY" and message[-1]:
+                        self.game_logic.give_opponents_city(*eval(message[4]), message[3])
 
             elif message[0] == "DIPLOMACY":
                 if message[3] == self.client.nick:
@@ -483,24 +494,40 @@ class GameView(arcade.View):
                         price = float(message[5])
                         quantity = int(message[6])
                         max_price = ceil(price * quantity)
-                        in_storage = self.game_logic.me.granary.__getattribute__(resource.lower())
-                        actual_quantity = max(quantity, in_storage)
+                        in_storage = self.game_logic.me.granary.get_resource(resource)
+                        actual_quantity = min(quantity, in_storage)
                         actual_price = ceil(price * actual_quantity)
                         change = max_price - actual_price
-                        # TODO granary reconsideration
+
+                        new_message = message.copy()
+                        new_message[5] = actual_price
+                        new_message[6] = actual_quantity
+                        self.update_diplo = new_message, False
+                        self.diplo_answered.wait()
+                        response = self.diplo_popup.accepted
+                        if response:
+                            self.game_logic.me.granary.change_resource('gold', actual_price)
+                            self.game_logic.me.granary.change_resource(resource, -actual_quantity)
+                            self.update_topbar = True
+
                         self.client.only_send(
-                            f"DIPLOMACY_ANSWER:{message[1]}:{message[3]}:{message[2]}:{message[4]}:{change}:{actual_quantity}")
+                            f"DIPLOMACY_ANSWER:{message[1]}:{message[3]}:{message[2]}:{message[4]}:{change if response else max_price}:{actual_quantity if response else 0}:{response}")
 
                     elif message[1] == "BUY_CITY":
                         x, y = eval(message[4])
                         city_name = self.game_logic.get_tile(x, y).city.name
+                        price = int(message[5])
                         new_message = message.copy()
                         new_message[4] = city_name
                         self.update_diplo = new_message, False
                         self.diplo_answered.wait()
                         response = self.diplo_popup.accepted
+                        if response:
+                            self.game_logic.me.granary.change_resource('gold', price)
+                            self.update_topbar = True
                         self.client.only_send(
-                            f"DIPLOMACY_ANSWER:{message[1]}:{message[3]}:{message[2]}:" + ":".join(message[4:]) + f":{response}")
+                            f"DIPLOMACY_ANSWER:{message[1]}:{message[3]}:{message[2]}:" + ":".join(
+                                message[4:]) + f":{response}")
                     else:
                         self.update_diplo = message, False
                         self.diplo_answered.wait()

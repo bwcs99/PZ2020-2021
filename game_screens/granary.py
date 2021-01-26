@@ -15,6 +15,16 @@ class Granary:
         return f" In granary there is " \
                f"gold = {self.gold}, wood = {self.wood}, stone = {self.stone}, food = {self.food}, Master."
 
+    def get_resource(self, which_resource):
+        if which_resource == "gold":
+            return self.gold
+        elif which_resource == "wood":
+            return self.wood
+        elif which_resource == "stone":
+            return self.stone
+        elif which_resource == "food":
+            return self.food
+
     def change_resource(self, which_resource, how_many):
         if which_resource == "gold":
             self.gold += how_many
