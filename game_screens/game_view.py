@@ -461,11 +461,11 @@ class GameView(arcade.View):
                 if involved:
                     if message[1] == "DECLARE_WAR":
                         self.game_logic.me.enemies.append(self.game_logic.players[other])
-                    elif message[1] == "ALLIANCE" and message[-1]:
+                    elif message[1] == "ALLIANCE" and eval(message[-1]):
                         self.game_logic.me.allies.append(self.game_logic.players[other])
                     elif message[1] == "END_ALLIANCE":
                         self.game_logic.me.allies.remove(self.game_logic.players[other])
-                    elif message[1] == "TRUCE" and message[-1]:
+                    elif message[1] == "TRUCE" and eval(message[-1]):
                         self.game_logic.me.enemies.remove(self.game_logic.players[other])
                     elif message[1] == "BUY_CITY":
                         x, y = eval(message[4])

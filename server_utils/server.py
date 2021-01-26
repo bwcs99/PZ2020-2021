@@ -20,7 +20,6 @@ def print_color(text):
 
 
 class Server:
-
     def __init__(self, terrain_map):
         """
         :param terrain_map: A 2D list of integer values representing tile types on the map.
@@ -30,7 +29,7 @@ class Server:
         self.queue = []
         self.connections = dict()
         self.threads = []
-        self.colours = ['BUBBLE_GUM', 'CHERRY', 'PURPLE', 'CORAL', 'MELLOW_APRICOT']
+        self.colours = ['BUBBLE_GUM', 'CHERRY', 'PURPLE', 'CORAL']
         self.civilizations = ["The Great Northern", "Kaediredameria", "Mixtec", "Kintsugi"]
         self.current_player = 0  # index in self.players that indicates who is active
         self.rank = 0  # for now
