@@ -459,8 +459,6 @@ class GameView(arcade.View):
                     new_message[3] = "you"
 
                 if involved:
-                    self.update_diplo = new_message, sender_is_me
-                    self.diplo_answered.wait()
                     if message[1] == "DECLARE_WAR":
                         self.game_logic.me.enemies.append(self.game_logic.players[other])
                     elif message[1] == "ALLIANCE" and message[-1]:
@@ -470,8 +468,10 @@ class GameView(arcade.View):
                     elif message[1] == "TRUCE" and message[-1]:
                         self.game_logic.me.enemies.remove(self.game_logic.players[other])
                     elif message[1] == "BUY_CITY":
-                        if message[-1]:
-                            self.game_logic.give_opponents_city(*eval(message[4]), message[3])
+                        x, y = eval(message[4])
+                        new_message[4] = self.game_logic.get_tile(x, y).city.name
+                        if eval(message[-1]):
+                            self.game_logic.give_opponents_city(x, y, message[3])
                         elif message[3] == self.client.nick:
                             self.game_logic.me.granary.change_resource('gold', int(message[5]))
                         self.update_topbar = True
@@ -480,12 +480,17 @@ class GameView(arcade.View):
                             self.game_logic.me.granary.change_resource('gold', int(message[5]))
                             self.game_logic.me.granary.change_resource(message[4], int(message[6]))
                             self.update_topbar = True
+                    self.update_diplo = new_message, sender_is_me
+                    self.diplo_answered.wait()
+
                 else:
-                    if message[1] != "BUY_RESOURCE":
+                    if message[1] == "BUY_CITY" and eval(message[-1]):
+                        x, y = eval(message[4])
+                        new_message[4] = self.game_logic.get_tile(x, y).city.name
+                        self.game_logic.give_opponents_city(*eval(message[4]), message[3])
+                    if message[1] in ["DECLARE_WAR", "END_ALLIANCE"] or message[1] != "BUY_RESOURCE" and eval(message[-1]):
                         self.update_diplo = new_message, sender_is_me
                         self.diplo_answered.wait()
-                    if message[1] == "BUY_CITY" and message[-1]:
-                        self.game_logic.give_opponents_city(*eval(message[4]), message[3])
 
             elif message[0] == "DIPLOMACY":
                 if message[3] == self.client.nick:
