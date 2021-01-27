@@ -730,7 +730,7 @@ class DiplomaticPopup(PopUp):
         elif message[1] == "BUY_RESOURCE":
             if eval(message[-1]):
                 self.message_label2.text = f"{sender} {'have' if sender_is_me else 'has'} sold {subject}"
-                self.message_label3.text = f"{message[6]} {message[4]} for {message[5]} gold"
+                self.message_label3.text = f"{message[6]} {message[4]} and sent back {message[5]} gold"
             else:
                 self.message_label2.text = f"{sender} {'have' if sender_is_me else 'has'} rejected"
                 self.message_label3.text = f"the trade offer made by {subject}"
