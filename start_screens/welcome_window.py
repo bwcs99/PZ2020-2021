@@ -4,7 +4,7 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QMainWindow, QDesktopWidget, \
     QVBoxLayout, QPushButton
 
-from about_window import AboutWindow
+from start_screens.about_window import AboutWindow
 from start_screens.connect_window import ConnectWindow
 from start_screens.map_generator_window import MapGeneratorWindow
 
