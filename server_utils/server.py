@@ -5,14 +5,9 @@ from random import randint
 from map_generation.spread_players import spread_across_the_map
 from server_utils.player import Player
 
-# Dane potrzebne do wystartowania serwera.
-PORT = 65001
-HOST = '127.0.0.1'
-ADDR = (HOST, PORT)
 FORMAT = 'utf-8'
 HEADER = 200
-DISCONNECT_MESSAGE = "DISCONNECT"
-default_game_time = 30
+
 
 
 def print_color(text):
@@ -35,20 +30,22 @@ class Server:
         self.rank = 0  # for now
         self.started = False
         self.finish = False
-        self.server_sock = self.create_socket(ADDR)
-        self.start_connection(self.server_sock)
+        self.sock = None
+        self.ip = None
+        self.port = None
+        self.create_socket()
 
-    def create_socket(self, address):
+    def create_socket(self):
         """
         Initializes the server's socket.
-        :param address: the server's address that the sock will be bound to
-        :return: the initialized socket
         """
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.settimeout(1)
-        sock.bind(address)
-        return sock
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sock.settimeout(1)
+        self.sock.bind(('', 0))
+        host = socket.gethostname()
+        self.ip = socket.gethostbyname(host)
+        self.port = self.sock.getsockname()[1]
 
     def header_generator(self, str_response):
         """
@@ -59,57 +56,6 @@ class Server:
         resp_len = str(len(str_response)).encode(FORMAT)
         resp_len += b' ' * (HEADER - len(resp_len))
         return resp_len
-
-    def get_particular_players(self, sender, receiver):
-        """ zwraca listę graczy bez użytkowników o nickach sender (str) i receiver (str)
-        return - lista graczy (typ Player) """
-        res_list = []
-        for player in self.players:
-            if player.player_name == str(sender) or player.player_name == str(receiver):
-                continue
-            else:
-                res_list.extend(player)
-        return res_list
-
-    # def inform_others(self, others_list, msg):
-    #     """ dodaje określoną informacje (deklaracje wojny, zawarcie sojuszu itp.) do wiadomości innych użytkowników
-    #     (nie będącymi stronami w danej sprawie). param1 - lista graczy (Player), param2 - wiadomość (str)"""
-    #     for other in others_list:
-    #         other.message_queue.extend([msg])
-
-    ''' Udzielanie odpowiedzi każdemu z graczy'''
-
-    def process_responses(self, response_list):
-        """param1: lista odpowiedzi (str)"""
-        for response in response_list:
-            fields_values = response.split(":")
-            receiver = next((player for player in self.players if player.player_name == fields_values[1]), None)
-            receiver.message_queue.extend([response])
-            others = self.get_particular_players(str(fields_values[1]), str(fields_values[2]))
-            if "END_ALLIANCE" in response:
-                msg = f'EAL_INFO:{fields_values[1]}:{fields_values[2]}'
-                self.inform_others(others, msg)
-            elif "ALLIANCE" in response and bool(fields_values[-1]):
-                msg = f'ALC_INFO:{fields_values[1]}:{fields_values[2]}'
-                self.inform_others(others, msg)
-            elif "DECLARE_WAR" in response:
-                msg = f'DCL_WAR_INFO:{fields_values[1]}:{fields_values[2]}'
-                self.inform_others(others, msg)
-            elif "GIVE_UP" in response:
-                msg = f'GUP_INFO:{fields_values[1]}:{fields_values[2]}'
-                self.inform_others(others, msg)
-            elif "TRUCE" in response and bool(fields_values[-1]):
-                msg = f'TRC_INFO:{fields_values[1]}:{fields_values[2]}'
-                self.inform_others(others, msg)
-            elif "BUY" in response and bool(fields_values[-1]):
-                res_tuple = eval(fields_values[3])
-                is_city = res_tuple[0]
-                cords = res_tuple[1]
-                if is_city:
-                    msg = f'B_INFO:{fields_values[1]}:{fields_values[2]}:{cords}'
-                    self.inform_others(others, msg)
-                else:
-                    continue
 
     def parse_request(self, incoming_msg, conn):
         """
@@ -220,8 +166,6 @@ class Server:
             broadcast.append(f"TURN:{self.queue[0].player_name}".encode(FORMAT))
 
         elif request[0] == "EXIT_LOBBY":
-            # TODO rethink Client.only_send() being used here
-            # response.append(f"ALL_EXIT_LOBBY".encode(FORMAT))
             broadcast = [f"FINISH:::".encode(FORMAT)]
 
         elif request[0] == "QUIT_GAME":
@@ -234,7 +178,6 @@ class Server:
             self.threads.pop(idx)
 
         elif request[0] == "END_GAME":
-            # ranking = self.compute_rank(self.players)
             for player in self.players:
                 player.rank = player.rank - len(self.queue) + 1 if player.rank else 1
             broadcast.append("GAME_ENDED".encode(FORMAT))
@@ -256,23 +199,10 @@ class Server:
         elif request[0] == "GIVE_CITY":
             broadcast = [incoming_msg.encode(FORMAT)]
 
-            #####################################################################
-
         elif request[0].startswith("DIPLOMACY"):
-            print("W diplo")
-            # response.append(incoming_msg.encode(FORMAT))
             wanted = next((player for player in self.players if player.player_name == request[3]), None)
             if wanted is not None:
                 wanted.message_queue.append(incoming_msg.encode(FORMAT))
-            print("Po diplo")
-
-        elif request[0] == "SEND_RESP":
-            print("W przetwarzaniu odpowiedzi")
-            sender = str(request[1])
-            string_list = str(request[2])
-            normal_list = eval(string_list)
-            print(f"Lista po ewaluacji: {normal_list}")
-            self.process_responses(normal_list)
 
         elif request[0] == "LIST_PLAYERS":
             response_list = []
@@ -280,15 +210,6 @@ class Server:
                 response_list.extend([player.player_name])
             response_list_to_str = str(response_list)
             response.append(response_list_to_str.encode(FORMAT))
-
-        elif request[0] == "LIST_MSGS":
-            print("W list_msgs")
-            player_nick = str(request[1])
-            wanted = next((player for player in self.players if player.player_name == player_nick), None)
-            msgs_list = wanted.message_queue
-            msg_list_str = str(msgs_list)
-            response.append(msg_list_str.encode(FORMAT))
-            print("Po list_msgs")
 
         else:
             response.append(f"UNKNOWN OPTION".encode(FORMAT))
@@ -310,7 +231,7 @@ class Server:
                 msg_len = int(msg_len)
                 incoming_message = conn.recv(msg_len).decode(FORMAT)
                 print_color(f"RECEIVED NEW MESSAGE: {incoming_message} from {addr}")
-                if incoming_message == DISCONNECT_MESSAGE:
+                if incoming_message[0] == 'DISCONNECT':
                     connected = False
 
                 response, broadcast = self.parse_request(incoming_message, conn)
@@ -325,16 +246,16 @@ class Server:
                         c.send(length)
                         c.send(mes)
 
-    def start_connection(self, server_socket):
+    def start_connection(self):
         """
         Accepts a new client connection and creates a thread for handling it.
         """
         try:
-            server_socket.listen()
-            print_color(f"IM HERE: {HOST} {PORT}")
+            self.sock.listen()
+            print_color(f"IM HERE: {self.ip} {self.port}")
             while not self.started and not self.finish:
                 try:
-                    conn, addr = server_socket.accept()
+                    conn, addr = self.sock.accept()
                 except socket.timeout:
                     continue
                 self.connections[conn] = None

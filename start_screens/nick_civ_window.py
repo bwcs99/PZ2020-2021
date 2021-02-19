@@ -37,9 +37,9 @@ class CivCombo(QMainWindow):
         self.combo_box.setGeometry(QRect(10, 40, 421, 41))
 
         self.nickname_line = QLineEdit(self)
-        self.nickname_line.setText("Type your nickname")
+        self.nickname_line.setPlaceholderText("Type your nickname")
         self.nickname_line.setMaxLength(18)  # to don't make EnemyCityView to narrow
-        self.nickname_line.setGeometry(QRect(10, 90, 550, 41))
+        self.nickname_line.setGeometry(QRect(10, 90, 541, 41))
 
         self.ok_button = QPushButton(self)
         self.ok_button.setText("Choose")

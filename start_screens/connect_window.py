@@ -43,12 +43,17 @@ class ConnectWindow(QMainWindow):
         # if someone would like to try to remove content of self.text_line after
         # clicking on it I strongly recommend taking some painkillers and alcohol before
         self.text_line = QLineEdit(self)
-        self.text_line.setText("127.0.0.1")  # in default this should be "type address"
+        self.text_line.setPlaceholderText("IP Address")  # in default this should be "type address"
         self.text_line.move(20, 20)
         self.text_line.resize(280, 40)
 
+        self.port_line = QLineEdit(self)
+        self.port_line.setPlaceholderText("Port")
+        self.port_line.move(20, 80)
+        self.port_line.resize(280, 40)
+
         self.button = QPushButton('Connect', self)
-        self.button.move(20, 80)
+        self.button.move(20, 140)
 
         self.button.clicked.connect(self.on_click)
 
@@ -57,7 +62,8 @@ class ConnectWindow(QMainWindow):
 
     def on_click(self):
         host_address = self.text_line.text().strip()  # using strip() for annoying white chars surrounding address
-        self.client.connect()
+        host_port = self.port_line.text().strip()
+        self.client.connect(host_address, host_port)
 
         available_civ = self.client.get_available_civilizations()  # getting not yet chosen civilizations from server.
         #  available_civ now looks like "['a','b','c']". It's string!

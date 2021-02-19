@@ -31,8 +31,9 @@ class MapGeneratorWindow(QMainWindow):
         self.world_map_matrix = None
         self.chosen_civ = "fat_dwarves"
         self.chosen_nick = "fat_Bob"
-        self.sever = None
+        self.server = None
         self.server_thread = None
+        self.server_ready = threading.Event()
         self.init_ui()
 
     def init_ui(self):
@@ -119,7 +120,9 @@ class MapGeneratorWindow(QMainWindow):
             [self.world_map_matrix[y][x] for y in range(len(self.world_map_matrix))]
             for x in range(len(self.world_map_matrix[0]))
         ]
-        self.sever = Server(self.world_map_matrix)
+        self.server = Server(self.world_map_matrix)
+        self.server_ready.set()
+        self.server.start_connection()
 
     def start_server(self):
         """ Starting thread with server """
@@ -129,8 +132,8 @@ class MapGeneratorWindow(QMainWindow):
         self.__init_lobby_window()  # this line continues flow of main thread to lobby window.
 
     def __init_lobby_window(self):
-        sleep(0.5)  # time for server to setup
-        self.lobby_window = LobbyWindow(True, self.chosen_nick, self.chosen_civ)  # True because this is host.
+        self.server_ready.wait()  # time for server to setup
+        self.lobby_window = LobbyWindow(True, self.chosen_nick, self.chosen_civ, server_object=self.server)  # True because this is host.
         self.lobby_window.server_thread = self.server_thread
         self.lobby_window.show()
         self.hide()
