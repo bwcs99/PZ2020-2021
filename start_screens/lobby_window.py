@@ -6,12 +6,13 @@ from arcade import color
 
 from PIL import Image
 from PIL.ImageQt import ImageQt
-from PyQt5.QtCore import QRect
+from PyQt5.QtCore import QRect, Qt
 from PyQt5.QtGui import QPixmap, QColor
 from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QTableWidget, QLabel, QPushButton, QApplication, QHeaderView, \
     QTableWidgetItem, QAbstractItemView
 
 from server_utils.client import Client
+from server_utils.server import Server
 from . import img_gen
 
 
@@ -21,13 +22,13 @@ class LobbyWindow(QMainWindow):
     If you are host, client is constructed inside, if you are client it's passed to constructor.
     """
 
-    def __init__(self, are_you_host: bool, chosen_nick, chosen_civ, client_object=None):
+    def __init__(self, are_you_host: bool, chosen_nick, chosen_civ, client_object=None, server_object=None):
         """ If player is hosting game, constructor should receive True as parameter, else false. """
         super(LobbyWindow, self).__init__()
         self.players_table = None
         self.map_label = QLabel(self)
         self.launch_button = None
-        self.init_ui(are_you_host)
+        self.init_ui(server_object)
         self.game_map = None
         self.server_thread = None
 
@@ -35,7 +36,7 @@ class LobbyWindow(QMainWindow):
 
         if are_you_host is True:  # if you are host, client hasn't been created yet, no it's his time
             self.client = Client()
-            self.client.connect()
+            self.client.connect(server_object.ip, server_object.port)
         else:  # if you are client, you already used client for getting available civilizations
             self.client = client_object
 
@@ -69,7 +70,7 @@ class LobbyWindow(QMainWindow):
         waiting_for_new_players = threading.Thread(target=self.wait_for_new_players, args=(are_you_host,), daemon=True)
         waiting_for_new_players.start()
 
-    def init_ui(self, are_you_host: bool):
+    def init_ui(self, server_object: Server):
         self.setWindowTitle("Age of Divisiveness - Game lobby")
         self.setFixedSize(1070, 630)
 
@@ -92,8 +93,14 @@ class LobbyWindow(QMainWindow):
         self.launch_button = QPushButton(self)
         self.launch_button.setText("Launch")
         self.launch_button.setGeometry(QRect(30, 510, 420, 90))
-        if are_you_host:
+        if server_object:
             self.launch_button.setEnabled(True)
+            about_text = QLabel(
+                f"<b>SERVER ADDRESS:</b> <br>{server_object.ip}<br><br>"
+                f"<b>SERVER PORT:</b> <br>{server_object.port}<br>",
+                self)
+            about_text.setAlignment(Qt.AlignCenter)
+            about_text.setGeometry(QRect(30, 370, 420, 90))
         else:
             self.launch_button.setEnabled(False)
         self.launch_button.clicked.connect(self.__launch_game)

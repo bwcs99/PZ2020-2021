@@ -29,7 +29,7 @@ This is game-development framework [arcade](https://arcade.academy/).
 ```bash
 pip3 install arcade
 pip3 install pyqt5
-pip3 install opencv-python
+pip3 install opencv-python-headless
 ```
 
 ## How to run
