@@ -53,7 +53,7 @@ class Client:
         try:
             self.sock.connect((ip, int(port)))
         except ConnectionRefusedError as e:
-            return f'Game is not hosted yet!'
+            return f'Game is not hosted yet.'
 
     # Standard disconnection method
     def disconnect(self):
@@ -72,6 +72,7 @@ class Client:
 
     # Method allowing to send basic info to server
     def introduce_yourself(self, chosen_nick, chosen_civ):
+
         self.nick = chosen_nick
         self.send_msg("ADD_NEW_PLAYER:" + chosen_nick + "::")
         self.send_msg("CHOOSE_CIVILISATION:" + chosen_nick + ":" + chosen_civ + ":")
@@ -229,7 +230,6 @@ class Client:
     ''' Lub zaproponować rozejm'''
 
     def send_truce_request(self, receiver):
-        """ param1: nadawca (str), param2: odbiorca (str), param3: lista wrogów (list of stringd/nicks)"""
         msg = f'DIPLOMACY:TRUCE:{self.nick}:{receiver}'
         self.only_send(msg)
 

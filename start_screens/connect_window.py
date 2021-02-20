@@ -92,9 +92,9 @@ class ConnectWindow(QMainWindow):
 
         return True
 
-
     def disable_button(self):
-        if len(self.text_line.text()) > 0 and len(self.port_line.text()) > 0 and self.is_valid_ipv4_address(self.text_line.text()):
+        if len(self.text_line.text()) > 0 and len(self.port_line.text()) > 0 and self.is_valid_ipv4_address(
+                self.text_line.text()):
             self.button.setDisabled(False)
         else:
             self.button.setDisabled(True)
