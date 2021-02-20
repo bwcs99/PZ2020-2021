@@ -1,6 +1,5 @@
 import sys
 import threading
-from time import sleep
 
 from PIL.ImageQt import ImageQt
 from PyQt5.QtCore import QRect
@@ -10,9 +9,9 @@ from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QApplication, QPushButt
 
 from map_generation import generate_map
 from server_utils.server import Server
-from . import img_gen
-from .lobby_window import LobbyWindow
-from .nick_civ_window import CivCombo
+from start_screens import img_gen
+from start_screens.lobby_window import LobbyWindow
+from start_screens.nick_civ_window import CivCombo
 
 
 class MapGeneratorWindow(QMainWindow):
@@ -22,11 +21,13 @@ class MapGeneratorWindow(QMainWindow):
     2. creating thread for server, server afterwards is kept parallel to the rest of application.
     """
 
-    def __init__(self):
+    def __init__(self, parent):
         super(MapGeneratorWindow, self).__init__()
+        self.parent = parent
         self.map = None
         self.generate_button = None
         self.ok_button = None
+        self.back_button = None
         self.seed_line = None
         self.world_map_matrix = None
         self.chosen_civ = "fat_dwarves"
@@ -38,7 +39,7 @@ class MapGeneratorWindow(QMainWindow):
 
     def init_ui(self):
         self.setWindowTitle("Age of Divisiveness - Map Generator")
-        self.setFixedSize(800, 600)
+        self.setFixedSize(800, 660)
 
         self.map = QLabel(self)
         self.map.setGeometry(QRect(6, 10, 781, 521))
@@ -61,6 +62,11 @@ class MapGeneratorWindow(QMainWindow):
         self.ok_button.setText("OK")
         self.ok_button.setGeometry(QRect(590, 550, 191, 41))
         self.ok_button.clicked.connect(self.prepare_for_game)
+
+        self.back_button = QPushButton(self)
+        self.back_button.setText("Back")
+        self.back_button.setGeometry(QRect(10, 600, 191, 41))
+        self.back_button.clicked.connect(self.__go_back)
 
         self.center()
         self.show()
@@ -137,6 +143,11 @@ class MapGeneratorWindow(QMainWindow):
         self.lobby_window.server_thread = self.server_thread
         self.lobby_window.show()
         self.hide()
+
+
+    def __go_back(self):
+        self.close()
+        self.parent.show()
 
     def center(self):  # center window on screen
         qr = self.frameGeometry()

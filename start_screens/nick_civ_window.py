@@ -1,9 +1,5 @@
-import socket
-from time import sleep
-
 from PyQt5.QtCore import QRect, Qt
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QLabel, QLineEdit, QPushButton, QMessageBox, QComboBox
+from PyQt5.QtWidgets import QMainWindow, QDesktopWidget, QLineEdit, QPushButton, QComboBox
 
 
 class CivCombo(QMainWindow):
@@ -40,14 +36,22 @@ class CivCombo(QMainWindow):
         self.nickname_line.setPlaceholderText("Type your nickname")
         self.nickname_line.setMaxLength(18)  # to don't make EnemyCityView to narrow
         self.nickname_line.setGeometry(QRect(10, 90, 541, 41))
+        self.nickname_line.textChanged.connect(self.disable_button)
 
         self.ok_button = QPushButton(self)
         self.ok_button.setText("Choose")
         self.ok_button.setGeometry(QRect(450, 40, 101, 41))
         self.ok_button.clicked.connect(self.choose_civ)
+        self.ok_button.setDisabled(True)
 
         self.center()
         self.show()
+
+    def disable_button(self):
+        if len(self.nickname_line.text()) > 0:
+            self.ok_button.setDisabled(False)
+        else:
+            self.ok_button.setDisabled(True)
 
     def choose_civ(self):
         """

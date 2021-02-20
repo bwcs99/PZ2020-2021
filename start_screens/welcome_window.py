@@ -1,5 +1,6 @@
 import sys
 
+from PyQt5 import QtCore
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QLabel, QWidget, QMainWindow, QDesktopWidget, \
     QVBoxLayout, QPushButton
@@ -18,6 +19,7 @@ class WelcomeWindow(QMainWindow):
 
     def __init__(self):
         super(WelcomeWindow, self).__init__()
+        self.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.connect_window = None
         self.map_generator_window = None
         self.about_window = None
@@ -70,19 +72,19 @@ class WelcomeWindow(QMainWindow):
         self.move(qr.topLeft())
 
     def __init_connect_to_server_window(self):
-        self.connect_window = ConnectWindow()
+        self.connect_window = ConnectWindow(self)
         self.connect_window.show()
-        self.hide()
+        self.close()
 
     def __init_map_generator_window(self):
-        self.map_generator_window = MapGeneratorWindow()
+        self.map_generator_window = MapGeneratorWindow(self)
         self.map_generator_window.show()
-        self.hide()
-        pass
+        self.close()
 
     def __show_about(self):
         self.about_window = AboutWindow()
         self.about_window.show()
+
 
 
 # for testing
